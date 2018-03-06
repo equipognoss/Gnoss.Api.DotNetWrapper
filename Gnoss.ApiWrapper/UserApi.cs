@@ -1,0 +1,727 @@
+﻿using Gnoss.ApiWrapper.ApiModel;
+using Gnoss.ApiWrapper.Exceptions;
+using Gnoss.ApiWrapper.Helpers;
+using Gnoss.ApiWrapper.Model;
+using Gnoss.ApiWrapper.OAuth;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+
+namespace Gnoss.ApiWrapper
+{
+
+    /// <summary>
+    /// Wrapper for GNOSS user API
+    /// </summary>
+    public class UserApi : GnossApiWrapper
+    {
+
+        #region Constructors
+
+        /// <summary>
+        /// Constructor of <see cref="UserApi"/>
+        /// </summary>
+        /// <param name="communityShortName">Community short name which you want to use the API</param>
+        /// <param name="oauth">OAuth information to sign the Api requests</param>
+        public UserApi(OAuthInfo oauth, string communityShortName) : base(oauth, communityShortName)
+        {
+
+        }
+
+        /// <summary>
+        /// Consturtor of <see cref="UserApi"/>
+        /// </summary>
+        /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
+        public UserApi(string configFilePath) : base(configFilePath)
+        {
+
+        }
+
+        #endregion
+
+        #region Public methods
+
+        /// <summary>
+        /// Get the data a user by user short name
+        /// </summary>
+        /// <param name="userShortName">User short name you want to get data</param>
+        /// <returns>User data that has been requested</returns>
+        public User GetUserByShortName(string userShortName)
+        {
+            User user = null;
+            try
+            {
+                string url = $"{ApiUrl}/user/get-by-short-name?user_short_name={userShortName}&community_short_name={CommunityShortName}";
+
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                user = JsonConvert.DeserializeObject<User>(response);
+
+                if (user != null)
+                {
+                    LogHelper.Instance.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
+                }
+                else
+                {
+                    LogHelper.Instance.Error($"Couldn't get the user {userShortName}: \r\n {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Couldn't get the user {userShortName}: \r\n {ex.Message}");
+                throw;
+            }
+            return user;
+        }
+
+        /// <summary>
+        /// Get the data a user by user identifier
+        /// </summary>
+        /// <param name="userId">User identifier you want to get data</param>
+        /// <returns>User data that has been requested</returns>
+        public User GetUserById(Guid userId)
+        {
+            User user = null;
+            try
+            {
+                string url = $"{ApiUrl}/user/get-by-id?user_ID={userId}&community_short_name={CommunityShortName}";
+
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                user = JsonConvert.DeserializeObject<User>(response);
+
+                if (user != null)
+                {
+                    LogHelper.Instance.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
+                }
+                else
+                {
+                    LogHelper.Instance.Error($"Couldn't get the user {userId}: \r\n {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Couldn't get the user {userId}: \r\n {ex.Message}");
+                throw;
+            }
+            return user;
+        }
+
+        /// <summary>
+        /// Get the data a user by user email
+        /// </summary>
+        /// <param name="email">User email you want to get data</param>
+        /// <returns>User data that has been requested</returns>
+        public User GetUserByEmail(string email)
+        {
+            User user = null;
+            try
+            {
+                string url = $"{ApiUrl}/user/get-by-email?email={email}&community_short_name={CommunityShortName}";
+
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                user = JsonConvert.DeserializeObject<User>(response);
+
+                if (user != null)
+                {
+                    LogHelper.Instance.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
+                }
+                else
+                {
+                    LogHelper.Instance.Error($"Couldn't get the user {email}: \r\n {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Couldn't get the user {email}: \r\n {ex.Message}");
+                throw;
+            }
+            return user;
+        }
+
+
+        /// <summary>
+        /// Validate the user password
+        /// </summary>
+        /// <param name="user">User email</param>
+        /// <param name="password">password</param>
+        /// <returns>True if it's a valid password</returns>
+        public bool ValidatePassword(string user, string password)
+        {
+            bool validPassword = false;
+
+            if (!string.IsNullOrEmpty(user) && !string.IsNullOrEmpty(password))
+            {
+                try
+                {
+                    string url = $"{ApiUrl}/user/validate-password";
+
+                    ParamsLoginPassword model = new ParamsLoginPassword() { login = user, password = password };
+
+                    string postData = JsonConvert.SerializeObject(model);
+
+                    string respuesta = WebRequest("POST", url, postData, "application/json");
+                    validPassword = JsonConvert.DeserializeObject<bool>(respuesta);
+
+                    if (validPassword)
+                    {
+                        LogHelper.Instance.Debug($"The password for the user {user} is correct");
+                    }
+                    else
+                    {
+                        LogHelper.Instance.Debug($"The password for the user {user} isn't correct");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Instance.Error(ex.Message);
+                    throw;
+                }
+            }
+            else
+            {
+                LogHelper.Instance.Error("The user and the password can't be null or empty");
+            }
+
+            return validPassword;
+        }
+
+        /// <summary>
+        /// Gets the position of an organization profile in a community
+        /// </summary>
+        /// <param name="profileId">Organization profile ID</param>
+        /// <returns>Position of the organization profile in a community</returns>
+        public string GetProfileRoleInOrganization(Guid profileId)
+        {
+            string profileRol = "";
+            try
+            {
+                string url = $"{ApiUrl}/user/get-profile-role-in-organization?profile_ID={profileId}&community_short_name={CommunityShortName}";
+
+                profileRol = WebRequest("GET", url)?.Trim('"');
+
+                LogHelper.Instance.Debug($"The profile role of {profileId} in {CommunityShortName} is {profileRol}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the profile role of {profileId}: {ex.Message}");
+                throw;
+            }
+
+            return profileRol;
+        }
+
+        /// <summary>
+        /// Create a user awaiting activation
+        /// </summary>
+        /// <param name="user">User data you want to create</param>
+        /// <returns>User data</returns>
+        public User CreateUserWaitingForActivate(User user)
+        {
+            string json = JsonConvert.SerializeObject(user);
+            User createdUser = null;
+
+            try
+            {
+                string url = $"{ApiUrl}/user/create-user-waiting-for-activate";
+
+                string response = WebRequest("POST", url, json, "application/json");
+                createdUser = JsonConvert.DeserializeObject<User>(response);
+
+                if (createdUser != null)
+                {
+                    LogHelper.Instance.Debug($"User created: {createdUser.name} {createdUser.last_name}");
+                }
+                else
+                {
+                    LogHelper.Instance.Error($"Error creating user {json}: {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error creating user {json}: \r\n{ex.Message}");
+                throw;
+            }
+
+            return createdUser;
+        }
+
+        /// <summary>
+        /// Create a user
+        /// </summary>
+        /// <param name="user">User data you want to create</param>
+        /// <returns>User data</returns>
+        public User CreateUser(User user)
+        {
+            string json = JsonConvert.SerializeObject(user);
+            User createdUser = null;
+            try
+            {
+                string url = $"{ApiUrl}/user/create-user";
+
+                string response = WebRequest("POST", url, json, "application/json");
+                createdUser = JsonConvert.DeserializeObject<User>(response);
+
+                if (createdUser != null)
+                {
+                    LogHelper.Instance.Debug($"User created: {createdUser.name} {createdUser.last_name}");
+                }
+                else
+                {
+                    LogHelper.Instance.Error($"Error creating user {json}: {response}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error creating user {json}: \r\n{ex.Message}");
+                throw;
+            }
+
+            return (createdUser);
+
+        }
+
+        /// <summary>
+        /// Gets the URL to recover the password of a user
+        /// </summary>
+        /// <param name="loginOrEmail">Login o email of the user</param>
+        /// <returns>URL to recover the password of a user</returns>
+        public string GenerateForgottenPasswordUrl(string loginOrEmail)
+        {
+            string link = string.Empty;
+
+            if (!string.IsNullOrEmpty(loginOrEmail))
+            {
+                try
+                {
+                    string url = $"{ApiUrl}/user/generate-forgotten-password-url?login={loginOrEmail}&community_short_name={CommunityShortName}";
+                    link = WebRequest("GET", url)?.Trim('"');
+
+                    LogHelper.Instance.Debug($"Forgotten password url generated {link}");
+                }
+                catch (Exception ex)
+                {
+                    LogHelper.Instance.Error($"Error generating forgotten password url for user {loginOrEmail}: {ex.Message}");
+                    throw;
+                }
+            }
+
+            return link;
+        }
+
+        /// <summary>
+        /// Modify a user
+        /// </summary>
+        /// <param name="user">User data</param>
+        public void ModifyUser(User user)
+        {
+            string json = JsonConvert.SerializeObject(user);
+            try
+            {
+                string url = $"{ApiUrl}/user/modify-user";
+                WebRequest("POST", url, json, "application/json");
+
+                LogHelper.Instance.Debug($"User modify successfully {json}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error trying to modify user {json}: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Delete a user from a community
+        /// </summary>
+        /// <param name="userShortName">User short name to delete</param>
+        public void DeleteUserFromCommunity(string userShortName)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/delete-user-from-community";
+
+                ParamsUserCommunity model = new ParamsUserCommunity() { user_short_name = userShortName, community_short_name = CommunityShortName };
+
+                string postData = JsonConvert.SerializeObject(model);
+
+                WebRequest("POST", url, postData, "application/json");
+
+                LogHelper.Instance.Debug($"User {userShortName} deleted successfully from the community {CommunityShortName}");
+
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error deleting user {userShortName} from the community {CommunityShortName}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Delete a user
+        /// </summary>
+        /// <param name="userId">User identifier to delete</param>
+        public void DeleteUser(Guid userId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/delete-user?user_ID={userId}";
+
+                WebRequestPostWithJsonObject(url, userId);
+
+                LogHelper.Instance.Debug($"User {userId} deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error deleting user {userId}: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Add a user to an organization
+        /// </summary>
+        /// <param name="userId">User ID to delete</param>
+        /// <param name="organizationShortName">Short name of the organization</param>
+        /// <param name="position">Position in the organization</param>
+        /// <param name="communitiesShortNames">Short names of the communities that will be included</param>
+        public void AddUserToOrganization(Guid userId, string organizationShortName, string position, List<string> communitiesShortNames)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/add-user-to-organization";
+
+                ParamsAddUserOrg model = new ParamsAddUserOrg() { user_id = userId, position = position, organization_short_name = organizationShortName, communities_short_names = communitiesShortNames };
+                string postData = JsonConvert.SerializeObject(model);
+
+                WebRequest("POST", url, postData, "application/json");
+
+                LogHelper.Instance.Debug($"User {userId} added successfully to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error adding user {userId} to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Add a user to organization groups
+        /// </summary>
+        /// <param name="userId">User ID </param>
+        /// <param name="organizationShortName">Short name of the organization</param>
+        /// <param name="groupsShortNames">Short names of the organization groups that will be included</param>
+        /// <returns></returns>
+        public void AddUserToOrganizationGroup(Guid userId, string organizationShortName, List<string> groupsShortNames)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/add-user-to-organization-group";
+
+                ParamsAddUserOrgGroups model = new ParamsAddUserOrgGroups() { user_id = userId, organization_short_name = organizationShortName, groups_short_names = groupsShortNames };
+
+                string postData = JsonConvert.SerializeObject(model);
+
+                WebRequest("POST", url, postData, "application/json");
+
+                LogHelper.Instance.Debug($"User {userId} added successfully to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error adding user {userId} to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Gets the modified users from a datetime in a community
+        /// </summary>
+        /// <param name="communityShortName">Community short name</param>
+        /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
+        /// <returns>List with the modified users identifiers</returns>
+        public List<Guid> GetModifiedUsersFromDate(string communityShortName, string searchDate)
+        {
+            List<Guid> users = null;
+            try
+            {
+                if (searchDate.Contains(" ") || !searchDate.Contains("T"))
+                {
+                    LogHelper.Instance.Error($"The search date string is not in the ISO8601 format {searchDate}");
+                    return null;
+                }
+
+                string url = $"{ApiUrl}/user/get-modified-users?community_short_name={communityShortName}&search_date={searchDate}";
+
+                string response = WebRequest("GET", url);
+
+                users = JsonConvert.DeserializeObject<List<Guid>>(response);
+
+                LogHelper.Instance.Debug($"Users obtained of the community {communityShortName} from date {searchDate}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the users of {communityShortName} from date {searchDate}", ex.Message);
+                throw;
+            }
+            return users;
+        }
+
+        /// <summary>
+        /// Gets the novelties of the user from a datetime
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="communityShortName">Community short name</param>
+        /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
+        /// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
+        public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string communityShortName, string searchDate)
+        {
+            UserNoveltiesModel user = null;
+            try
+            {
+                if (searchDate.Contains(" ") || !searchDate.Contains("T"))
+                {
+                    LogHelper.Instance.Error($"The search date string is not in the ISO8601 format {searchDate}");
+                    return null;
+                }
+
+                string url = $"{ApiUrl}/user/get-user-novelties?user_id={userId}&community_short_name={communityShortName}&search_date={searchDate}";
+                string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+                user = JsonConvert.DeserializeObject<UserNoveltiesModel>(response);
+
+                if (user != null)
+                {
+                    LogHelper.Instance.Debug($"Obtained the user {userId} of the community {communityShortName} from the date {searchDate}");
+                }
+                else
+                {
+                    LogHelper.Instance.Debug($"The user {userId} could not be obtained of the community {communityShortName} from the date {searchDate}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the user {userId} of the community {communityShortName} from the date {searchDate}", ex.Message);
+                throw;
+            }
+            return user;
+        }
+
+        /// <summary>
+        /// Gets a single use token to use it in a login action. 
+        /// To login a user, the user must be redirected to the Login service URL, at the page externallogin.aspx
+        /// with the parameters ?loginToken={thistoken}, webToken={webToken}, redirect={urlRedirect}
+        /// The webToken can be accessed by @Session["tokenCookie"] in the views. 
+        /// </summary>
+        /// <param name="email">User's email</param>
+        /// <returns>Token</returns>
+        public string GetLoginTokenForEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                throw new GnossAPIArgumentException("The email can't be null or empty", "email");
+            }
+            else
+            {
+                string url = $"{ApiUrl}/user/generate-login-token-for-email?email={email}";
+                string result = WebRequest($"POST", url, acceptHeader: "application/json")?.Trim('"');
+
+                string token = JsonConvert.DeserializeObject<string>(result);
+
+                return token;
+            }
+        }
+
+        /// <summary>
+        /// Blocks a user
+        /// </summary>
+        /// <param name="userId">User's identifier</param>
+        public void BlockUser(Guid userId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/block?user_id={userId}";
+                WebRequestPostWithJsonObject(url, userId);
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The user '{userId}' could not be blocked");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Unblocks a user
+        /// </summary>
+        /// <param name="userId">User's identifier</param>
+        public void UnblockUser(Guid userId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/unblock?user_id={userId}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The user '{userId}' could not be unblocked");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Adds a social network login to a user
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="socialNetworkUserId">Social network user's identifier</param>
+        /// <param name="socialNetwork">Social network (Facebook, twitter, instagram...)</param>
+        public void AddSocialNetworkLogin(Guid userId, string socialNetworkUserId, string socialNetwork)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/add-social-network-login?user_id={userId}&social_network_user_id={HttpUtility.UrlEncode(socialNetworkUserId)}&social_network={HttpUtility.UrlEncode(socialNetwork)}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be added to user '{userId}'");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Modifies a social network login to a user
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="socialNetworkUserId">Social network user's identifier</param>
+        /// <param name="socialNetwork">Social network (Facebook, twitter, instagram...)</param>
+        public void ModifySocialNetworkLogin(Guid userId, string socialNetworkUserId, string socialNetwork)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/modify-social-network-login?user_id={userId}&social_network_user_id={HttpUtility.UrlEncode(socialNetworkUserId)}&social_network={HttpUtility.UrlEncode(socialNetwork)}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be added to user '{userId}'");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Gets a user by a social network login
+        /// </summary>
+        /// <param name="socialNetworkUserId">Social network user's identifier</param>
+        /// <param name="socialNetwork">Social network (Facebook, twitter, instagram...)</param>
+        /// <returns></returns>
+        public Guid GetUserBySocialNetworkLogin(string socialNetworkUserId, string socialNetwork)
+        {
+            Guid user_id;
+
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user_id-by-social-network-login?social_network_user_id={HttpUtility.UrlEncode(socialNetworkUserId)}&social_network={HttpUtility.UrlEncode(socialNetwork)}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/json");
+
+                user_id = JsonConvert.DeserializeObject<Guid>(result);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be found.");
+                throw;
+            }
+
+            return user_id;
+        }
+
+        /// <summary>
+        /// Gets the user's groups in a community
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="communityShortName">Community short name</param>
+        /// <returns></returns>
+        public List<string> GetGroupsPerCommunity(Guid userId, string communityShortName)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-groups-per-community?user_id={userId}&community_short_name={communityShortName}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/json");
+
+                return JsonConvert.DeserializeObject<List<string>>(result);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"Impossible to get groups of {userId} from community  {communityShortName}. ");
+                throw;
+            }
+        }
+
+
+        /// <summary>
+        /// Gets a social network login by a user id
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="socialNetwork">Social network short name</param>
+        /// <returns>Social network login of the user</returns>
+        public string GetSocialNetworkLoginByUserId(string socialNetwork, Guid userId)
+        {
+            string socialNetworkLogin;
+
+            try
+            {
+                string url = $"{ApiUrl}/user/get-social-network-login-by-user_id?user_id={userId}&social_network={HttpUtility.UrlEncode(socialNetwork)}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/json")?.Trim('"');
+
+                socialNetworkLogin = JsonConvert.DeserializeObject<string>(result);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The user {userId} at {socialNetwork} could not be found.");
+                throw;
+            }
+
+            return socialNetworkLogin;
+        }
+
+        /// <summary>
+        /// Adds the Community CMS Admin rol to a user
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="communityShortName">Community short name</param>
+        public void AddCmsAdminRolToUser(Guid userId, string communityShortName)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/add-permission?user_id={userId}&community_short_name={communityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The community CMS admin rol could not be added to user '{userId}'");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Removes the Community CMS Admin rol to a user
+        /// </summary>
+        /// <param name="userId">User identifier</param>
+        /// <param name="communityShortName">Community short name</param>
+        public void RemoveCmsAdminRolToUser(Guid userId, string communityShortName)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/remove-permission?user_id={userId}&community_short_name={communityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The community CMS admin rol could not be removed from user '{userId}'");
+                throw;
+            }
+        }
+
+        #endregion
+
+    }
+}
