@@ -196,6 +196,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// If it's a new auxiliary entity, you must send the rdf:type and rdfs:label triples too. 
         /// </summary>
         public bool is_new_auxiliary_entity { get; set; }
+
+        /// <summary>
+        /// (Optional) Indicates the language of the object
+        /// </summary>
+        public string language { get; set; }
     }
 
     /// <summary>
@@ -443,6 +448,30 @@ namespace Gnoss.ApiWrapper.ApiModel
         public string community_short_name { get; set; }
     }
 
+    public class VotedParameters
+    {
+
+        /// <summary>
+        /// Resource identificator
+        /// </summary>
+        public Guid resource_id { get; set; }
+
+        /// <summary>
+        /// User identificator who has voted the resource
+        /// </summary>
+        public Guid user_id { get; set; }
+
+        /// <summary>
+        /// Project identificator
+        /// </summary>
+        public Guid project_id { get; set; }
+
+        /// <summary>
+        /// Vote value
+        /// </summary>
+        public float vote_value { get; set; }
+    }
+
     /// <summary>
     /// Parameters to get a resource url
     /// </summary>
@@ -688,6 +717,8 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Categories of the destination community
         /// </summary>
         public List<Guid> categories { get; set; }
+
+        public string publisher_email { get; set; }
     }
 
     /// <summary>
@@ -940,7 +971,108 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string canonical_url { get; set; }
     }
-
+    /// <summary>
+    /// Parameters to create a massive data load
+    /// </summary>
+    public class MassiveDataLoadResource
+    {
+        /// <summary>
+        /// Load identifier
+        /// </summary>
+        public Guid load_id { get; set; }
+        /// <summary>
+        /// Load name
+        /// </summary>
+        public string name { get; set; }
+        /// <summary>
+        /// State of the data load
+        /// </summary>
+        public int state { get; set; }
+        /// <summary>
+        /// Date creation of the data load
+        /// </summary>
+        public DateTime date_create { get; set; }
+        /// <summary>
+        /// Organization identifier
+        /// </summary>
+        public Guid oganization_id { get; set; }
+        /// <summary>
+        /// Project identifier
+        /// </summary>
+        public Guid project_id { get; set; }
+        /// <summary>
+        /// Identity identifier
+        /// </summary>
+        public Guid identity_id { get; set; }
+        /// <summary>
+        /// Short name of the community
+        /// </summary>
+        public string community_name { get; set; }
+    }
+    /// <summary>
+    /// Parameters of a package of data for a massive data load
+    /// </summary>
+    public class MassiveDataLoadPackageResource
+    {
+        /// <summary>
+        /// Package identifier
+        /// </summary>
+        public Guid package_id { get; set; }
+        /// <summary>
+        /// Load identifier
+        /// </summary>
+        public Guid load_id { get; set; }
+        /// <summary>
+        /// Ontology file rute
+        /// </summary>
+        public string ontology_rute { get; set; }
+        /// <summary>
+        /// Search graph file rute
+        /// </summary>
+        public string search_rute { get; set; }
+        /// <summary>
+        /// SQL file rute
+        /// </summary>
+        public string sql_rute { get; set; }
+        /// <summary>
+        /// State of the package
+        /// </summary>
+        public int state { get; set; }
+        /// <summary>
+        /// Error in processing the package
+        /// </summary>
+        public int error { get; set; }
+        /// <summary>
+        /// Date of creation the package
+        /// </summary>
+        public DateTime date_creation { get; set; }
+        /// <summary>
+        /// Date when the package is processed.
+        /// </summary>
+        public DateTime? date_processing { get; set; }
+        /// <summary>
+        /// Ontology name 
+        /// </summary>
+        public string ontology { get; set; }
+        /// <summary>
+        /// The data is compress
+        /// </summary>
+        public bool comprimido { get; set; }
+        /// <summary>
+        /// The package is the last one
+        /// </summary>
+        public bool isLast { get; set; }
+    }
+    /// <summary>
+    /// Model for closing the massive data load
+    /// </summary>
+    public class CloseMassiveDataLoadResource
+    {
+        /// <summary>
+        /// Data load identifier
+        /// </summary>
+        public Guid DataLoadIdentifier { get; set; }
+    }
     /// <summary>
     /// Parameters to upload a resource
     /// </summary>
@@ -1113,6 +1245,17 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if it's the end of the load and must delete the cache
         /// </summary>
         public bool end_of_load { get; set; }
+
+        /// <summary>
+        /// User that try to modify the resource
+        /// </summary>
+        public Guid? user_id { get; set; }
+    }
+
+    public class MassiveResourceLoad
+    {
+        public List<LoadResourceParams> resources { get; set; }
+        public Guid load_id { get; set; }
     }
 
     /// <summary>

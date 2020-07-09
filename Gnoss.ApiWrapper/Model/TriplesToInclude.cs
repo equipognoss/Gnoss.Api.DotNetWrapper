@@ -68,14 +68,16 @@ namespace Gnoss.ApiWrapper.Model
             get { return _predicate; }
             set
             {
-                if (value.Contains("http:"))
-                {
-                    _predicate = value;
-                }
-                else
-                {
-                    throw new GnossAPIArgumentException("The label must be complete, with namespace and without prefix.", "Predicate");
-                }
+                //Modificacion realizada por Fernando y por Jorge: tema didactalia propiedades sin prefijos.
+                _predicate = value;
+                //if (value.Contains("http:"))
+                //{
+                //    _predicate = value;
+                //}
+                //else
+                //{
+                //    throw new GnossAPIArgumentException("The label must be complete, with namespace and without prefix.", "Predicate");
+                //}
             }
         }
 

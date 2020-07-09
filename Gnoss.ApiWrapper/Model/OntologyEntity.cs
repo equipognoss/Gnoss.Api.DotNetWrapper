@@ -157,7 +157,7 @@ namespace Gnoss.ApiWrapper.Model
         /// <returns><c>true</c> if <see cref="OntologyEntity"/> has defined the properties <c>rdf:type</c> and <c>rdfs:label</c>. <c>false</c> in another case</returns>
         public bool HasRDFTypeAndRDFLabelDefined()
         {
-            return HasRdfsLabelDefined() && HasRdfsLabelDefined();
+            return HasRdfsLabelDefined();
         }
 
         #endregion

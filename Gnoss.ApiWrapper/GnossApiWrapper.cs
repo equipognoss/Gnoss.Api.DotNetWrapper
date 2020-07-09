@@ -1,4 +1,5 @@
 ﻿using Es.Riam.Util;
+using Gnoss.ApiWrapper.ApiModel;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.OAuth;
@@ -6,6 +7,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -68,6 +70,7 @@ namespace Gnoss.ApiWrapper
         private const string _affinityTokenKey = "AffinityTokenGnossAPI";
 
         private static ConcurrentDictionary<int, string> _affinityTokenPerProcess = new ConcurrentDictionary<int, string>();
+        private Dictionary<Guid, string> _resourceLockTokens = new Dictionary<Guid, string>();
 
         /// <summary>
         /// The executable location
@@ -170,6 +173,35 @@ namespace Gnoss.ApiWrapper
             return resultado;
         }
 
+        protected string GetLockTokenForResource(Guid resourceId)
+        {
+            if (_resourceLockTokens.ContainsKey(resourceId))
+            {
+                return _resourceLockTokens[resourceId];
+            }
+            return null;
+        }
+
+        protected void SetLockTokenForResource(Guid resourceId, string token)
+        {
+            if (!_resourceLockTokens.ContainsKey(resourceId))
+            {
+                if (token == null)
+                {
+                    //remove
+                    _resourceLockTokens.Remove(resourceId);
+                }
+                else
+                {
+                    _resourceLockTokens.Add(resourceId, token);
+                }
+            }
+            else
+            {
+                _resourceLockTokens[resourceId] = token;
+            }
+        }
+
         #region WebRequest
 
         /// <summary>
@@ -181,37 +213,95 @@ namespace Gnoss.ApiWrapper
         /// <returns>Response of the server</returns>
         protected string WebRequestPostWithJsonObject(string url, object model, string acceptHeader = "")
         {
+            Dictionary<string, string> otherHeaders = new Dictionary<string, string>();
+            SendLockTokenForResource(model, otherHeaders);
+
             string json = JsonConvert.SerializeObject(model);
-            return WebRequest("POST", url, json, "application/json", acceptHeader);
+
+            HttpWebRequest webRequest = PrepareWebRequest("POST", url, json, "application/json", acceptHeader, otherHeaders);
+
+            try
+            {
+                WebResponse response = webRequest.GetResponse();
+
+                UpdateLockTokenForResource(response, model);
+
+                return ReadWebResponse(response);
+            }
+            catch (WebException ex)
+            {
+                string message = null;
+                try
+                {
+                    StreamReader sr = new StreamReader(ex.Response.GetResponseStream());
+                    message = sr.ReadToEnd();
+                    LogHelper.Instance.Error($"{ex.Message}. \r\nResponse: {message}");
+                }
+                catch { }
+
+                if (!string.IsNullOrEmpty(message))
+                {
+                    throw new GnossAPIException(message);
+                }
+
+                // Error reading the error response, throw the original exception
+                throw;
+            }
         }
 
-        /// <summary>
-        /// Request an url with an oauth sign
-        /// </summary>
-        /// <param name="httpMethod">Http method (GET, POST, PUT...)</param>
-        /// <param name="url">Url to make the request</param>
-        /// <param name="postData">(Optional) Post data to send in the body request</param>
-        /// <param name="contentType">(Optional) Content type of the postData</param>
-        /// <param name="acceptHeader">(Optional) Accept header</param>
-        /// <returns>Response of the server</returns>
-        protected string WebRequest(string httpMethod, string url, string postData = "", string contentType = "", string acceptHeader = "")
+        private void SendLockTokenForResource(object model, Dictionary<string, string> otherHeaders)
         {
-            HttpWebRequest webRequest = null;
-            StreamWriter requestWriter = null;
-            string responseData = "";
+            Guid? resourceId = GetResourceIdFromModel(model);
+            if (resourceId.HasValue)
+            {
+                string token = GetLockTokenForResource(resourceId.Value);
+                if (!string.IsNullOrEmpty(token))
+                {
+                    otherHeaders.Add("X-Correlation-ID", token);
+                }
+            }
+        }
 
-            webRequest = System.Net.WebRequest.Create(url) as HttpWebRequest;
-            webRequest.Method = httpMethod;
-            webRequest.ServicePoint.Expect100Continue = false;
-            webRequest.Timeout = 200000;
-            
+        private void UpdateLockTokenForResource(WebResponse webResponse, object model)
+        {
+            if (webResponse != null && !string.IsNullOrEmpty(webResponse.Headers["X-Correlation-ID"]))
+            {
+                string lockToken = webResponse.Headers["X-Correlation-ID"];
+
+                Guid? resourceId = GetResourceIdFromModel(model);
+                if (resourceId.HasValue)
+                {
+                    SetLockTokenForResource(resourceId.Value, lockToken);
+                }
+            }
+        }
+
+        private Guid? GetResourceIdFromModel(object model)
+        {
+            if (model is ModifyResourceTripleListParams)
+            {
+                return ((ModifyResourceTripleListParams)model).resource_id;
+            }
+            else if (model is ModifyResourceProperty)
+            {
+                return ((ModifyResourceProperty)model).resource_id;
+            }
+            else if (model is LoadResourceParams)
+            {
+                return ((LoadResourceParams)model).resource_id;
+            }
+            return null;
+        }
+
+        private void SetOauthHeader(HttpWebRequest webRequest)
+        {
             string signUrl = webRequest.RequestUri.ToString();
 
             if (!string.IsNullOrEmpty(webRequest.RequestUri.Query))
             {
                 signUrl = webRequest.RequestUri.ToString().Replace(webRequest.RequestUri.Query, "");
-            }
 
+            }
             OAuthInfo OAuth2 = new OAuthInfo(signUrl, OAuthInstance.Token, OAuthInstance.TokenSecret, OAuthInstance.ConsumerKey, OAuthInstance.ConsumerSecret, OAuthInstance.DeveloperEmail);
             string[] partesUrlOAuth = OAuth2.OAuthSignedUrl.Split('?');
 
@@ -226,7 +316,21 @@ namespace Gnoss.ApiWrapper
             string oauth = string.Format("OAuth realm=\"Example\", oauth_consumer_key=\"{0}\", oauth_token=\"{1}\", oauth_signature_method=\"{2}\", oauth_signature=\"{3}\", oauth_timestamp=\"{4}\", oauth_nonce=\"{5}\", oauth_version=\"{6}\"", consumer_key, token, method, signature, timestamp, nonce, version);
 
             webRequest.Headers.Add("Authorization", oauth);
+        }
+
+        private void SetHeaders(HttpWebRequest webRequest, string contentType = "", string acceptHeader = "", Dictionary<string, string> otherHeaders = null)
+        {
             webRequest.Headers.Add("X-Request-ID", AffinityToken);
+
+            SetOauthHeader(webRequest);
+
+            if (otherHeaders != null)
+            {
+                foreach (string header in otherHeaders.Keys)
+                {
+                    webRequest.Headers.Add(header, otherHeaders[header]);
+                }
+            }
 
             if (!string.IsNullOrEmpty(contentType))
             {
@@ -236,6 +340,29 @@ namespace Gnoss.ApiWrapper
             {
                 webRequest.Accept = acceptHeader;
             }
+        }
+
+        /// <summary>
+        /// Request an url with an oauth sign
+        /// </summary>
+        /// <param name="httpMethod">Http method (GET, POST, PUT...)</param>
+        /// <param name="url">Url to make the request</param>
+        /// <param name="postData">(Optional) Post data to send in the body request</param>
+        /// <param name="contentType">(Optional) Content type of the postData</param>
+        /// <param name="acceptHeader">(Optional) Accept header</param>
+        /// <param name="otherHeaders">(Optional) Aditional request headers</param>
+        /// <returns>Response of the server</returns>
+        protected HttpWebRequest PrepareWebRequest(string httpMethod, string url, string postData = "", string contentType = "", string acceptHeader = "", Dictionary<string, string> otherHeaders = null)
+        {
+            HttpWebRequest webRequest = null;
+            StreamWriter requestWriter = null;
+
+            webRequest = System.Net.WebRequest.Create(url) as HttpWebRequest;
+            webRequest.Method = httpMethod;
+            webRequest.ServicePoint.Expect100Continue = false;
+            webRequest.Timeout = 800000;
+
+            SetHeaders(webRequest, contentType, acceptHeader, otherHeaders);
 
             if (httpMethod == "POST" || httpMethod == "PUT" || httpMethod == "DELETE")
             {
@@ -250,9 +377,16 @@ namespace Gnoss.ApiWrapper
                     requestWriter = null;
                 }
             }
+
+            return webRequest;
+        }
+
+        protected string ReadWebResponse(WebResponse webResponse)
+        {
+            string responseData = "";
             try
             {
-                responseData = WebResponseGet(webRequest);
+                responseData = WebResponseGet(webResponse);
             }
             catch (WebException ex)
             {
@@ -274,9 +408,47 @@ namespace Gnoss.ApiWrapper
                 throw;
             }
 
-            webRequest = null;
-
             return responseData;
+        }
+
+        /// <summary>
+        /// Request an url with an oauth sign
+        /// </summary>
+        /// <param name="httpMethod">Http method (GET, POST, PUT...)</param>
+        /// <param name="url">Url to make the request</param>
+        /// <param name="postData">(Optional) Post data to send in the body request</param>
+        /// <param name="contentType">(Optional) Content type of the postData</param>
+        /// <param name="acceptHeader">(Optional) Accept header</param>
+        /// <param name="otherHeaders">(Optional) Aditional request headers</param>
+        /// <returns>Response of the server</returns>
+        protected string WebRequest(string httpMethod, string url, string postData = "", string contentType = "", string acceptHeader = "", Dictionary<string, string> otherHeaders = null)
+        {
+            HttpWebRequest webRequest = PrepareWebRequest(httpMethod, url, postData, contentType, acceptHeader, otherHeaders);
+
+            try
+            {
+                WebResponse response = webRequest.GetResponse();
+                return ReadWebResponse(response);
+            }
+            catch (WebException ex)
+            {
+                string message = null;
+                try
+                {
+                    StreamReader sr = new StreamReader(ex.Response.GetResponseStream());
+                    message = sr.ReadToEnd();
+                    LogHelper.Instance.Error($"{ex.Message}. \r\nResponse: {message}");
+                }
+                catch { }
+
+                if (!string.IsNullOrEmpty(message))
+                {
+                    throw new GnossAPIException(message);
+                }
+
+                // Error reading the error response, throw the original exception
+                throw;
+            }
         }
 
         /// <summary>
@@ -284,14 +456,14 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="pWebRequest">HttpWebRequest object</param>
         /// <returns>Server response</returns>
-        protected string WebResponseGet(HttpWebRequest pWebRequest)
+        protected string WebResponseGet(WebResponse webResponse)
         {
             StreamReader responseReader = null;
             string responseData = "";
 
             try
             {
-                responseReader = new StreamReader(pWebRequest.GetResponse().GetResponseStream(), Encoding.UTF8);
+                responseReader = new StreamReader(webResponse.GetResponseStream(), Encoding.UTF8);
                 responseData = responseReader.ReadToEnd();
             }
             finally

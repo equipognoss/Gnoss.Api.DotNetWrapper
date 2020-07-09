@@ -38,6 +38,27 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to change the category name
+    /// </summary>
+    public class ParamsChangeCategoryName
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Category id
+        /// </summary>
+        public Guid category_id { get; set; }
+
+        /// <summary>
+        /// New category name
+        /// </summary>
+        public string new_category_name { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to delete a node
     /// </summary>
     public class ParamsDeleteNode

@@ -82,6 +82,12 @@ namespace Gnoss.ApiWrapper.ApiModel
         public byte[] logo { get; set; }
     }
 
+    public class CommunityCategoryModel
+    {
+        public string community_short_name { get; set; }
+        public string category_name { get; set; }
+        public Guid? parent_category_id { get; set; }
+    }
 
     /// <summary>
     /// Represents a community
@@ -223,9 +229,30 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to Upload files.
+    /// </summary>
+    public class UploadContentModel
+    {
+        /// <summary>
+        /// path
+        /// </summary>
+        public string path { get; set; }
+
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Bytes of file
+        /// </summary>
+        public byte[] bytes_file { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to add a member to a commmunity
     /// </summary>
-    public class AddMemberModel
+    public class MemberModel
     {
         /// <summary>
         /// User identifier
@@ -367,6 +394,27 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Group short name
         /// </summary>
         public string group_short_name { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a CertificationLevel
+    /// </summary>
+    public class CertificationLevelModel
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// List of certification levels
+        /// </summary>
+        public List<string> certification_levels { get; set; }
+
+        /// <summary>
+        /// Certification politics
+        /// </summary>
+        public string certification_politics { get; set; }
     }
 
     /// <summary>

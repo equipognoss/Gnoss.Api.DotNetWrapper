@@ -29,7 +29,11 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <summary>
         /// Resize the image keeping the aspect ratio without exceeding the width or height indicated
         /// </summary>
-        ResizeToHeightAndWidth = 3
+        ResizeToHeightAndWidth = 3,
+        /// <summary>
+        /// Resize to the indicated size, crop the image and take the top of the image if it is vertical, or the central part if its horizontal
+        /// </summary>
+        CropToHeightAndWidth = 4,
     }
 
     /// <summary>

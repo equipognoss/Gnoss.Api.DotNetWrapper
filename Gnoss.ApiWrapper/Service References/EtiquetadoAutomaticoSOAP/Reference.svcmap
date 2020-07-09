@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="04250b3b-f7d9-4d65-b20b-25be834ccac4" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="52e43f5a-76fa-466f-9033-72b2e4262652" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <GenerateTaskBasedAsynchronousMethod>true</GenerateTaskBasedAsynchronousMethod>
@@ -22,8 +22,8 @@
     <MetadataSource Address="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="etiquetadoautomatico.wsdl" MetadataType="Wsdl" ID="00c66202-d6fa-4cda-bb52-a422631588ae" SourceId="1" SourceUrl="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx?wsdl" />
-    <MetadataFile FileName="etiquetadoautomatico.disco" MetadataType="Disco" ID="cac0de90-5e8e-45ee-bf70-ea9d274e8da2" SourceId="1" SourceUrl="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx?disco" />
+    <MetadataFile FileName="etiquetadoautomatico.wsdl" MetadataType="Wsdl" ID="14c77f77-3c54-4d6c-9350-b51385645758" SourceId="1" SourceUrl="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx?wsdl" />
+    <MetadataFile FileName="etiquetadoautomatico.disco" MetadataType="Disco" ID="acc59727-5d57-47df-af13-04278ec36610" SourceId="1" SourceUrl="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx?disco" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />

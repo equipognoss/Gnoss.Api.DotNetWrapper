@@ -119,6 +119,29 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Modify the category name
+        /// </summary>
+        /// <param name="newCategoryName"></param>
+        /// <param name="category_id"></param>
+        public void ChangeCategoryName(string newCategoryName, Guid categoryId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/thesaurus/change-category-name";
+
+                ParamsChangeCategoryName model = new ParamsChangeCategoryName() { community_short_name = CommunityShortName, category_id = categoryId, new_category_name = newCategoryName};
+
+                WebRequestPostWithJsonObject(url, model);
+
+                LogHelper.Instance.Debug($"The category {categoryId} has been modified");
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        /// <summary>
         /// Adds a category as a parent of another one.
         /// </summary>
         /// <param name="pUrlOntologiaTesauro">URL of the semantic thesaurus ontology</param>
@@ -175,7 +198,7 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                string url = $"{ApiUrl}/thesaurus/change-node-name";
+                string url = $"{ApiUrl}/thesaurus/insert-node";
 
                 ParamsInsertNode model = new ParamsInsertNode() { thesaurus_ontology_url = pUrlOntologiaTesauro, community_short_name = CommunityShortName, rdf_category = pRdfCategoria };
 

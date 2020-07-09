@@ -115,10 +115,56 @@ namespace Gnoss.ApiWrapper
         {
             string tags = StringHelper.UrlEncoderUTF8(string.Join(",", tagList));
 
-            CommunityModel community = new CommunityModel() { community_name = communityName, community_short_name = CommunityShortName, description = description, tags = tags, type = type, access_type = accessType, parent_community_short_name = parentCommunityShortName, admin_id = administratorUserId, organization_short_name = organizationShortName, logo = logo };
+            CommunityModel community = new CommunityModel() { community_name = communityName, community_short_name = communityShortName, description = description, tags = tags, type = type, access_type = accessType, parent_community_short_name = parentCommunityShortName, admin_id = administratorUserId, organization_short_name = organizationShortName, logo = logo };
 
             CreateCommunity(community);
         }
+
+        /// <summary>
+        /// Create a category
+        /// </summary>
+        /// <param name="categoryName">Category name</param>
+        /// <param name="communityShortName">Community short name</param>
+        /// <param name="parentCategoryID">Parent category ID</param>
+        public Guid CreateCategory(string categoryName, string communityShortName, Guid? parentCategoryID)
+        {
+            try
+            {
+                CommunityCategoryModel communityModel = new CommunityCategoryModel() { category_name = categoryName, community_short_name = communityShortName, parent_category_id = parentCategoryID };
+
+                string url = $"{ApiUrl}/community/create-category";
+
+                Log.Fatal($"Inicio llamada 1.{communityModel.category_name} | 2.{communityModel.community_short_name} | 3.{communityModel.parent_category_id}");
+
+                string response = WebRequestPostWithJsonObject(url, communityModel);
+
+                return JsonConvert.DeserializeObject<Guid>(response);
+            }
+            catch(Exception ex)
+            {
+                LogHelper.Instance.Error($"Error creating category {categoryName}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        public void UploadContentFile(UploadContentModel pmodel)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/uploaded-content-file";   
+
+                WebRequestPostWithJsonObject(url, pmodel);
+
+                LogHelper.Instance.Debug($"File update.");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error File update");
+                throw;
+            }
+        }
+
+
 
         /// <summary>
         /// Create a community
@@ -138,6 +184,27 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 LogHelper.Instance.Error($"Error creating community {json}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Create a thesaurus for a community
+        /// </summary>
+        /// <param name="thesaurusXml">Thesaurus to create</param>
+        public string GetThesaurus()
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/get-thesaurus?community_short_name={CommunityShortName}";
+
+                string response = WebRequest("GET", url);
+
+                return JsonConvert.DeserializeObject<string>(response);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the thesaurus from {CommunityShortName}: \r\n {ex.Message}");
                 throw;
             }
         }
@@ -181,6 +248,26 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 LogHelper.Instance.Error($"Error opening community {CommunityShortName}: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Config graph of community
+        /// </summary>
+        public void ConfigGraphCommunity()
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/config-graph-community";
+
+                WebRequestPostWithJsonObject(url, CommunityShortName);
+
+                LogHelper.Instance.Debug($"Config graph community {CommunityShortName}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error graph community {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -243,7 +330,7 @@ namespace Gnoss.ApiWrapper
             {
                 string url = $"{ApiUrl}/community/add-member";
 
-                AddMemberModel model = new AddMemberModel() { community_short_name = CommunityShortName, user_id = userId, identity_type = identityType, organization_short_name = organizationShortName };
+                MemberModel model = new MemberModel() { community_short_name = CommunityShortName, user_id = userId, identity_type = identityType, organization_short_name = organizationShortName };
 
                 WebRequestPostWithJsonObject(url, model);
 
@@ -448,6 +535,32 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 LogHelper.Instance.Error($"Error adding users {string.Join(",", members)} to group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Add a list of users to a community group
+        /// </summary>
+        /// <param name="groupShortName">Short name of the group</param>
+        /// <param name="members">List users that want to add</param>
+        /// <param name="sendNotification">It indicates whether a massage is going to be sent to users telling them has been added to the group</param>
+        public void CreateCertificatioLevels(List<string> certificationLevelsDescription, string certificationPolitics)
+        {
+            string miembros = string.Empty;
+            try
+            {
+                string url = $"{ApiUrl}/community/create-certification-levels";
+
+                CertificationLevelModel model = new CertificationLevelModel() { community_short_name = CommunityShortName, certification_levels = certificationLevelsDescription, certification_politics = certificationPolitics };
+
+                WebRequestPostWithJsonObject(url, model);
+
+                LogHelper.Instance.Debug($"The certification levels has been added to the communtiy {CommunityShortName}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error creating certification levels of the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -749,7 +862,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                LogHelper.Instance.Error($"The user {userId} of the community members '{CommunityShortName}' could not be blocked");
+                LogHelper.Instance.Error($"The user {userId} of the community members '{communityShortName}' could not be blocked");
                 throw;
             }
         }
@@ -771,7 +884,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                LogHelper.Instance.Error($"The user {userId} of the community members '{CommunityShortName}' could not be unblocked");
+                LogHelper.Instance.Error($"The user {userId} of the community members '{communityShortName}' could not be unblocked");
                 throw;
             }
         }
@@ -791,7 +904,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                LogHelper.Instance.Error($"The component id {componentId} of the community '{CommunityShortName}' could not be refreshed");
+                LogHelper.Instance.Error($"The component id {componentId} of the community '{communityShortName}' could not be refreshed");
                 throw;
             }
         }
@@ -810,7 +923,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                LogHelper.Instance.Error($"The components of the community '{CommunityShortName}' could not be refreshed");
+                LogHelper.Instance.Error($"The components of the community '{communityShortName}' could not be refreshed");
                 throw;
             }
         }
@@ -881,6 +994,36 @@ namespace Gnoss.ApiWrapper
             }
         }
 
+        public bool checkIsAdminCommunity(string pShortName, Guid pUserID)
+        {
+            bool esAdmin = false;
+            UserCommunityModel model = new UserCommunityModel();
+            model.community_short_name = pShortName;
+            model.user_id = pUserID;
+            string url = $"{ApiUrl}/community/check-administrator-community";
+            string response=WebRequestPostWithJsonObject(url, model);
+            esAdmin= JsonConvert.DeserializeObject<bool>(response);
+            return esAdmin;
+        }
+
+        public void DowngradeMemberFromAdministrator(Guid userId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/delete-administrator-permission";
+
+                UserCommunityModel model = new UserCommunityModel() { community_short_name = CommunityShortName, user_id = userId };
+
+                WebRequestPostWithJsonObject(url, model);
+
+                LogHelper.Instance.Debug($"The member {userId} has been upgraded to administrator of {CommunityShortName}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error upgrading member {userId} to administrator in {CommunityShortName}: {ex.Message}");
+                throw;
+            }
+        }
         #endregion
 
         #endregion

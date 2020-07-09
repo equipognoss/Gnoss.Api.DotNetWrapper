@@ -198,7 +198,7 @@ namespace Gnoss.ApiWrapper
             string profileRol = "";
             try
             {
-                string url = $"{ApiUrl}/user/get-profile-role-in-organization?profile_ID={profileId}&community_short_name={CommunityShortName}";
+                string url = $"{ApiUrl}/user/get-profile-role-in-organization?profile_id={profileId}&community_short_name={CommunityShortName}";
 
                 profileRol = WebRequest("GET", url)?.Trim('"');
 
@@ -280,6 +280,27 @@ namespace Gnoss.ApiWrapper
             }
 
             return (createdUser);
+
+        }
+
+        /// <summary>
+        /// Veerify User
+        /// </summary>
+        /// <param name="loginOrEmail">Login o email of the user</param>
+        public void VerificarUsuario(string loginOrEmail)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/verify-user?login={loginOrEmail}";
+
+                WebRequest("POST", url, "", "application/json");
+
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error validation user {loginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
+                throw;
+            }
 
         }
 
@@ -445,10 +466,12 @@ namespace Gnoss.ApiWrapper
             List<Guid> users = null;
             try
             {
-                if (searchDate.Contains(" ") || !searchDate.Contains("T"))
+                DateTime fecha = DateTime.Now;
+                bool esFecha = DateTime.TryParse(searchDate, out fecha);
+
+                if (!esFecha)
                 {
-                    LogHelper.Instance.Error($"The search date string is not in the ISO8601 format {searchDate}");
-                    return null;
+                    throw new Exception($"The search date string is not in the ISO8601 format {searchDate}");
                 }
 
                 string url = $"{ApiUrl}/user/get-modified-users?community_short_name={communityShortName}&search_date={searchDate}";
@@ -465,6 +488,32 @@ namespace Gnoss.ApiWrapper
                 throw;
             }
             return users;
+        }
+
+        /// <summary>
+        /// Gets the short name of the communities that manages the user.
+        /// </summary>
+        /// <param name="login">Login of the user</param>
+        /// <returns>Short name of the communities that manages the user</returns>
+        public List<string> GetManagedCommunity(string login)
+        {
+            List<string> communities = null;
+            try
+            {
+                string url = $"{ApiUrl}/user/get-admin-communities?login={login}";
+
+                string response = WebRequest("GET", url);
+
+                communities = JsonConvert.DeserializeObject<List<string>>(response);
+
+                LogHelper.Instance.Debug($"Communities obtained for user {login}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the communities of {login}", ex.Message);
+                throw;
+            }
+            return communities;
         }
 
         /// <summary>
@@ -507,14 +556,15 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Gets a single use token to use it in a login action. 
+        /// Gets a single use token or a long live token to use it in a login action. 
         /// To login a user, the user must be redirected to the Login service URL, at the page externallogin.aspx
         /// with the parameters ?loginToken={thistoken}, webToken={webToken}, redirect={urlRedirect}
         /// The webToken can be accessed by @Session["tokenCookie"] in the views. 
         /// </summary>
         /// <param name="email">User's email</param>
+        /// <param name="longLiveToken">True if the token is going to be used more than one time</param>
         /// <returns>Token</returns>
-        public string GetLoginTokenForEmail(string email)
+        public string GetLoginTokenForEmail(string email, bool longLiveToken = false)
         {
             if (string.IsNullOrEmpty(email))
             {
@@ -522,12 +572,35 @@ namespace Gnoss.ApiWrapper
             }
             else
             {
-                string url = $"{ApiUrl}/user/generate-login-token-for-email?email={email}";
-                string result = WebRequest($"POST", url, acceptHeader: "application/json")?.Trim('"');
+                string url = $"{ApiUrl}/user/generate-login-token-for-email?email={email}&longLiveToken={longLiveToken}";
+                string result = WebRequest($"POST", url, acceptHeader: "application/json");
 
                 string token = JsonConvert.DeserializeObject<string>(result);
 
                 return token;
+            }
+        }
+
+        /// <summary>
+        /// Gets the email asociated to a token. 
+        /// </summary>
+        /// <param name="token">token</param>
+        /// <param name="deleteSingleUseToken">True if it's a single use token, to delete it from the database</param>
+        /// <returns>Token</returns>
+        public string GetEmailByToken(Guid token, bool deleteSingleUseToken = false)
+        {
+            if (token.Equals(Guid.Empty))
+            {
+                throw new GnossAPIArgumentException("The token can't be an empty guid", "token");
+            }
+            else
+            {
+                string url = $"{ApiUrl}/user/get-email-by-token?token={token}&deleteSingleUseToken={deleteSingleUseToken}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/json");
+
+                string email = JsonConvert.DeserializeObject<string>(result);
+
+                return email;
             }
         }
 
@@ -592,7 +665,7 @@ namespace Gnoss.ApiWrapper
         /// Modifies a social network login to a user
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="socialNetworkUserId">Social network user's identifier</param>
+        /// <param name="socialNetworkUserId">New social network user's identifier</param>
         /// <param name="socialNetwork">Social network (Facebook, twitter, instagram...)</param>
         public void ModifySocialNetworkLogin(Guid userId, string socialNetworkUserId, string socialNetwork)
         {
@@ -635,6 +708,28 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Checks if a user id in a social network exists in the system
+        /// </summary>
+        /// <param name="socialNetworkUserId">Social network user's identifier</param>
+        /// <param name="socialNetwork">Social network (Facebook, twitter, instagram...)</param>
+        /// <returns></returns>
+        public bool ExistsSocialNetworkLogin(string socialNetworkUserId, string socialNetwork)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/exists-social-network-login?social_network_user_id={HttpUtility.UrlEncode(socialNetworkUserId)}&social_network={HttpUtility.UrlEncode(socialNetwork)}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/json");
+
+                return JsonConvert.DeserializeObject<bool>(result);
+            }
+            catch (System.Exception)
+            {
+                LogHelper.Instance.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be found.");
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Gets the user's groups in a community
         /// </summary>
         /// <param name="userId">User identifier</param>
@@ -670,9 +765,7 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/user/get-social-network-login-by-user_id?user_id={userId}&social_network={HttpUtility.UrlEncode(socialNetwork)}";
-                string result = WebRequest($"GET", url, acceptHeader: "application/json")?.Trim('"');
-
-                socialNetworkLogin = JsonConvert.DeserializeObject<string>(result);
+                socialNetworkLogin = WebRequest($"GET", url, acceptHeader: "application/json")?.Trim('"');
             }
             catch (System.Exception)
             {

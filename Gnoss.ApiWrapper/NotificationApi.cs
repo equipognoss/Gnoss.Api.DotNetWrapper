@@ -47,13 +47,14 @@ namespace Gnoss.ApiWrapper
         /// <param name="isHTML">It indicates whether the content is html</param>
         /// <param name="receivers">Receivers of the notification</param>
         /// <param name="senderMask">Mask sender of the notification</param>
-        public void SendEmail(string subject, string message, List<string> receivers, bool isHTML = false, string senderMask = "")
+        /// <param name="communityShortName">Community short name</param>
+        public void SendEmail(string subject, string message, List<string> receivers, bool isHTML = false, string senderMask = "", string communityShortName = null)
         {
             try
             {
                 string url = $"{ApiUrl}/notification/send-email";
 
-                NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask};
+                NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask, community_short_name = communityShortName };
 
                 WebRequestPostWithJsonObject(url, model);
 

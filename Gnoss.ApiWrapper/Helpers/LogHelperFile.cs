@@ -41,12 +41,6 @@ namespace Gnoss.ApiWrapper.Helpers
 
         #region Constructors
 
-        static LogHelperFile()
-        {
-            // Defult log level: Warning. Writes Fatal, Error and Warning messages. 
-            LogHelper.LogLevel = LogLevels.WARN;
-        }
-
         /// <summary>
         /// Private constructor
         /// </summary>

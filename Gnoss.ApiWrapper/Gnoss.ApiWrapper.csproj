@@ -94,6 +94,9 @@
     <Compile Include="Helpers\ILogHelper.cs" />
     <Compile Include="Helpers\LogApplicationInsightsHelper.cs" />
     <Compile Include="Helpers\LogHelper.cs" />
+    <Compile Include="Interfaces\IGnossOCBase.cs" />
+    <Compile Include="MassiveLoadResourceApi.cs" />
+    <Compile Include="Model\OntologyCount.cs" />
     <Compile Include="NotificationApi.cs" />
     <Compile Include="Service References\EtiquetadoAutomaticoSOAP\Reference.cs">
       <AutoGen>True</AutoGen>
@@ -152,26 +155,21 @@
     <None Include="Service References\EtiquetadoAutomaticoSOAP\etiquetadoautomatico.wsdl" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Service References\EtiquetadoAutomaticoSOAP\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Service References\EtiquetadoAutomaticoSOAP\configuration.svcinfo" />
+    <None Include="Service References\EtiquetadoAutomaticoSOAP\configuration91.svcinfo" />
+    <None Include="Service References\EtiquetadoAutomaticoSOAP\etiquetadoautomatico.disco" />
+  </ItemGroup>
+  <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadataStorage Include="Service References\EtiquetadoAutomaticoSOAP\" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\EtiquetadoAutomaticoSOAP\etiquetadoautomatico.disco" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\EtiquetadoAutomaticoSOAP\configuration91.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\EtiquetadoAutomaticoSOAP\configuration.svcinfo" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Service References\EtiquetadoAutomaticoSOAP\Reference.svcmap">
-      <Generator>WCF Proxy Generator</Generator>
-      <LastGenOutput>Reference.cs</LastGenOutput>
-    </None>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

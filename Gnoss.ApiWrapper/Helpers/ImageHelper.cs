@@ -28,7 +28,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="widthInPixels">Width to resize</param>
         /// <returns>New image with width = <paramref name="widthInPixels"/></returns>
-        public static Bitmap ResizeImageToWidth(Bitmap image, float widthInPixels)
+        public static Bitmap ResizeImageToWidth(Bitmap image, float widthInPixels,bool pResizeAlways=false)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace Gnoss.ApiWrapper.Helpers
                 float aspectRatio = height / width;
                 Bitmap resultImage = null;
 
-                if (widthInPixels <= height)
+                if (pResizeAlways || widthInPixels <= height)
                 {
                     float newHeight = widthInPixels / aspectRatio;
                     Size size = new SizeF(widthInPixels, newHeight).ToSize();
@@ -124,14 +124,14 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="heightInPixels">Height to resize</param>
         /// <returns>New image with height = <paramref name="heightInPixels"/></returns>
-        public static Bitmap ResizeImageToHeight(Bitmap image, float heightInPixels)
+        public static Bitmap ResizeImageToHeight(Bitmap image, float heightInPixels,bool pResizeAlways=false)
         {
             float height = image.Height;
             float width = image.Width;
             float aspectRatio = width / height;
             Bitmap resultImage = null;
 
-            if (heightInPixels <= height)
+            if (pResizeAlways||heightInPixels <= height)
             {
                 float newWidth = heightInPixels * aspectRatio;
                 Size size = new SizeF(newWidth, heightInPixels).ToSize();
@@ -227,6 +227,44 @@ namespace Gnoss.ApiWrapper.Helpers
                 }
                 return resultImage;
             }
+
+        }
+
+        /// <summary>
+        /// Resize to the indicated size, crop the image and take the top of the image if it is vertical, or the central part if its horizontal
+        /// </summary>
+        /// <param name="image">Image</param>
+        /// <param name="squareSize">Size in pixels of the width and height of the result image</param>
+        /// <returns>Square image</returns>
+        public static Bitmap CropImageToHeightAndWidth(Bitmap image, float pHeight,float pWidth)
+        {
+            float aspcetRatioDeseado = pHeight / pWidth;
+
+
+            Bitmap resultImage = null;
+            float height = image.Height;
+            float width = image.Width;
+            float aspcetRatio = height / width;
+
+            if(aspcetRatio< aspcetRatioDeseado)
+            {
+                Bitmap resizedImage = ResizeImageToHeight(image, pHeight,true);
+                Point origin = new Point(Convert.ToInt32(resizedImage.Width - pWidth) / 2, 0);
+                Size size = new SizeF(pWidth, pHeight).ToSize();
+                Rectangle rectangle = new Rectangle(origin, size);
+                Bitmap cropedImage = resizedImage.Clone(rectangle, resizedImage.PixelFormat);
+                resultImage = cropedImage;
+            }
+            else
+            {
+                Bitmap resizedImage = ResizeImageToWidth(image, pWidth,true);
+                Point origin = new Point(0,Convert.ToInt32(resizedImage.Height - pHeight) / 2);
+                Size size = new SizeF(pWidth, pHeight).ToSize();
+                Rectangle rectangle = new Rectangle(origin, size);
+                Bitmap cropedImage = resizedImage.Clone(rectangle, resizedImage.PixelFormat);
+                resultImage = cropedImage;
+            }            
+            return resultImage;
 
         }
 

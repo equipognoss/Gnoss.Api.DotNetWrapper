@@ -28,7 +28,7 @@ namespace Gnoss.ApiWrapper.Model
         /// </summary>
         public AuxiliaryEntitiesTriplesToInclude()
         {
-            
+
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Gnoss.ApiWrapper.Model
             Name = entityName;
 
             Identifier = entityIdentifier;
-            
+
         }
 
         #endregion
@@ -88,25 +88,19 @@ namespace Gnoss.ApiWrapper.Model
             get { return _predicate; }
             set
             {
-                if (value.Contains("http:"))
+                if (value.Contains("|"))
                 {
-                    if (value.Contains("|"))
-                    {
-                        _predicate = value;
-                    }
-                    else
-                    {
-                        throw new GnossAPIArgumentException("The label must be complete, with complete namespace of the auxiliary entity property + | + complete namespace of the property to load");
-                    }
                     _predicate = value;
                 }
                 else
                 {
-                    throw new GnossAPIArgumentException("The label must be complete, with namespace and without prefix. ", "Predicate");
+                    throw new GnossAPIArgumentException("The label must be complete, with complete namespace of the auxiliary entity property + | + complete namespace of the property to load");
                 }
+                _predicate = value;
             }
         }
-
-        #endregion
     }
+
+    #endregion
 }
+

@@ -885,6 +885,18 @@ namespace Gnoss.ApiWrapper.Model
                                         errorList.Add(gaex.Message);
                                     }
                                     break;
+                                case ImageTransformationType.CropToHeightAndWidth:
+                                    try
+                                    {
+                                        resizedImage = ImageHelper.CropImageToHeightAndWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Height, action.Width);
+                                    }
+                                    catch (GnossAPIException gaex)
+                                    {
+                                        imageModificationError = true;
+                                        errorList.Add(gaex.Message);
+                                    }
+                                    break;
+
                                 default:
                                     throw new GnossAPIException("The ImageTransformationType is not valid");
 

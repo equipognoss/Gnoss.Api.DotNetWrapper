@@ -30,8 +30,10 @@ namespace Gnoss.ApiWrapper
         private string _ontologyNameWithoutExtension;
         private CommunityApi _communityApi;
         private string _loadIdentifier;
-        
-        #endregion  
+        private const int _DEFAULT_LOCK_DURATION = 60;
+        private const int _DEFAULT_TIMEOUT_LOCK = 60;
+
+        #endregion
 
         #region Constructors
 
@@ -57,8 +59,6 @@ namespace Gnoss.ApiWrapper
         public ResourceApi(string configFilePath) : base(configFilePath)
         {
             DeveloperEmail = OAuthInstance.DeveloperEmail;
-           
-            
         }
 
         #endregion
@@ -127,16 +127,6 @@ namespace Gnoss.ApiWrapper
         public string LoadComplexSemanticResource(ComplexOntologyResource resource, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 5)
         {
             return LoadComplexSemanticResourceInt(resource, hierarquicalCategories, isLast, numAttemps);
-        }
-
-        public string GetUrl(Guid resourceID)
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetDownloadUrl(Guid resourceID)
-        {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -495,7 +485,7 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Modifies the complex ontology resource
         /// </summary>
-        /// <param name="resource">Resource to load</param>
+        /// <param name="resource">cccc</param>
         /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
         /// <param name="isLast">There are not resources left to load</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
@@ -1411,10 +1401,11 @@ namespace Gnoss.ApiWrapper
         /// <param name="resourceTriples">Contains as a key the resource guid identifier to modify and as a value a TriplesToModify list of the resource properties that will be modified</param> 
         /// <param name="publishHome">Indicates whether the home must be updated</param>
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
+        /// <param name="userId">Default null. User that try to modify the resource</param>
         /// <returns>Indicates whether the properties have been modified of the loaded resource</returns>
-        public Dictionary<Guid, bool> ModifyPropertiesLoadedResources(Dictionary<Guid, List<TriplesToModify>> resourceTriples, int numAttemps = 2, bool publishHome = false)
+        public Dictionary<Guid, bool> ModifyPropertiesLoadedResources(Dictionary<Guid, List<TriplesToModify>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
-            return ModifyPropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome);
+            return ModifyPropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome, userId);
         }
 
         /// <summary>
@@ -1423,10 +1414,11 @@ namespace Gnoss.ApiWrapper
         /// <param name="resourceTriples">Contains as a key the resource guid identifier to modify and as a value a TriplesToInclude list of the resource properties that will be included.</param>
         /// <param name="publishHome">Indicates whether the home must be updated</param>
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
+        /// <param name="usuarioID">Default null. User that call the method</param>
         /// <returns>Indicates whether the properties have been added to the loaded resource</returns>
-        public Dictionary<Guid, bool> InsertPropertiesLoadedResources(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, int numAttemps = 2, bool publishHome = false)
+        public Dictionary<Guid, bool> InsertPropertiesLoadedResources(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? usuarioID = null)
         {
-            return InsertPropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome);
+            return InsertPropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome, usuarioID);
         }
 
         /// <summary>
@@ -1476,15 +1468,15 @@ namespace Gnoss.ApiWrapper
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
         /// <param name="communityShortName">Community short name where the AuxiliaryEntitiesTriplesToInclude will be loaded</param>
         /// <returns>Indicates whether the properties have been inserted in the auxiliar entity</returns>
-        public bool InsertAuxiliarEntityOnPropertiesLoadedResource(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, string communityShortName = null, int numAttemps = 2, bool publishHome = false)
+        public bool InsertAuxiliarEntityOnPropertiesLoadedResource(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, string communityShortName = null, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
             if (string.IsNullOrEmpty(communityShortName))
             {
-                return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, CommunityShortName, numAttemps, publishHome);
+                return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, CommunityShortName, numAttemps, publishHome, userId);
             }
             else
             {
-                return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, communityShortName, numAttemps, publishHome);
+                return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, communityShortName, numAttemps, publishHome, userId);
             }
         }
 
@@ -2339,6 +2331,13 @@ namespace Gnoss.ApiWrapper
                 LoadResourceParams model = GetResourceModelOfBasicOntologyResource(CommunityShortName, resource, isLast, (short)resourceType);
                 string documentId = CreateBasicOntologyResource(model);
                 resource.Uploaded = true;
+                try
+                {
+                    documentId = JsonConvert.DeserializeObject<string>(documentId);
+                }
+                catch (JsonReaderException ex)
+                {
+                }
                 resource.ShortGnossId = new Guid(documentId);
                 LogHelper.Instance.Debug($"Loaded: {resource.Id}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
             }
@@ -2455,7 +2454,7 @@ namespace Gnoss.ApiWrapper
 
         #region Common methods for basic and complex ontology resources
 
-        private Dictionary<Guid, bool> ModifyPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToModify>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false)
+        private Dictionary<Guid, bool> ModifyPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToModify>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
             Dictionary<Guid, bool> result = new Dictionary<Guid, bool>();
             int processedNumber = 0;
@@ -2500,7 +2499,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad);
+                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, userId);
 
                         LogHelper.Instance.Debug($"{processedNumber} of {resourceTriples.Count}. Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toModify.Remove(docID);
@@ -2532,7 +2531,7 @@ namespace Gnoss.ApiWrapper
             return result;
         }
 
-        private Dictionary<Guid, bool> InsertPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false)
+        private Dictionary<Guid, bool> InsertPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false, Guid? usuarioID = null)
         {
             Dictionary<Guid, bool> result = new Dictionary<Guid, bool>();
             int processedNumber = 0;
@@ -2574,7 +2573,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad);
+                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, usuarioID);
 
                         LogHelper.Instance.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toInsert.Remove(docID);
@@ -2953,7 +2952,7 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        private bool InsertAuxiliarEntityOnPropertiesLoadedResourceInt(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false)
+        private bool InsertAuxiliarEntityOnPropertiesLoadedResourceInt(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
             int processedNumber = 0;
             int attempNumber = 0;
@@ -2985,7 +2984,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad);
+                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, userId);
                         LogHelper.Instance.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         pDiccionarioInsertar.Remove(docID);
                         inserted = true;
@@ -3120,7 +3119,7 @@ namespace Gnoss.ApiWrapper
 
             if (rec.Tags != null)
             {
-            model.tags = rec.Tags.ToList();
+                model.tags = rec.Tags.ToList();
             }
 
             if (pCrearVersion)
@@ -3400,6 +3399,54 @@ namespace Gnoss.ApiWrapper
             }
             return listaIds;
         }
+
+        //GetDocumentsPublishedByUser
+        /// <summary>
+        /// Gets the documents publisher by user
+        /// </summary>
+        /// <param name="userid">User identifier</param>
+        /// <returns>List of community names</returns>
+        public Dictionary<string, List<Guid>> GetDocumentsPublishedByUser(Guid userid)
+        {
+            Dictionary<string, List<Guid>> listaDocs = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/get-documents-published-by-user?user_id={userid}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+
+                listaDocs = JsonConvert.DeserializeObject<Dictionary<string, List<Guid>>>(result);
+
+                LogHelper.Instance.Debug($"the user id {userid} published {result}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the shared communities of {userid}: {ex.Message}");
+                throw;
+            }
+            return listaDocs;
+        }
+
+        public string ObtenerPathEstilos(Guid proyectoid)
+        {
+            string valor = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/get-path-styles?id_proyecto={proyectoid}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+
+                valor = JsonConvert.DeserializeObject<string>(result);
+
+                LogHelper.Instance.Debug($"the proyect id {proyectoid} have styles path {result}");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error getting the shared communities of {proyectoid}: {ex.Message}");
+                throw;
+            }
+            return valor;
+        }
+
+
 
         /// <summary>
         /// Gets the communities where a resource has been shared
@@ -3693,6 +3740,57 @@ namespace Gnoss.ApiWrapper
             }
         }
 
+
+
+        /// <summary>
+        /// Adds the readers of the resuorce
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="readers_list">Resource readers</param>
+        public void AddReaders(Guid resourceId, List<ReaderEditor> readers_list)
+        {
+            SetReadersEditorsParams readers = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/add-readers";
+                readers = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
+                WebRequestPostWithJsonObject(url, readers);
+
+                LogHelper.Instance.Debug($"Ended resource readers setting");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// remove the readers of the resuorce
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="readers_list">Resource readers</param>
+        public void RemoveReaders(Guid resourceId, List<ReaderEditor> readers_list)
+        {
+            SetReadersEditorsParams readers = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/remove-readers";
+                readers = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
+                WebRequestPostWithJsonObject(url, readers);
+
+                LogHelper.Instance.Debug($"Ended resource readers setting");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
+                throw;
+            }
+        }
+
+
+
+
         /// <summary>
         /// Sets the readers of the resuorce
         /// </summary>
@@ -3718,6 +3816,78 @@ namespace Gnoss.ApiWrapper
             }
         }
 
+
+        /// <summary>
+        /// Add the readers of the resuorce
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="readers_list">Resource readers</param>
+        public void AddEditors(Guid resourceId, List<ReaderEditor> readers_list)
+        {
+            SetReadersEditorsParams editors = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/add-editors";
+                editors = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list};
+                WebRequestPostWithJsonObject(url, editors);
+
+                LogHelper.Instance.Debug($"Ended resource editors setting");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// remove the readers of the resuorce
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="readers_list">Resource readers</param>
+        public void RemoveEditors(Guid resourceId, List<ReaderEditor> readers_list)
+        {
+            SetReadersEditorsParams editors = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/remove-editors";
+                editors = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
+                WebRequestPostWithJsonObject(url, editors);
+
+                LogHelper.Instance.Debug($"Ended resource editors setting");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Insert or update Votes for document
+        /// </summary>
+        /// <param name="pIdentidadID">Client ID</param>
+        /// <param name="pValorVoto">Value of vote</param>
+        /// <param name="pDocumentoID">Document ID</param>
+        /// <param name="pProyectoID">Proyect ID</param>
+        public void VoteDocument(Guid pIdentidadID, float pValorVoto, Guid pDocumentoID, Guid pProyectoID)
+        {
+            VotedParameters vote = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/vote-document";
+                vote = new VotedParameters() { user_id = pIdentidadID, vote_value = pValorVoto, resource_id = pDocumentoID, project_id = pProyectoID};
+                WebRequestPostWithJsonObject(url, vote);
+
+                LogHelper.Instance.Debug($"Ended vote document setting");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error vote Document {pDocumentoID}.\r\n Json: {JsonConvert.SerializeObject(vote)}", ex.Message);
+                throw;
+            }
+        }
+
         /// <summary>
         /// Gets the email of the resources creators
         /// </summary>
@@ -3725,11 +3895,15 @@ namespace Gnoss.ApiWrapper
         /// <returns>ResponseGetCreatorEmail list with the email of the resources creators</returns>
         public Dictionary<Guid, string> GetCreatorEmail(List<Guid> resourceId_list)
         {
+            GetDownloadUrlParams model = new GetDownloadUrlParams();
+            model.community_short_name = CommunityShortName;
+            model.resource_id_list = resourceId_list;
+
             Dictionary<Guid, string> emailsList = null;
             try
             {
                 string url = $"{ApiUrl}/resource/get-creator-email";
-                string response = WebRequestPostWithJsonObject(url, resourceId_list);
+                string response = WebRequestPostWithJsonObject(url, model);
                 emailsList = JsonConvert.DeserializeObject<Dictionary<Guid, string>>(response);
 
                 if (emailsList != null && emailsList.Count == 0)
@@ -4028,22 +4202,21 @@ namespace Gnoss.ApiWrapper
             }
 
             return loaded;
-        }
-
+        }      
         /// <summary>
         /// Shares the resource in the target community
         /// </summary>
         /// <param name="targetCommunity">target community short name string</param>
         /// <param name="categories">categories guid list where the document is going to be shared to</param>
         /// <param name="resourceId">resource identifier Guid</param>
-        public bool Share(string targetCommunity, Guid resourceId, List<Guid> categories)
+        public bool Share(string targetCommunity, Guid resourceId, List<Guid> categories, string publisher_email)
         {
             bool shared = false;
             ShareParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/share";
-                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories };
+                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, publisher_email = publisher_email };
                 WebRequestPostWithJsonObject(url, model);
 
                 LogHelper.Instance.Debug("Ended resource sharing");
@@ -4059,6 +4232,31 @@ namespace Gnoss.ApiWrapper
             return shared;
         }
 
+
+        /// <summary>
+        /// Shares the resources
+        /// </summary>
+        /// <param name="parameters">List of shareParams model</param>
+        public bool ShareResources(List<ShareParams> parameters)
+        {
+            bool shared = false;
+            try
+            {
+                string url = $"{ApiUrl}/resource/share-resources";
+                WebRequestPostWithJsonObject(url, parameters);
+
+                LogHelper.Instance.Debug("Ended resource sharing");
+
+                shared = true;
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error sharing resources. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
+                throw;
+            }
+
+            return shared;
+        }
         /// <summary>
         /// Sets the resource main image
         /// </summary>
@@ -4214,6 +4412,81 @@ namespace Gnoss.ApiWrapper
             return resourceId;
         }
 
+
+        /// <summary>
+        /// Creates a complex ontology resource
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <returns>resource identifier guid</returns>
+        public string MassiveComplexOntologyResourceCreation(List<ComplexOntologyResource> parameters, Guid pCargaID, bool hierarquicalCategories = false, string communityShortName = null)
+        {
+            List<LoadResourceParams> listaLoadResourceParams = new List<LoadResourceParams>();
+            foreach (ComplexOntologyResource resource in parameters)
+            {
+                if (resource.TextCategories != null)
+                {
+                    if (hierarquicalCategories)
+                    {
+                        if (string.IsNullOrEmpty(communityShortName))
+                        {
+                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        }
+                        else
+                        {
+                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
+                        }
+                    }
+                    else
+                    {
+                        if (string.IsNullOrEmpty(communityShortName))
+                        {
+                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        }
+                        else
+                        {
+                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
+                        }
+                    }
+                }
+
+                string documentId = string.Empty;
+
+                if (string.IsNullOrEmpty(communityShortName))
+                {
+                    communityShortName = CommunityShortName;
+                }
+
+                LoadResourceParams resourceParam = GetResourceModelOfComplexOntologyResource(communityShortName, resource, false, false);
+                listaLoadResourceParams.Add(resourceParam);
+                resource.Uploaded = true;
+            }
+            MassiveResourceLoad massiveLoad = new MassiveResourceLoad();
+            massiveLoad.resources = listaLoadResourceParams;
+            massiveLoad.load_id = pCargaID;
+            string resourceId = string.Empty;
+            try
+            {
+                string url = $"{ApiUrl}/resource/massive-complex-ontology-resource-creation";
+                WebRequestPostWithJsonObject(url, massiveLoad)?.Trim('"');
+
+                if (!string.IsNullOrEmpty(resourceId))
+                {
+                    LogHelper.Instance.Debug($"Complex ontology resource created: {resourceId}");
+                }
+                else
+                {
+                    LogHelper.Instance.Debug($"Massive Complex ontology resource not created: {JsonConvert.SerializeObject(massiveLoad)}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error trying to create a Massive complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(massiveLoad)}");
+                throw;
+            }
+
+            return resourceId;
+        }
+
         /// <summary>
         /// Modifies a complex ontology resource
         /// </summary>
@@ -4279,13 +4552,14 @@ namespace Gnoss.ApiWrapper
         /// <param name="mainImage">main image string</param>
         /// <param name="publishHome">indicates whether the home must be updated</param>
         /// <param name="endOfLoad">indicates the resource modified is the last and it must deletes cache</param>
-        public void ModifyTripleList(Guid resourceId, List<ModifyResourceTriple> triplesList, string loadId, bool publishHome, string mainImage, List<SemanticAttachedResource> resourceAttachedFiles, bool endOfLoad)
+        /// <param name="userId">User that try to modify the resource </param>
+        public void ModifyTripleList(Guid resourceId, List<ModifyResourceTriple> triplesList, string loadId, bool publishHome, string mainImage, List<SemanticAttachedResource> resourceAttachedFiles, bool endOfLoad, Guid? userId = null)
         {
             ModifyResourceTripleListParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/modify-triple-list";
-                model = new ModifyResourceTripleListParams() { resource_triples = triplesList, charge_id = loadId, resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = resourceAttachedFiles, end_of_load = endOfLoad };
+                model = new ModifyResourceTripleListParams() { resource_triples = triplesList, charge_id = loadId, resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = resourceAttachedFiles, end_of_load = endOfLoad, user_id = userId };
                 WebRequestPostWithJsonObject(url, model);
 
                 LogHelper.Instance.Debug("Ended resource triples list modification");
@@ -4371,6 +4645,71 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Locks a resource for editing for 60 seconds. Just this ResourceApi object can modify the resource from this moment. 
+        /// Don't forget to create a try-finally block, making a request to UnlockResource in the finally clause
+        /// </summary>
+        /// <param name="resourceId">Resource identifier to lock</param>
+        /// <param name="secondsTimeout">Timeout to wait a resource lock, in seconds (60 seconds by default)</param>
+        /// <param name="secondsLockDuration">Max number of seconds a resource will be locked if isn't unlocked before (60 seconds by default)</param>
+        public void LockResource(Guid resourceId, int secondsTimeout = _DEFAULT_TIMEOUT_LOCK, int secondsLockDuration = _DEFAULT_LOCK_DURATION)
+        {
+            string url = $"{ApiUrl}/resource/lock-document?community_short_name={CommunityShortName}&resource_id={resourceId}&lock_seconds_duration={secondsLockDuration}&timeout_seconds={secondsTimeout}";
+            try
+            {
+                string token = WebRequest("POST", url);
+                token = JsonConvert.DeserializeObject<string>(token);
+                SetLockTokenForResource(resourceId, token);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error, the document {resourceId} can't be locked.", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Unlocks a resource previously locked. 
+        /// This method must be called from a finally clause, in order to be sure you unlock a locked resource if something goes wrong
+        /// </summary>
+        /// <param name="resourceId">Resource identifier to unlock</param>
+        public void UnlockResource(Guid resourceId)
+        {
+            string token = GetLockTokenForResource(resourceId);
+            string url = $"{ApiUrl}/resource/unlock-document?community_short_name={CommunityShortName}&resource_id={resourceId}&token={token}";
+            try
+            {
+                WebRequest("POST", url);
+                SetLockTokenForResource(resourceId, null);
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error, the document {resourceId} can't be unlocked.", ex.Message);
+                throw;
+            }
+        }
+
+
+
+        /// <summary>
+        /// Checks if a resource has been previously locked. 
+        /// </summary>
+        /// <param name="resourceId">Resource identifier to verify</param>
+        public bool CheckLockedResource(Guid resourceId)
+        {
+            string token = GetLockTokenForResource(resourceId);
+            string url = $"{ApiUrl}/resource/check-document-is-locked?resource_id={resourceId}";
+            try
+            {
+                return JsonConvert.DeserializeObject<bool>(WebRequest("GET", url));
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error, we couldn't verify if resource {resourceId} was locked.", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Gets the modified resources from a datetime in a community
         /// </summary>
         /// <param name="communityShortName">Community short name</param>
@@ -4449,7 +4788,14 @@ namespace Gnoss.ApiWrapper
         public void ChangeOntoly(string newOntology)
         {
             string ontologia = newOntology.ToLower().Replace(".owl", "");
-            OntologyUrl = OntologyUrl.Replace(OntologyUrl.Substring(OntologyUrl.LastIndexOf($"/") + 1), $"{ontologia}.owl");
+
+            OntologyUrl = null;
+
+            if (!string.IsNullOrEmpty(ontologia))
+            {
+                OntologyUrl = $"{GraphsUrl}Ontologia/{ontologia}.owl";
+            }
+            
         }
 
         /// <summary>
@@ -4489,7 +4835,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>True if the load identifier is already registered</returns>
         public bool CheckLoadIdentifier(string loadIdentifier)
         {
-            string url = $"{ApiUrl}/community/get-responsible-load?community_short_name={CommunityShortName}?load_id={loadIdentifier}";
+            string url = $"{ApiUrl}/community/get-responsible-load?community_short_name={CommunityShortName}&load_id={loadIdentifier}";
 
             DeveloperEmail = WebRequest("GET", url, acceptHeader: "application/json");
 

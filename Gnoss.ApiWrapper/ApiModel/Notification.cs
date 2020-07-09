@@ -34,5 +34,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Sender mask
         /// </summary>
         public string sender_mask { get; set; }
+
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
     }
 }
