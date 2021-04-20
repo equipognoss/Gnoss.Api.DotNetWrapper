@@ -19,38 +19,54 @@ namespace Gnoss.ApiWrapper
     public class MassiveLoadResourceApi : ResourceApi
     {
         private ILogHelper _logHelper;
+       
         /// <summary>
         /// Massive data load identifier
         /// </summary>
         private Guid massiveLoadId;
+        
         /// <summary>
         /// Massive data load name
         /// </summary>
         private string loadName;
+        
         /// <summary>
         /// Directory path of the files
         /// </summary>
         private string filesDirectory;
+        
         /// <summary>
         /// Massive load identifier
         /// </summary>
         public Guid MassiveLoadIdentifier { get; set; }
+        
         /// <summary>
         /// Massive data load name
         /// </summary>
         public string LoadName { get; set; }
+        
         /// <summary>
         /// Directory path of the files
         /// </summary>    
         public string FilesDirectory { get; set; }
+        
         /// <summary>
         /// Number of resources and files
         /// </summary>
         public Dictionary<string, OntologyCount> counter = new Dictionary<string, OntologyCount>();
+        
         /// <summary>
         /// Virtual directory of data
         /// </summary>
         public string Uri { get; set; }
+        
+        /// Max num of resources per packages
+        /// </summary>
+        private int MaxResourcesPerPackage { get; set; }
+
+        private StreamWriter streamData;
+        private StreamWriter streamOntology;
+        private StreamWriter stremSearch;
 
         /// <summary>
         /// Constructor of <see cref="MassiveLoadResourceApi"/>
@@ -59,8 +75,20 @@ namespace Gnoss.ApiWrapper
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, string communityShortName, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string ontologyName = null, string developerEmail = null) : base(oauth, communityShortName, httpContextAccessor, logHelper, ontologyName, developerEmail)
+        public MassiveLoadResourceApi(OAuthInfo oauth, string communityShortName, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string ontologyName = null, string developerEmail = null, int maxResourcesPerPackage = 1000) : base(oauth, communityShortName, httpContextAccessor, logHelper, ontologyName, developerEmail)
         {
+            MaxResourcesPerPackage = maxResourcesPerPackage;
+            _logHelper = logHelper.Instance;
+        }
+
+        /// <summary>
+        /// Consturtor of <see cref="MassiveLoadResourceApi"/>
+        /// </summary>
+        /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
+        /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
+        public MassiveLoadResourceApi(OAuthInfo oauth, string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, int maxResourcesPerPackage) : base(oauth, configFilePath, httpContextAccessor, logHelper)
+        {
+            MaxResourcesPerPackage = maxResourcesPerPackage;
             _logHelper = logHelper.Instance;
         }
 
@@ -72,6 +100,7 @@ namespace Gnoss.ApiWrapper
         {
             _logHelper = logHelper.Instance;
         }
+
         /// <summary>
         /// Create a new massive data load
         /// </summary>
@@ -96,15 +125,9 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 _logHelper.Error($"Error creating the massive data load {MassiveLoadIdentifier}{ex.Message} {ex.StackTrace}");
-
                 throw new GnossAPIException($"Error creating the massive data load {MassiveLoadIdentifier}{ex.Message} {ex.StackTrace}");
             }
         }
-
-        //public List<string> MassiveDataLoadPackageTest(Func<List<string>> resource)
-        //{
-        //    return resource();
-        //}
 
         /// <summary>
         /// Create a new package massive data load
@@ -112,11 +135,8 @@ namespace Gnoss.ApiWrapper
         /// <param name="resource">Interface of the Gnoss Methods</param>
         /// <param name="isLast">The last resource</param>
         /// <returns>Identifier of the package</returns>
-        public Guid MassiveDataLoadPackage(IGnossOCBase resource, bool isLast = false)
+        public void MassiveDataLoadPackage(IGnossOCBase resource)
         {
-
-            Guid identifier = Guid.NewGuid();
-
             try
             {
                 if (!counter.Keys.Contains(OntologyNameWithoutExtension))
@@ -124,45 +144,34 @@ namespace Gnoss.ApiWrapper
                     counter.Add(OntologyNameWithoutExtension, new OntologyCount(0, 0));
                 }
 
-
                 List<string> ontologyTriples = resource.ToOntologyGnossTriples(this);
                 List<string> searchTriples = resource.ToSearchGraphTriples(this);
                 KeyValuePair<Guid, string> acidData = resource.ToAcidData(this);
 
-                //string uri = resource.GetURI(this);
-                //string pathArchivoURI = $@"C:\Users\fortiz\Desktop\relacionArtista.txt";
-                //string lineaURI = $"{resource.GetID()}|||{uri} \r\n"; 
                 string pathOntology = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string uriOntology = $"{Uri}/{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-
                 string pathSearch = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string uriSearch = $"{Uri}/{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-
                 string pathAcid = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
-                string uriAcid = $"{Uri}/{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
 
-                //File.AppendAllText(pathArchivoURI, lineaURI);
-                File.AppendAllLines(pathOntology, ontologyTriples);
-                File.AppendAllLines(pathSearch, searchTriples);
-                File.AppendAllLines(pathAcid, new List<string>() { acidData.Key + "|||" + acidData.Value });
-
-                if (counter[OntologyNameWithoutExtension].ResourcesCount >= 999 || isLast)
+                if (streamData == null || streamOntology == null || stremSearch == null)
                 {
-                    MassiveDataLoadPackageResource model = new MassiveDataLoadPackageResource();
-                    model.package_id = identifier;
-                    model.load_id = MassiveLoadIdentifier;
-                    //model.ontology_rute = pathOntology;
-                    //model.search_rute = pathSearch;
-                    //model.sql_rute = pathAcid;
-                    model.ontology_rute = uriOntology;
-                    model.search_rute = uriSearch;
-                    model.sql_rute = uriAcid;
-                    model.ontology = OntologyUrl;
-                    model.isLast = false;
+                    streamData = new StreamWriter(pathAcid);
+                    streamOntology = new StreamWriter(pathOntology);
+                    stremSearch = new StreamWriter(pathSearch);
+                }
 
-                    CreatePackageMassiveDataLoad(model);
+                foreach (string triple in ontologyTriples)
+                {
+                    streamOntology.WriteLine(triple);
+                }
+                foreach (string triple in searchTriples)
+                {
+                    stremSearch.WriteLine(triple);
+                }
+                streamData.WriteLine($"{acidData.Key}|||{acidData.Value}");
 
-                    _logHelper.Debug($"Package massive data load create with the identifier {identifier}");
+                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage)
+                {
+                    SendPackage();
 
                     counter[OntologyNameWithoutExtension].ResourcesCount = 0;
                     counter[OntologyNameWithoutExtension].FileCount++;
@@ -171,40 +180,28 @@ namespace Gnoss.ApiWrapper
                 {
                     counter[OntologyNameWithoutExtension].ResourcesCount++;
                 }
-
-                return identifier;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating the package of massive data load {identifier}{ex.Message} {ex.StackTrace}");
-                //throw new GnossAPIException($"Error creating the package of massive data load {identifier}{ex.Message}");
-                return Guid.Empty;
+                _logHelper.Error($"Error creating the package of massive data load {ex.Message} {ex.StackTrace}");
             }
         }
+
         /// <summary>
         /// Close a massive data load
         /// </summary>
-        /// <param name="identifier">Identifier of the data load</param>
         /// <returns>True if the data load is closed</returns>
-        public bool CloseDataLoad(Guid identifier)
-        {
-            return CloseMassivaDataLoad(identifier);
-        }
-        /// <summary>
-        /// Close a massive data load
-        /// </summary>
-        /// <param name="identifier">Identifier of massive data load</param>
-        /// <returns>True if the data load is closed</returns>
-        private bool CloseMassivaDataLoad(Guid identifier)
+        public bool CloseMassivaDataLoad()
         {
             string url = $"{ApiUrl}/resource/close-massive-load";
             CloseMassiveDataLoadResource model = null;
             bool closed = false;
             try
             {
+                SendPackage();
                 model = new CloseMassiveDataLoadResource()
                 {
-                    DataLoadIdentifier = identifier
+                    DataLoadIdentifier = MassiveLoadIdentifier
                 };
                 WebRequestPostWithJsonObject(url, model);
                 _logHelper.Debug("Data load is closed");
@@ -212,11 +209,13 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error closing the data load {identifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                _logHelper.Error($"Error closing the data load {MassiveLoadIdentifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
+
             return closed;
         }
+
         /// <summary>
         /// Create the massive data load
         /// <param name="organizationID">OPTIONAL: Organization identifier. If is not write, is '11111111-1111-1111-1111-111111111111'</param>
@@ -249,62 +248,54 @@ namespace Gnoss.ApiWrapper
                 _logHelper.Error($"Error creating massive data load {MassiveLoadIdentifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
+
             return created;
         }
-        private Guid CreateLastMassiveDataLoadPackage(IGnossOCBase resource)
-        {
-            Guid identifier = Guid.NewGuid();
 
+        private void SendPackage()
+        {
             try
             {
-                if (!counter.Keys.Contains(OntologyNameWithoutExtension))
-                {
-                    counter.Add(OntologyNameWithoutExtension, new OntologyCount(0, 0));
-                }
-                List<string> ontologyTriples = resource.ToOntologyGnossTriples(this);
-                List<string> searchTriples = resource.ToSearchGraphTriples(this);
-                KeyValuePair<Guid, string> acidData = resource.ToAcidData(this);
+                string uriOntology = $"{Uri}/{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
+                string uriSearch = $"{Uri}/{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
+                string uriAcid = $"{Uri}/{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
 
-                string pathOntology = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string pathSearch = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string pathAcid = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
+                MassiveDataLoadPackageResource model = new MassiveDataLoadPackageResource();
+                model.package_id = Guid.NewGuid();
+                model.load_id = MassiveLoadIdentifier;
+                model.ontology_rute = uriOntology;
+                model.search_rute = uriSearch;
+                model.sql_rute = uriAcid;
+                model.ontology = OntologyUrl;
+                model.isLast = false;
 
-                File.AppendAllLines(pathOntology, ontologyTriples);
-                File.AppendAllLines(pathSearch, searchTriples);
-                File.AppendAllLines(pathAcid, new List<string>() { acidData.Key + "|||" + acidData.Value });
+                CreatePackageMassiveDataLoad(model);
 
-                if (counter[OntologyNameWithoutExtension].ResourcesCount > 999)
-                {
-                    MassiveDataLoadPackageResource model = new MassiveDataLoadPackageResource();
-                    model.package_id = identifier;
-                    model.load_id = MassiveLoadIdentifier;
-                    model.ontology_rute = pathOntology;
-                    model.search_rute = pathSearch;
-                    model.sql_rute = pathAcid;
-                    model.ontology = OntologyUrl;
-                    model.isLast = true;
+                CloseStreams();
 
-                    CreatePackageMassiveDataLoad(model);
-
-                    _logHelper.Debug($"Package massive data load create with the identifier {identifier}");
-
-                    counter[OntologyNameWithoutExtension].ResourcesCount = 0;
-                    counter[OntologyNameWithoutExtension].FileCount++;
-                }
-                else
-                {
-                    counter[OntologyNameWithoutExtension].ResourcesCount++;
-                }
-
-                return identifier;
+                _logHelper.Debug($"Package massive data load create with the identifier {MassiveLoadIdentifier}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating the package of massive data load {identifier}{ex.Message}");
-                //throw new GnossAPIException($"Error creating the package of massive data load {identifier}{ex.Message}");
-                return Guid.Empty;
+                _logHelper.Error($"Error creating the package of massive data load {ex.Message}");
             }
         }
+
+        private void CloseStreams()
+        {
+            streamData.Flush();
+            streamData.Close();
+            streamData = null;
+
+            streamOntology.Flush();
+            streamOntology.Close();
+            streamOntology = null;
+
+            stremSearch.Flush();
+            stremSearch.Close();
+            stremSearch = null;
+        }
+
         /// <summary>
         /// Creates a new package in a massive data load
         /// </summary>
@@ -325,8 +316,8 @@ namespace Gnoss.ApiWrapper
                 _logHelper.Error($"Error creating massive data load package {model.package_id}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
+
             return created;
         }
-
     }
 }

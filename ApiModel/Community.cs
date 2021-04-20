@@ -318,6 +318,65 @@ namespace Gnoss.ApiWrapper.ApiModel
         public string community_short_name { get; set; }
     }
 
+    public class AddSearchToCacheModel
+    {
+        /// <summary>
+        /// Key to add to cache
+        /// </summary>
+        public string key { get; set; }
+
+        /// <summary>
+        /// Value to add to cache
+        /// </summary>
+        public ConsultaCacheModel value { get; set; }
+
+        /// <summary>
+        /// Short name of the community
+        /// </summary>
+        /// <example>ferdev</example>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Duration of cache expiration in seconds
+        /// </summary>
+        public double duration { get; set; }
+    }
+
+    public class ConsultaCacheModel
+    {
+        public string WhereSPARQL { get; set; }
+        public string WhereFacetasSPARQL { get; set; }
+        public string OrderBy { get; set; }
+        public bool OmitirRdfType { get; set; }
+    }
+
+    /// <summary>
+    /// Model to add an string to cache
+    /// </summary>
+    public class AddToCacheModel
+    {
+        /// <summary>
+        /// Key to add to cache
+        /// </summary>
+        public string key { get; set; }
+
+        /// <summary>
+        /// Value to add to cache
+        /// </summary>
+        public string value { get; set; }
+
+        /// <summary>
+        /// Short name of the community
+        /// </summary>
+        /// <example>ferdev</example>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Duration of cache expiration in seconds
+        /// </summary>
+        public double duration { get; set; }
+    }
+
     /// <summary>
     /// Represents a community group
     /// </summary>

@@ -998,6 +998,40 @@ namespace Gnoss.ApiWrapper.ApiModel
         public AumentedReading aumented_reading { get; set; }
 
     }
+
+    /// <summary>
+    /// Parameters to modify a resource subtype
+    /// </summary>
+    public class ModifyResourceSubtype
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Resource identificator
+        /// </summary>
+        public Guid resource_id { get; set; }
+
+        /// <summary>
+        /// Ontology name of the resource to modify
+        /// </summary>
+        public string ontology_name { get; set; }
+
+        /// <summary>
+        /// Subtype of the resource to modify
+        /// </summary>
+        public string subtype { get; set; }
+
+        public string previous_type { get; set; }
+
+        /// <summary>
+        /// The user that try to modify the resource
+        /// </summary>
+        public Guid? user_id { get; set; }
+    }
+
     /// <summary>
     /// Parameters to create a massive data load
     /// </summary>

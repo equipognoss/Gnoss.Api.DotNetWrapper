@@ -1095,6 +1095,59 @@ namespace Gnoss.ApiWrapper
                 throw;
             }
         }
+
+        /// <summary>
+        /// Add the value sended to cache
+        /// </summary>
+        /// <param name="key">Key to add to cache</param>
+        /// <param name="value">Value to add to cache</param>
+        /// <param name="duration">Duration of the cache expirtation</param>
+        public void AddSearchToCache(string key, string value, double duration)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/add-search-to-cache";
+
+                ConsultaCacheModel queryValue = JsonConvert.DeserializeObject<ConsultaCacheModel>(value);
+
+                AddSearchToCacheModel model = new AddSearchToCacheModel() { key = key, value = queryValue, community_short_name = CommunityShortName, duration = duration };
+
+                WebRequestPostWithJsonObject(url, model);
+
+                _logHelper.Debug($"The value was added correctly to cache to the community: {CommunityShortName} ");
+            }
+            catch (Exception ex)
+            {
+                _logHelper.Error($"Error adding the cache to {CommunityShortName}: {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Add the value sended to cache
+        /// </summary>
+        /// <param name="key">Key to add to cache</param>
+        /// <param name="value">Value to add to cache</param>
+        /// <param name="duration">Duration of the cache expirtation</param>
+        public void AddToCache(string key, string value, double duration)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/add-to-cache";
+
+                AddToCacheModel model = new AddToCacheModel() { key = key, value = value, community_short_name = CommunityShortName, duration = duration };
+
+                WebRequestPostWithJsonObject(url, model);
+
+                _logHelper.Debug($"The value was added correctly to cache to the community: {CommunityShortName} ");
+            }
+            catch (Exception ex)
+            {
+                _logHelper.Error($"Error adding the cache to {CommunityShortName}: {ex.Message}");
+                throw;
+            }
+        }
+
         #endregion
 
         #endregion

@@ -1850,13 +1850,38 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Method to modify the resource's subtype
+        /// </summary>
+        /// <param name="resourceId">Resource identifier guid</param>
+        /// <param name="ontologyName">The ontology name of the resource to modify</param>
+        /// <param name="subtype">The subtype of the resource to modify</param>
+        /// <param name="userId">User that try to modify the resource</param>
+        public void ModifySubtype(Guid resourceId, string ontologyName, string subtype, string previousType, Guid? userId = null)
+        {
+            ModifyResourceSubtype model = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/modify-subtype";
+                model = new ModifyResourceSubtype() { community_short_name = CommunityShortName, ontology_name = ontologyName, resource_id = resourceId, subtype = subtype, previous_type = previousType, user_id = userId };
+                WebRequestPostWithJsonObject(url, model);
+
+                _logHelper.Debug("Ended resource subtype modification");
+            }
+            catch (Exception ex)
+            {
+                LogHelper.Instance.Error($"Error modifying resource subtype. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// This method obtains the categories identifiers of the community thesaurus for each of the categories of the resource to load, considering the case of a multilanguage thesaurus.For each of the thesaurus category, it first checks if the thesaurus is multilanguage (in this case, it contains |||), then each of these categories is converted to string[] and every component of the string is compared with every single resource category.If they are equal, the identifier of this category is obtained and stored in the list of the resource categories. If that is not a multilanguage thesaurus, it checks if the dictionary with the thesaurus categories contains a key that is equal to the category of the resource and if if finds it, the category identifier is stored in the list of resource categories.
         /// </summary>
         /// <param name="notHierarquicalCategoriesList">List of names of not hierarchical categories</param>
         /// <returns>The identifiers of the categories as list of string of the resource to load</returns>
         private List<Guid> GetNotHierarquicalCategoriesIdentifiersList(List<string> notHierarquicalCategoriesList)
         {
-            List<Guid> resultList = null;
+            List<Guid> resultList = new List<Guid>();
             if (notHierarquicalCategoriesList != null && notHierarquicalCategoriesList.Count > 0)
             {
                 string[] categoryList = null;
@@ -1875,10 +1900,6 @@ namespace Gnoss.ApiWrapper
                             {
                                 if (categoryList[i].Substring(0, categoryList[i].IndexOf($"@")).Equals(cat))
                                 {
-                                    if (resultList == null)
-                                    {
-                                        resultList = new List<Guid>();
-                                    }
                                     if (!resultList.Contains(category.category_id))
                                     {
                                         resultList.Add(category.category_id);
@@ -1889,10 +1910,6 @@ namespace Gnoss.ApiWrapper
                                     ThesaurusCategory thesaurusCategory = CommunityApiWrapper.CommunityCategories.Find(comCat => comCat.category_name.Equals(cat));
                                     if (thesaurusCategory != null)
                                     {
-                                        if (resultList == null)
-                                        {
-                                            resultList = new List<Guid>();
-                                        }
                                         if (!resultList.Contains(thesaurusCategory.category_id))
                                         {
                                             resultList.Add(thesaurusCategory.category_id);
@@ -1909,10 +1926,6 @@ namespace Gnoss.ApiWrapper
                             ThesaurusCategory thesaurusCategory = CommunityApiWrapper.CommunityCategories.Find(comCat => comCat.category_name.Equals(cat));
                             if (thesaurusCategory != null)
                             {
-                                if (resultList == null)
-                                {
-                                    resultList = new List<Guid>();
-                                }
                                 if (!resultList.Contains(thesaurusCategory.category_id))
                                 {
                                     resultList.Add(thesaurusCategory.category_id);
@@ -3105,6 +3118,14 @@ namespace Gnoss.ApiWrapper
             model.create_screenshot = rec.GenerateSnapshot;
             model.url_screenshot = rec.DownloadUrl;
             model.screenshot_sizes = rec.SnapshotSizes.ToList();
+            if (rec.SnapshotSizes != null)
+            {
+                model.screenshot_sizes = rec.SnapshotSizes.ToList();
+            }
+            else
+            {
+                model.screenshot_sizes = new List<int>();
+            }
             model.end_of_load = pEsUltimo;
 
             model.creation_date = rec.CreationDate;
