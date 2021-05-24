@@ -15,6 +15,7 @@ using Gnoss.ApiWrapper.Web;
 using Gnoss.ApiWrapper.EtiquetadoAutomaticoSOAP;
 using Gnoss.ApiWrapper.ApiModel;
 using System.Xml;
+using System.Text.Json;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 
@@ -1524,11 +1525,12 @@ namespace Gnoss.ApiWrapper
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="ontologiaName">Graph name where the query runs (without extension '.owl')</param>
+        /// <param name="userMasterServer">Use Master Virtuoso</param>
         /// <returns>DataSet with the query result</returns>
-        public SparqlObject VirtuosoQuery(string selectPart, string wherePart, string ontologiaName)
+        public SparqlObject VirtuosoQuery(string selectPart, string wherePart, string ontologiaName, bool userMasterServer = true)
         {
             _logHelper.Trace("Entering the method", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
-            return VirtuosoQueryInt(selectPart, wherePart, ontologiaName);
+            return VirtuosoQueryInt(selectPart, wherePart, ontologiaName, userMasterServer);
         }
 
         /// <summary>
@@ -1538,10 +1540,10 @@ namespace Gnoss.ApiWrapper
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="communityId">Community identifier</param>
         /// <returns>DataSet with the query result</returns>
-        public SparqlObject VirtuosoQuery(string selectPart, string wherePart, Guid communityId)
+        public SparqlObject VirtuosoQuery(string selectPart, string wherePart, Guid communityId, bool userMasterServer = true)
         {
             _logHelper.Trace("Entering the method", this.GetType().Name);
-            return VirtuosoQueryInt(selectPart, wherePart, communityId.ToString());
+            return VirtuosoQueryInt(selectPart, wherePart, communityId.ToString(), userMasterServer);
         }
 
         #endregion
@@ -1869,7 +1871,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                LogHelper.Instance.Error($"Error modifying resource subtype. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                _logHelper.Error($"Error modifying resource subtype. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
         }
@@ -3025,7 +3027,7 @@ namespace Gnoss.ApiWrapper
 
         #endregion
 
-        private SparqlObject VirtuosoQueryInt(string selectPart, string wherePart, string graph)
+        private SparqlObject VirtuosoQueryInt(string selectPart, string wherePart, string graph, bool userMasterServer)
         {
             _logHelper.Trace("Entering in the method", this.GetType().Name);
             _logHelper.Trace($"SELECT: {selectPart}", this.GetType().Name);
@@ -3040,7 +3042,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/query";
 
-                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = graph, query_select = selectPart, query_where = wherePart };
+                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = graph, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
@@ -3056,7 +3058,6 @@ namespace Gnoss.ApiWrapper
 
             _logHelper.Trace("Leaving the method", this.GetType().Name);
             return SO;
-
         }
 
         /// <summary>         

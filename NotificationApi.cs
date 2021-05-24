@@ -4,9 +4,7 @@ using Gnoss.ApiWrapper.OAuth;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Gnoss.ApiWrapper
 {
@@ -51,21 +49,41 @@ namespace Gnoss.ApiWrapper
         /// <param name="receivers">Receivers of the notification</param>
         /// <param name="senderMask">Mask sender of the notification</param>
         /// <param name="communityShortName">Community short name</param>
-        public void SendEmail(string subject, string message, List<string> receivers, bool isHTML = false, string senderMask = "", string communityShortName = null)
+        public int SendEmail(string subject, string message, List<string> receivers, bool isHTML = false, string senderMask = "", string communityShortName = null)
         {
             try
             {
                 string url = $"{ApiUrl}/notification/send-email";
 
                 NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask, community_short_name = communityShortName };
-
-                WebRequestPostWithJsonObject(url, model);
+                string result = WebRequestPostWithJsonObject(url, model);
+                int mailID = Int32.Parse(result);
 
                 _logHelper.Debug($"Email {subject} sended to {string.Join(",", receivers)}");
+                return mailID;
             }
             catch (Exception ex)
             {
                 _logHelper.Error($"Error sending mail {subject} to {string.Join(",", receivers)}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        public MailStateModel MailState(int mailID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/notification/mail-state?mail_id={mailID}";
+
+
+                MailStateModel mailStateModel = JsonConvert.DeserializeObject<MailStateModel>(WebRequest("GET", url));
+
+                _logHelper.Debug($"Get mails sended with ID: {mailID}");
+                return mailStateModel;
+            }
+            catch (Exception ex)
+            {
+                _logHelper.Error($"Error getting mails with ID: {mailID}: \r\n{ex.Message}");
                 throw;
             }
         }

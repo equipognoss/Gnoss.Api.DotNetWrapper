@@ -40,4 +40,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string community_short_name { get; set; }
     }
+
+    public class MailStateModel
+    {
+        public List<string> pending_mails { get; set; }
+        public List<string> error_mails { get; set; }
+    }
 }

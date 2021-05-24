@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Gnoss.ApiWrapper.ApiModel
 {
@@ -279,6 +280,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Where clause of the sparql query
         /// </summary>
         public string query_where { get; set; }
+        
+        /// <summary>
+        /// Use Master service
+        /// </summary>
+        public bool userMasterServer { get; set; } = true;
     }
 
     /// <summary>
@@ -1054,10 +1060,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public DateTime date_create { get; set; }
         /// <summary>
-        /// Organization identifier
-        /// </summary>
-        public Guid oganization_id { get; set; }
-        /// <summary>
         /// Project identifier
         /// </summary>
         public Guid project_id { get; set; }
@@ -1070,6 +1072,24 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string community_name { get; set; }
     }
+
+    /// <summary>
+    /// Parameters to create a massive data load test
+    /// </summary>
+    public class MassiveDataLoadTestResource
+    {
+        /// <summary>
+        /// Url
+        /// </summary>
+        [Required]
+        public string url { get; set; }
+        /// <summary>
+        /// File hash
+        /// </summary>
+        [Required]
+        public byte[] fileHash { get; set; }
+    }
+
     /// <summary>
     /// Parameters of a package of data for a massive data load
     /// </summary>
@@ -1095,6 +1115,17 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// SQL file rute
         /// </summary>
         public string sql_rute { get; set; }
+        /// Ontology file bytes
+        /// </summary>
+        public byte[] ontology_bytes { get; set; }
+        /// <summary>
+        /// Search graph file bytes
+        /// </summary>
+        public byte[] search_bytes { get; set; }
+        /// <summary>
+        /// SQL file bytes
+        /// </summary>
+        public byte[] sql_bytes { get; set; }
         /// <summary>
         /// State of the package
         /// </summary>
