@@ -96,11 +96,10 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public GnossApiWrapper(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string communityShortName = null)
+        public GnossApiWrapper(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper)
         {
             _httpContextAccessor = httpContextAccessor;
             _oauth = oauth;
-            CommunityShortName = communityShortName;
             this.mLog = logHelper.Instance;
         }
 

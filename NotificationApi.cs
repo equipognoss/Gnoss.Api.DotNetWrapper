@@ -49,13 +49,13 @@ namespace Gnoss.ApiWrapper
         /// <param name="receivers">Receivers of the notification</param>
         /// <param name="senderMask">Mask sender of the notification</param>
         /// <param name="communityShortName">Community short name</param>
-        public int SendEmail(string subject, string message, List<string> receivers, bool isHTML = false, string senderMask = "", string communityShortName = null)
+        public int SendEmail(string subject, string message, List<string> receivers, bool isHTML = false, string senderMask = "")
         {
             try
             {
                 string url = $"{ApiUrl}/notification/send-email";
 
-                NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask, community_short_name = communityShortName };
+                NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask, community_short_name = CommunityShortName };
                 string result = WebRequestPostWithJsonObject(url, model);
                 int mailID = Int32.Parse(result);
 

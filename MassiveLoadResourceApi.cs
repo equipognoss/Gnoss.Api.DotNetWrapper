@@ -62,6 +62,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         public string Uri { get; set; }
         
+        public bool IsDebugMode { get; set; }
         /// Max num of resources per packages
         /// </summary>
         private int MaxResourcesPerPackage { get; set; }
@@ -70,7 +71,6 @@ namespace Gnoss.ApiWrapper
         private StreamWriter streamOntology;
         private StreamWriter streamSearch;
 
-        private bool isDebugMode;
         private static readonly int DEBUG_PACKAGE_SIZE = 10;
         private bool onlyPrepareMassiveLoad;
 
@@ -83,24 +83,10 @@ namespace Gnoss.ApiWrapper
         /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, bool isDebugMode = false, int maxResourcesPerPackage = 1000, string ontologyName = null, string developerEmail = null)
-            : base(oauth, httpContextAccessor, logHelper, ontologyName, developerEmail)
+        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper)
+            : base(oauth, httpContextAccessor, logHelper)
         {
-            MaxResourcesPerPackage = maxResourcesPerPackage;
-            this.isDebugMode = isDebugMode;
-            _logHelper = logHelper.Instance;
-        }
-
-        /// <summary>
-        /// Consturtor of <see cref="MassiveLoadResourceApi"/>
-        /// </summary>
-        /// <param name="isDebugMode">Only for debugging</param>
-        /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, bool isDebugMode = false, int maxResourcesPerPackage = 1000) : base(oauth, httpContextAccessor, logHelper)
-        {
-            MaxResourcesPerPackage = maxResourcesPerPackage;
-            this.isDebugMode = isDebugMode;
+            this.IsDebugMode = IsDebugMode;
             _logHelper = logHelper.Instance;
         }
 
@@ -125,7 +111,7 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (onlyPrepareMassiveLoad && isDebugMode)
+                if (onlyPrepareMassiveLoad && IsDebugMode)
                 {
                     throw new Exception("MassiveDataLoad can not be prepared when debugMode is activated. Please turn off debugMode and try again.");
                 }
@@ -136,7 +122,7 @@ namespace Gnoss.ApiWrapper
                 LoadName = pName;
                 MassiveLoadIdentifier = Guid.NewGuid();
 
-                if (!isDebugMode)
+                if (!IsDebugMode)
                 {
                     TestConnection();
                 }
@@ -280,9 +266,9 @@ namespace Gnoss.ApiWrapper
                 //File.AppendAllLines(pathSearch, searchTriples);
                 //File.AppendAllLines(pathAcid, new List<string>() { acidData.Key + "|||" + acidData.Value });
 
-                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage || (isDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
+                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
                 {
-                    if (isDebugMode)
+                    if (IsDebugMode)
                     {
                         this.Log.Warn("DebugMode On, use it only for testing purpose. Please turn DebugMode off as soon as posible.");
                     }
@@ -389,7 +375,7 @@ namespace Gnoss.ApiWrapper
                 model.load_id = MassiveLoadIdentifier;
 
                 //Si es modo debug queremos los bytes de los ficheros directamente 
-                if (isDebugMode)
+                if (IsDebugMode)
                 {
                     CloseStreams();
                     model.ontology_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
@@ -405,7 +391,7 @@ namespace Gnoss.ApiWrapper
 
                 CreatePackageMassiveDataLoad(model);
 
-                if (!isDebugMode)
+                if (!IsDebugMode)
                 {
                     CloseStreams();
                 }

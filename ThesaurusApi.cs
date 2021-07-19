@@ -24,7 +24,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public ThesaurusApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string communityShortName) : base(oauth,httpContextAccessor, logHelper, communityShortName)
+        public ThesaurusApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth,httpContextAccessor, logHelper)
         {
             _logHelper = logHelper.Instance;
         }

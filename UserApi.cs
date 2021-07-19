@@ -29,7 +29,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public UserApi(OAuthInfo oauth, string communityShortName, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper, communityShortName)
+        public UserApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
             _logHelper = logHelper.Instance;
         }
@@ -515,7 +515,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>List with the modified users identifiers</returns>
-        public List<Guid> GetModifiedUsersFromDate(string communityShortName, string searchDate)
+        public List<Guid> GetModifiedUsersFromDate(string searchDate)
         {
             List<Guid> users = null;
             try
@@ -528,17 +528,17 @@ namespace Gnoss.ApiWrapper
                     throw new Exception($"The search date string is not in the ISO8601 format {searchDate}");
                 }
 
-                string url = $"{ApiUrl}/user/get-modified-users?community_short_name={communityShortName}&search_date={searchDate}";
+                string url = $"{ApiUrl}/user/get-modified-users?community_short_name={CommunityShortName}&search_date={searchDate}";
 
                 string response = WebRequest("GET", url);
 
                 users = JsonConvert.DeserializeObject<List<Guid>>(response);
 
-                _logHelper.Debug($"Users obtained of the community {communityShortName} from date {searchDate}");
+                _logHelper.Debug($"Users obtained of the community {CommunityShortName} from date {searchDate}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the users of {communityShortName} from date {searchDate}", ex.Message);
+                _logHelper.Error($"Error getting the users of {CommunityShortName} from date {searchDate}", ex.Message);
                 throw;
             }
             return users;
@@ -577,7 +577,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
-        public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string communityShortName, string searchDate)
+        public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string searchDate)
         {
             UserNoveltiesModel user = null;
             try
@@ -588,22 +588,22 @@ namespace Gnoss.ApiWrapper
                     return null;
                 }
 
-                string url = $"{ApiUrl}/user/get-user-novelties?user_id={userId}&community_short_name={communityShortName}&search_date={searchDate}";
+                string url = $"{ApiUrl}/user/get-user-novelties?user_id={userId}&community_short_name={CommunityShortName}&search_date={searchDate}";
                 string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
                 user = JsonConvert.DeserializeObject<UserNoveltiesModel>(response);
 
                 if (user != null)
                 {
-                    _logHelper.Debug($"Obtained the user {userId} of the community {communityShortName} from the date {searchDate}");
+                    _logHelper.Debug($"Obtained the user {userId} of the community {CommunityShortName} from the date {searchDate}");
                 }
                 else
                 {
-                    _logHelper.Debug($"The user {userId} could not be obtained of the community {communityShortName} from the date {searchDate}.");
+                    _logHelper.Debug($"The user {userId} could not be obtained of the community {CommunityShortName} from the date {searchDate}.");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the user {userId} of the community {communityShortName} from the date {searchDate}", ex.Message);
+                _logHelper.Error($"Error getting the user {userId} of the community {CommunityShortName} from the date {searchDate}", ex.Message);
                 throw;
             }
             return user;
@@ -810,18 +810,18 @@ namespace Gnoss.ApiWrapper
         /// <param name="userId">User identifier</param>
         /// <param name="communityShortName">Community short name</param>
         /// <returns></returns>
-        public List<string> GetGroupsPerCommunity(Guid userId, string communityShortName)
+        public List<string> GetGroupsPerCommunity(Guid userId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/get-groups-per-community?user_id={userId}&community_short_name={communityShortName}";
+                string url = $"{ApiUrl}/user/get-groups-per-community?user_id={userId}&community_short_name={CommunityShortName}";
                 string result = WebRequest($"GET", url, acceptHeader: "application/json");
 
                 return JsonConvert.DeserializeObject<List<string>>(result);
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"Impossible to get groups of {userId} from community  {communityShortName}. ");
+                _logHelper.Error($"Impossible to get groups of {userId} from community  {CommunityShortName}. ");
                 throw;
             }
         }
@@ -856,11 +856,11 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="userId">User identifier</param>
         /// <param name="communityShortName">Community short name</param>
-        public void AddCmsAdminRolToUser(Guid userId, string communityShortName)
+        public void AddCmsAdminRolToUser(Guid userId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/add-permission?user_id={userId}&community_short_name={communityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                string url = $"{ApiUrl}/user/add-permission?user_id={userId}&community_short_name={CommunityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
@@ -875,11 +875,11 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="userId">User identifier</param>
         /// <param name="communityShortName">Community short name</param>
-        public void RemoveCmsAdminRolToUser(Guid userId, string communityShortName)
+        public void RemoveCmsAdminRolToUser(Guid userId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/remove-permission?user_id={userId}&community_short_name={communityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                string url = $"{ApiUrl}/user/remove-permission?user_id={userId}&community_short_name={CommunityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
                 WebRequest($"POST", url);
             }
             catch (System.Exception)

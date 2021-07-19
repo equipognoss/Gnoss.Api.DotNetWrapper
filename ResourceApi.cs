@@ -49,10 +49,8 @@ namespace Gnoss.ApiWrapper
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public ResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string ontologyName = null, string developerEmail = null) : base(oauth, httpContextAccessor, logHelper)
+        public ResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
-            DeveloperEmail = developerEmail;
-            OntologyName = ontologyName;
             _logHelper = logHelper.Instance;
             this.logHelper = logHelper;
             _httpContextAccessor = httpContextAccessor;
@@ -97,9 +95,9 @@ namespace Gnoss.ApiWrapper
         /// <param name="hierarchycalCategories">Indicates whether the categories has hierarchy</param>
         /// <param name="ontology">Ontology where resource will be loaded</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
-        public void LoadComplexSemanticResourceListWithOntologyAndCommunity(List<ComplexOntologyResource> resourceList, bool hierarchycalCategories, string ontology, string communityShortName)
+        public void LoadComplexSemanticResourceListWithOntologyAndCommunity(List<ComplexOntologyResource> resourceList, bool hierarchycalCategories, string ontology)
         {
-            LoadComplexSemanticResourceListWithOntologyAndCommunityInt(resourceList, hierarchycalCategories, ontology, communityShortName);
+            LoadComplexSemanticResourceListWithOntologyAndCommunityInt(resourceList, hierarchycalCategories, ontology);
         }
 
         /// <summary>
@@ -111,7 +109,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="rdfsPath">Default null. Path to save the RDF, if necessary</param>
         public void LoadComplexSemanticResourceListSavingLocalRdf(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 5, string rdfsPath = null)
         {
-            LoadComplexSemanticResourceListInt(resourceList, hierarquicalCategories, numAttemps, null, rdfsPath);
+            LoadComplexSemanticResourceListInt(resourceList, hierarquicalCategories, numAttemps, rdfsPath);
         }
 
         /// <summary>
@@ -121,9 +119,9 @@ namespace Gnoss.ApiWrapper
         /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
         /// <param name="numAttemps">Default 5. Number of retries loading of the failed load of a resource</param>
         /// <param name="communityShortName">Default null. Defined if it is necessary the load in other community that the specified in the OAuth</param>
-        public void LoadComplexSemanticResourceListCommunityShortName(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, string communityShortName, int numAttemps = 5)
+        public void LoadComplexSemanticResourceListCommunityShortName(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 5)
         {
-            LoadComplexSemanticResourceListInt(resourceList, hierarquicalCategories, numAttemps, communityShortName);
+            LoadComplexSemanticResourceListInt(resourceList, hierarquicalCategories, numAttemps);
         }
 
         /// <summary>
@@ -155,7 +153,7 @@ namespace Gnoss.ApiWrapper
                 throw new GnossAPIArgumentException($"You must set the parameter rdfsPath");
             }
 
-            return LoadComplexSemanticResourceInt(resource, hierarquicalCategories, isLast, numAttemps, null, rdfsPath);
+            return LoadComplexSemanticResourceInt(resource, hierarquicalCategories, isLast, numAttemps, rdfsPath);
         }
 
         /// <summary>
@@ -167,9 +165,9 @@ namespace Gnoss.ApiWrapper
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
         /// <param name="communityShortName">Default null. Defined if it is necessary the load in other community that the specified in the OAuth</param>
         /// <returns>Resource identifier string</returns>
-        public string LoadComplexSemanticResourceCommunityShortName(ComplexOntologyResource resource, string communityShortName, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 2)
+        public string LoadComplexSemanticResourceCommunityShortName(ComplexOntologyResource resource, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 2)
         {
-            return LoadComplexSemanticResourceInt(resource, hierarquicalCategories, isLast, numAttemps, communityShortName);
+            return LoadComplexSemanticResourceInt(resource, hierarquicalCategories, isLast, numAttemps);
         }
 
         /// <summary>
@@ -183,7 +181,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="communityShortName">Default null. Defined if it is necessary the load in other community that the specified in the OAuth</param>
         /// <param name="rdfFile">Resource rdf file</param>
         /// <returns>Resource identifier string</returns>
-        public string LoadComplexSemanticResourceRdf(ComplexOntologyResource resource, byte[] rdfFile, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 5, string communityShortName = null, string rdfsPath = null)
+        public string LoadComplexSemanticResourceRdf(ComplexOntologyResource resource, byte[] rdfFile, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 5, string rdfsPath = null)
         {
             try
             {
@@ -191,37 +189,37 @@ namespace Gnoss.ApiWrapper
                 {
                     if (hierarquicalCategories)
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
+                        if (string.IsNullOrEmpty(CommunityShortName))
                         {
                             resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                         }
                         else
                         {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
+                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                         }
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
+                        if (string.IsNullOrEmpty(CommunityShortName))
                         {
                             resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                         }
                         else
                         {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
+                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                         }
                     }
                 }
 
                 string documentId = string.Empty;
 
-                if (string.IsNullOrEmpty(communityShortName))
+                if (string.IsNullOrEmpty(CommunityShortName))
                 {
-                    communityShortName = CommunityShortName;
+                    CommunityShortName = CommunityShortName;
                 }
 
                 resource.RdfFile = rdfFile;
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(communityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
@@ -430,7 +428,7 @@ namespace Gnoss.ApiWrapper
                     }
                 }
 
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(CommunityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 resource.Modified = ModifyComplexOntologyResource(model);
 
                 if (resource.Modified)
@@ -474,7 +472,7 @@ namespace Gnoss.ApiWrapper
                 }
 
                 resource.RdfFile = rdfFile;
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(CommunityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 resource.Modified = ModifyComplexOntologyResource(model);
 
                 if (resource.Modified)
@@ -499,24 +497,24 @@ namespace Gnoss.ApiWrapper
         /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
         /// <param name="isLast">There are not resources left to load</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
-        public void ModifyComplexSemanticResourceCommunityShortName(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast, string communityShortName)
+        public void ModifyComplexSemanticResourceCommunityShortName(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast)
         {
-            _logHelper.Trace($"******************** Begin modification of resource: {resource.GnossId}", this.GetType().Name, communityShortName);
+            _logHelper.Trace($"******************** Begin modification of resource: {resource.GnossId}", this.GetType().Name, CommunityShortName);
             try
             {
                 if (resource.TextCategories != null)
                 {
                     if (hierarquicalCategories)
                     {
-                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
+                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                     else
                     {
-                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
+                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                 }
 
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(CommunityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 resource.Modified = ModifyComplexOntologyResource(model);
 
                 if (resource.Modified)
@@ -556,7 +554,7 @@ namespace Gnoss.ApiWrapper
                     }
                 }
 
-                LoadResourceParams model = GetResourceModelOfBasicOntologyResource(CommunityShortName, resource, isLast);
+                LoadResourceParams model = GetResourceModelOfBasicOntologyResource(resource, isLast);
                 resource.Uploaded = ModifyBasicOntologyResource(model);
             }
             catch (Exception ex)
@@ -619,7 +617,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="ontology">Ontology where resource will be loaded</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         /// <param name="numAttemps">Default 1. Number of retries loading of the failed load of a resource</param>
-        public void ModifyComplexSemanticResourceListWithOntologyAndCommunity(ref List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, string ontology, string communityShortName, int numAttemps = 1)
+        public void ModifyComplexSemanticResourceListWithOntologyAndCommunity(ref List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, string ontology, int numAttemps = 1)
         {
             int resourcesToModify = resourceList.Where(r => !r.Modified).Count();
             int processedNumber = 0;
@@ -639,7 +637,7 @@ namespace Gnoss.ApiWrapper
 
                     try
                     {
-                        ModifyComplexSemanticResourceWithOntologyAndCommunity(rec, hierarquicalCategories, processedNumber == resourceList.Count(), ontology, communityShortName);
+                        ModifyComplexSemanticResourceWithOntologyAndCommunity(rec, hierarquicalCategories, processedNumber == resourceList.Count(), ontology);
 
                         resourcesToModify = resourcesToModify - 1;
                         _logHelper.Debug($"There are {resourcesToModify} resources left to modify.");
@@ -668,7 +666,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="ontology">Ontology where resource will be loaded</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         /// <param name="isLast">There are not resources left to load</param>
-        public void ModifyComplexSemanticResourceWithOntologyAndCommunity(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast, string ontology, string communityShortName)
+        public void ModifyComplexSemanticResourceWithOntologyAndCommunity(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast, string ontology)
         {
             _logHelper.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
 
@@ -688,7 +686,7 @@ namespace Gnoss.ApiWrapper
 
                 string ontologyUrl = ontology.ToLower().Replace(".owl", "");
                 ontologyUrl = OntologyUrl.Replace(OntologyUrl.Substring(OntologyUrl.LastIndexOf("/") + 1), $"{ontologyUrl}.owl");
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(CommunityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 model.resource_url = ontologyUrl;
                 resource.Modified = ModifyComplexOntologyResource(model);
 
@@ -753,54 +751,6 @@ namespace Gnoss.ApiWrapper
                     _logHelper.Trace($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
                 }
             }
-        }
-
-        /// <summary>
-        /// Modifies the complex ontology resource. It is necessary that the basic ontology resource has assigned the property <see cref="BaseResource.GnossId"/>
-        /// </summary>
-        /// <param name="resourceList">List of resources to load</param>
-        /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
-        /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
-        /// <param name="communityShortName">Community short name where the resources will be loaded</param>
-        public void ModifyComplexSemanticResourceListCommunityShortName(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, string communityShortName, int numAttemps = 2)
-        {
-            int resourcesToModify = resourceList.Where(r => !r.Modified).Count();
-            int processedNumber = 0;
-            int attempNumber = 0;
-
-            while (resourceList != null && resourceList.Count > 0 && resourcesToModify > 0 && attempNumber < numAttemps)
-            {
-                attempNumber = attempNumber + 1;
-                if (numAttemps > 1)
-                {
-                    _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
-                }
-
-                foreach (ComplexOntologyResource rec in resourceList.Where(r => !r.Modified))
-                {
-                    processedNumber = processedNumber + 1;
-                    try
-                    {
-                        ModifyComplexSemanticResourceCommunityShortName(rec, hierarquicalCategories, processedNumber == resourceList.Count(), communityShortName);
-
-                        resourcesToModify = resourcesToModify - 1;
-                        _logHelper.Debug($"There are {resourcesToModify} resources left to modify.");
-                    }
-                    catch (GnossAPICategoryException gacex)
-                    {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
-                    }
-                }
-                if (numAttemps > 1)
-                {
-                    _logHelper.Trace($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
-                }
-            }
-
         }
 
         /// <summary>
@@ -896,7 +846,7 @@ namespace Gnoss.ApiWrapper
                         }
                     }
 
-                    LoadResourceParams model = GetResourceModelOfComplexOntologyResource(CommunityShortName, resource, false, true);
+                    LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, true);
                     resource.Modified = ModifyComplexOntologyResource(model);
 
                     _logHelper.Debug($"Successfully modified the resource with ID: {resource.Id} and Gnoss identifier {resource.ShortGnossId}", this.GetType().Name);
@@ -1415,7 +1365,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>Indicates whether the properties have been modified of the loaded resource</returns>
         public Dictionary<Guid, bool> ModifyPropertiesLoadedResources(Dictionary<Guid, List<TriplesToModify>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
-            return ModifyPropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome, userId);
+            return ModifyPropertiesLoadedResourcesInt(resourceTriples, numAttemps, publishHome, userId);
         }
 
         /// <summary>
@@ -1428,7 +1378,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>Indicates whether the properties have been added to the loaded resource</returns>
         public Dictionary<Guid, bool> InsertPropertiesLoadedResources(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? usuarioID = null)
         {
-            return InsertPropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome, usuarioID);
+            return InsertPropertiesLoadedResourcesInt(resourceTriples, numAttemps, publishHome, usuarioID);
         }
 
         /// <summary>
@@ -1440,7 +1390,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>Dictionary resource identifier and boolean indicating the successfull, or not, result of the action</returns>
         public Dictionary<Guid, bool> DeletePropertiesLoadedResources(Dictionary<Guid, List<RemoveTriples>> resourceTriples, int numAttemps = 2, bool publishHome = false)
         {
-            return DeletePropertiesLoadedResourcesInt(resourceTriples, CommunityShortName, numAttemps, publishHome);
+            return DeletePropertiesLoadedResourcesInt(resourceTriples, numAttemps, publishHome);
         }
 
         /// <summary>
@@ -1454,7 +1404,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>Dictionary resource identifier and boolean indicating the successfull, or not, result of the action</returns>
         public Dictionary<Guid, bool> ActionsOnPropertiesLoadedResources(Dictionary<Guid, List<TriplesToModify>> resourceTriplesModify, Dictionary<Guid, List<RemoveTriples>> resourceTriplesDelete, Dictionary<Guid, List<TriplesToInclude>> resourceTriplesInsert, Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriplesAddAuxiliarEntity, bool publishHome = false)
         {
-            return ActionsOnPropertiesLoadedResourcesInt(resourceTriplesModify, resourceTriplesDelete, resourceTriplesInsert, resourceTriplesAddAuxiliarEntity, CommunityShortName, publishHome);
+            return ActionsOnPropertiesLoadedResourcesInt(resourceTriplesModify, resourceTriplesDelete, resourceTriplesInsert, resourceTriplesAddAuxiliarEntity, publishHome);
         }
 
         /// <summary>
@@ -1465,7 +1415,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
         public void ModifyPropertyLoadedSecondaryResource(Dictionary<string, List<TriplesToModify>> resourceTriples, int numAttemps = 2, bool publishHome = false)
         {
-            ModifyPropertyLoadedSecondaryResourceInt(resourceTriples, CommunityShortName, numAttemps, publishHome);
+            ModifyPropertyLoadedSecondaryResourceInt(resourceTriples, numAttemps, publishHome);
         }
 
         /// <summary>
@@ -1478,16 +1428,9 @@ namespace Gnoss.ApiWrapper
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
         /// <param name="communityShortName">Community short name where the AuxiliaryEntitiesTriplesToInclude will be loaded</param>
         /// <returns>Indicates whether the properties have been inserted in the auxiliar entity</returns>
-        public bool InsertAuxiliarEntityOnPropertiesLoadedResource(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, string communityShortName = null, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
+        public bool InsertAuxiliarEntityOnPropertiesLoadedResource(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
-            if (string.IsNullOrEmpty(communityShortName))
-            {
-                return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, CommunityShortName, numAttemps, publishHome, userId);
-            }
-            else
-            {
-                return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, communityShortName, numAttemps, publishHome, userId);
-            }
+            return InsertAuxiliarEntityOnPropertiesLoadedResourceInt(resourceTriples, numAttemps, publishHome, userId);
         }
 
         #endregion
@@ -1754,52 +1697,13 @@ namespace Gnoss.ApiWrapper
 
         #region Categories
 
-        /// <summary>
-        /// Returns the identifiers of the categories
-        /// </summary>
-        /// <param name="hierarquicalCategoriesList">List of names of hierarchical categories</param>
-        /// <returns>The identifiers of the categories as list of string</returns>
         private List<Guid> GetHierarquicalCategoriesIdentifiersList(List<string> hierarquicalCategoriesList)
-        {
-            List<Guid> categories = null;
-
-            if (hierarquicalCategoriesList != null && hierarquicalCategoriesList.Count > 0)
-            {
-                foreach (string cat in hierarquicalCategoriesList)
-                {
-                    ThesaurusCategory category = FindHierarquicalCategoryNameInCategories(cat, CommunityApiWrapper.CommunityCategories);
-                    if (category != null)
-                    {
-                        if (categories == null)
-                        {
-                            categories = new List<Guid>();
-                        }
-                        categories.Add(category.category_id);
-                    }
-                }
-            }
-
-            if (hierarquicalCategoriesList == null || categories == null || hierarquicalCategoriesList.Count != categories.Count)
-            {
-                throw new GnossAPICategoryException("Error obtaining the identifiers of one of the categories. It is possible that some of the introduced categories do not belong to the thesaurus");
-            }
-            return categories;
-        }
-
-        private List<Guid> GetHierarquicalCategoriesIdentifiersList(List<string> hierarquicalCategoriesList, string communityShortName)
         {
             List<Guid> resultList = null;
 
             List<ThesaurusCategory> categories = null;
 
-            if (communityShortName.Equals(CommunityShortName))
-            {
-                categories = CommunityApiWrapper.CommunityCategories;
-            }
-            else
-            {
-                categories = CommunityApiWrapper.LoadCategories(communityShortName);
-            }
+            categories = CommunityApiWrapper.LoadCategories(CommunityShortName);
 
             if (hierarquicalCategoriesList != null && hierarquicalCategoriesList.Count > 0)
             {
@@ -1875,94 +1779,11 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// This method obtains the categories identifiers of the community thesaurus for each of the categories of the resource to load, considering the case of a multilanguage thesaurus.For each of the thesaurus category, it first checks if the thesaurus is multilanguage (in this case, it contains |||), then each of these categories is converted to string[] and every component of the string is compared with every single resource category.If they are equal, the identifier of this category is obtained and stored in the list of the resource categories. If that is not a multilanguage thesaurus, it checks if the dictionary with the thesaurus categories contains a key that is equal to the category of the resource and if if finds it, the category identifier is stored in the list of resource categories.
-        /// </summary>
-        /// <param name="notHierarquicalCategoriesList">List of names of not hierarchical categories</param>
-        /// <returns>The identifiers of the categories as list of string of the resource to load</returns>
         private List<Guid> GetNotHierarquicalCategoriesIdentifiersList(List<string> notHierarquicalCategoriesList)
-        {
-            List<Guid> resultList = new List<Guid>();
-            if (notHierarquicalCategoriesList != null && notHierarquicalCategoriesList.Count > 0)
-            {
-                string[] categoryList = null;
-                string[] separator = new string[] { "|||" };
-
-                foreach (ThesaurusCategory category in CommunityApiWrapper.CommunityCategories)
-                {
-                    if (!string.IsNullOrWhiteSpace(category.category_name) && category.category_name.Contains($"|||"))
-                    {
-
-                        categoryList = category.category_name.Split(separator, StringSplitOptions.None);
-                        for (int i = 0; i < categoryList.Length; i++)
-                        {
-                            string valor = categoryList[i].Substring(0, categoryList[i].IndexOf($"@"));
-                            foreach (string cat in notHierarquicalCategoriesList)
-                            {
-                                if (categoryList[i].Substring(0, categoryList[i].IndexOf($"@")).Equals(cat))
-                                {
-                                    if (!resultList.Contains(category.category_id))
-                                    {
-                                        resultList.Add(category.category_id);
-                                    }
-                                }
-                                else
-                                {
-                                    ThesaurusCategory thesaurusCategory = CommunityApiWrapper.CommunityCategories.Find(comCat => comCat.category_name.Equals(cat));
-                                    if (thesaurusCategory != null)
-                                    {
-                                        if (!resultList.Contains(thesaurusCategory.category_id))
-                                        {
-                                            resultList.Add(thesaurusCategory.category_id);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        foreach (string cat in notHierarquicalCategoriesList)
-                        {
-                            ThesaurusCategory thesaurusCategory = CommunityApiWrapper.CommunityCategories.Find(comCat => comCat.category_name.Equals(cat));
-                            if (thesaurusCategory != null)
-                            {
-                                if (!resultList.Contains(thesaurusCategory.category_id))
-                                {
-                                    resultList.Add(thesaurusCategory.category_id);
-                                }
-                            }
-                            else
-                            {
-                                resultList.Add(Guid.Empty);
-                                _logHelper.Debug($"The cateogry {cat} not exists in the community");
-                            }
-                        }
-                    }
-
-                }
-            }
-
-            if (notHierarquicalCategoriesList == null || resultList == null || notHierarquicalCategoriesList.Count != resultList.Count)
-            {
-                throw new GnossAPICategoryException("Error obtaining the identifiers of one of the categories. It is possible that some of the introduced categories do not belong to the thesaurus");
-            }
-
-            return resultList;
-        }
-
-        private List<Guid> GetNotHierarquicalCategoriesIdentifiersList(List<string> notHierarquicalCategoriesList, string communityShortName)
         {
             List<ThesaurusCategory> categoryList = null;
 
-            if (communityShortName.Equals(CommunityShortName))
-            {
-                categoryList = CommunityApiWrapper.CommunityCategories;
-            }
-            else
-            {
-                categoryList = CommunityApiWrapper.LoadCategories(communityShortName);
-            }
+            categoryList = CommunityApiWrapper.LoadCategories(CommunityShortName);
 
             List<Guid> resultList = null;
             if (notHierarquicalCategoriesList != null && notHierarquicalCategoriesList.Count > 0)
@@ -2057,7 +1878,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="numAttemps">Default 2. Number of retries loading of the failed load of a resource</param>
         /// <param name="communityShortName">Default null. Defined if it is necessary the load in other community that the specified in the OAuth</param>
         /// <param name="rdfsPath">Default null. Path to save the RDF, if necessary</param>
-        private void LoadComplexSemanticResourceListInt(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 2, string communityShortName = null, string rdfsPath = null)
+        private void LoadComplexSemanticResourceListInt(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 2, string rdfsPath = null)
         {
             int processedNumber = 0;
             bool last = false;
@@ -2084,7 +1905,7 @@ namespace Gnoss.ApiWrapper
                         {
                             rec.Ontology.OntologyUrl = OntologyUrl;
                         }
-                        LoadComplexSemanticResourceInt(rec, hierarquicalCategories, last, numAttemps, communityShortName, rdfsPath);
+                        LoadComplexSemanticResourceInt(rec, hierarquicalCategories, last, numAttemps, rdfsPath);
                         resourcesLeft = resourcesLeft - 1;
                     }
                     catch (GnossAPICategoryException gacex)
@@ -2110,7 +1931,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="ontology">Ontology where resource will be loaded</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         /// <param name="numAttemps">Default 1. Number of retries loading of the failed load of a resource</param>
-        private void LoadComplexSemanticResourceListWithOntologyAndCommunityInt(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, string ontology, string communityShortName, int numAttemps = 1)
+        private void LoadComplexSemanticResourceListWithOntologyAndCommunityInt(List<ComplexOntologyResource> resourceList, bool hierarquicalCategories, string ontology, int numAttemps = 1)
         {
             int processedNumber = 0;
             bool last = false;
@@ -2137,7 +1958,7 @@ namespace Gnoss.ApiWrapper
                         {
                             rec.Ontology.OntologyUrl = OntologyUrl;
                         }
-                        LoadComplexSemanticResourceWithOntologyAndCommunityInt(rec, hierarquicalCategories, last, ontology, communityShortName);
+                        LoadComplexSemanticResourceWithOntologyAndCommunityInt(rec, hierarquicalCategories, last, ontology);
                         resourcesLeft = resourcesLeft - 1;
                     }
                     catch (GnossAPICategoryException gacex)
@@ -2164,7 +1985,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="ontology">Ontology where resource will be loaded</param>
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         /// <returns>Resource identifier string</returns>
-        private string LoadComplexSemanticResourceWithOntologyAndCommunityInt(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast, string ontology, string communityShortName)
+        private string LoadComplexSemanticResourceWithOntologyAndCommunityInt(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast, string ontology)
         {
             try
             {
@@ -2172,25 +1993,11 @@ namespace Gnoss.ApiWrapper
                 {
                     if (hierarquicalCategories)
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
-                        }
+                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
-                        }
+                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                 }
 
@@ -2198,7 +2005,7 @@ namespace Gnoss.ApiWrapper
                 ontology = ontology.ToLower().Replace($".owl", "");
                 ontology = OntologyUrl.Replace(OntologyUrl.Substring(OntologyUrl.LastIndexOf("/") + 1), $"{ontology}.owl");
 
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(communityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
@@ -2216,7 +2023,7 @@ namespace Gnoss.ApiWrapper
             return resource.GnossId;
         }
 
-        private string LoadComplexSemanticResourceInt(ComplexOntologyResource resource, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 2, string communityShortName = null, string rdfsPath = null)
+        private string LoadComplexSemanticResourceInt(ComplexOntologyResource resource, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 2, string rdfsPath = null)
         {
             try
             {
@@ -2224,36 +2031,17 @@ namespace Gnoss.ApiWrapper
                 {
                     if (hierarquicalCategories)
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
-                        }
+                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
-                        }
+                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                 }
 
                 string documentId = string.Empty;
 
-                if (string.IsNullOrEmpty(communityShortName))
-                {
-                    communityShortName = CommunityShortName;
-                }
-
-                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(communityShortName, resource, false, isLast);
+                LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
@@ -2315,7 +2103,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                LoadResourceParams model = GetResourceModelOfBasicOntologyResource(CommunityShortName, resource, isLast, (short)resourceType);
+                LoadResourceParams model = GetResourceModelOfBasicOntologyResource(resource, isLast, (short)resourceType);
                 string documentId = CreateBasicOntologyResource(model);
                 resource.Uploaded = true;
                 resource.ShortGnossId = new Guid(documentId.Trim('"'));
@@ -2352,7 +2140,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                LoadResourceParams model = GetResourceModelOfBasicOntologyResource(CommunityShortName, resource, isLast, (short)resourceType);
+                LoadResourceParams model = GetResourceModelOfBasicOntologyResource(resource, isLast, (short)resourceType);
                 string documentId = CreateBasicOntologyResource(model);
                 resource.Uploaded = true;
                 try
@@ -2478,7 +2266,7 @@ namespace Gnoss.ApiWrapper
 
         #region Common methods for basic and complex ontology resources
 
-        private Dictionary<Guid, bool> ModifyPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToModify>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
+        private Dictionary<Guid, bool> ModifyPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToModify>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
             Dictionary<Guid, bool> result = new Dictionary<Guid, bool>();
             int processedNumber = 0;
@@ -2555,7 +2343,7 @@ namespace Gnoss.ApiWrapper
             return result;
         }
 
-        private Dictionary<Guid, bool> InsertPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false, Guid? usuarioID = null)
+        private Dictionary<Guid, bool> InsertPropertiesLoadedResourcesInt(Dictionary<Guid, List<TriplesToInclude>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? usuarioID = null)
         {
             Dictionary<Guid, bool> result = new Dictionary<Guid, bool>();
             int processedNumber = 0;
@@ -2631,7 +2419,7 @@ namespace Gnoss.ApiWrapper
             return result;
         }
 
-        private Dictionary<Guid, bool> DeletePropertiesLoadedResourcesInt(Dictionary<Guid, List<RemoveTriples>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false)
+        private Dictionary<Guid, bool> DeletePropertiesLoadedResourcesInt(Dictionary<Guid, List<RemoveTriples>> resourceTriples, int numAttemps = 2, bool publishHome = false)
         {
             Dictionary<Guid, bool> result = new Dictionary<Guid, bool>();
             int processedNumber = 0;
@@ -2707,7 +2495,7 @@ namespace Gnoss.ApiWrapper
         }
 
 
-        private Dictionary<System.Guid, bool> ActionsOnPropertiesLoadedResourcesInt(Dictionary<System.Guid, List<TriplesToModify>> resourceTriples, Dictionary<System.Guid, List<RemoveTriples>> deleteList, Dictionary<System.Guid, List<TriplesToInclude>> insertList, Dictionary<System.Guid, List<AuxiliaryEntitiesTriplesToInclude>> auxiliaryEntitiesInsertTriplesList, string communityShortName, bool publishHome)
+        private Dictionary<System.Guid, bool> ActionsOnPropertiesLoadedResourcesInt(Dictionary<System.Guid, List<TriplesToModify>> resourceTriples, Dictionary<System.Guid, List<RemoveTriples>> deleteList, Dictionary<System.Guid, List<TriplesToInclude>> insertList, Dictionary<System.Guid, List<AuxiliaryEntitiesTriplesToInclude>> auxiliaryEntitiesInsertTriplesList, bool publishHome)
         {
             Dictionary<Guid, bool> result = new Dictionary<Guid, bool>();
             int processedNumber = 0;
@@ -2933,7 +2721,7 @@ namespace Gnoss.ApiWrapper
             return result;
         }
 
-        private void ModifyPropertyLoadedSecondaryResourceInt(Dictionary<string, List<TriplesToModify>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false)
+        private void ModifyPropertyLoadedSecondaryResourceInt(Dictionary<string, List<TriplesToModify>> resourceTriples, int numAttemps = 2, bool publishHome = false)
         {
             int processedNumber = 0;
             int attempNumber = 0;
@@ -2959,7 +2747,7 @@ namespace Gnoss.ApiWrapper
                     try
                     {
                         string url = $"{ApiUrl}/secondary-entity/modify-triple-list";
-                        ModifyTripleListModel model = new ModifyTripleListModel() { community_short_name = communityShortName, secondary_ontology_url = _ontologyUrl, secondary_entity = secondaryEntityId, triple_list = valuesList.ToArray() };
+                        ModifyTripleListModel model = new ModifyTripleListModel() { community_short_name = CommunityShortName, secondary_ontology_url = _ontologyUrl, secondary_entity = secondaryEntityId, triple_list = valuesList.ToArray() };
                         WebRequestPostWithJsonObject(url, model);
 
                         valuesList = new List<string[]>();
@@ -2976,7 +2764,7 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        private bool InsertAuxiliarEntityOnPropertiesLoadedResourceInt(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, string communityShortName, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
+        private bool InsertAuxiliarEntityOnPropertiesLoadedResourceInt(Dictionary<Guid, List<AuxiliaryEntitiesTriplesToInclude>> resourceTriples, int numAttemps = 2, bool publishHome = false, Guid? userId = null)
         {
             int processedNumber = 0;
             int attempNumber = 0;
@@ -3082,11 +2870,11 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        private LoadResourceParams GetResourceModelOfBasicOntologyResource(string communityShortName, BasicOntologyResource rec, bool pEsUltimo, short pTipoDoc = -1)
+        private LoadResourceParams GetResourceModelOfBasicOntologyResource(BasicOntologyResource rec, bool pEsUltimo, short pTipoDoc = -1)
         {
             LoadResourceParams model = new LoadResourceParams();
             model.resource_id = rec.ShortGnossId;
-            model.community_short_name = communityShortName;
+            model.community_short_name = CommunityShortName;
             model.title = rec.Title;
             model.description = rec.Description;
             model.tags = rec.Tags.ToList();
@@ -3139,11 +2927,11 @@ namespace Gnoss.ApiWrapper
             return model;
         }
 
-        private LoadResourceParams GetResourceModelOfComplexOntologyResource(string communityShortName, ComplexOntologyResource rec, bool pCrearVersion, bool pEsUltimo)
+        private LoadResourceParams GetResourceModelOfComplexOntologyResource(ComplexOntologyResource rec, bool pCrearVersion, bool pEsUltimo)
         {
             LoadResourceParams model = new LoadResourceParams();
             model.resource_id = rec.ShortGnossId;
-            model.community_short_name = communityShortName;
+            model.community_short_name = CommunityShortName;
             model.title = rec.Title;
             model.description = rec.Description;
             model.resource_type = (short)TiposDocumentacion.ontology;
@@ -3542,30 +3330,30 @@ namespace Gnoss.ApiWrapper
         /// <param name="resourceId">Resource identifier</param>
         /// <param name="communityShortName">Community short name</param>
         /// <returns>True if the resource has been unshared. False if not.</returns>
-        public bool UnsharedCommunityResource(Guid resourceId, string communityShortName)
+        public bool UnsharedCommunityResource(Guid resourceId)
         {
             bool unshared = false;
             try
             {
                 string url = $"{ApiUrl}/resource/unshared-community-resource";
 
-                UnsharedResourceParams parameters = new UnsharedResourceParams() { resource_id = resourceId, community_short_name = communityShortName };
+                UnsharedResourceParams parameters = new UnsharedResourceParams() { resource_id = resourceId, community_short_name = CommunityShortName };
 
                 string response = WebRequestPostWithJsonObject(url, parameters);
                 unshared = JsonConvert.DeserializeObject<bool>(response);
 
                 if (unshared)
                 {
-                    _logHelper.Debug($"Resource {resourceId} unshared from {communityShortName}");
+                    _logHelper.Debug($"Resource {resourceId} unshared from {CommunityShortName}");
                 }
                 else
                 {
-                    _logHelper.Debug($"Resource {resourceId} not unshared from {communityShortName}");
+                    _logHelper.Debug($"Resource {resourceId} not unshared from {CommunityShortName}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to unsare the resource {resourceId} from {communityShortName}: {ex.Message}");
+                _logHelper.Error($"Error trying to unsare the resource {resourceId} from {CommunityShortName}: {ex.Message}");
                 throw;
             }
             return unshared;
@@ -3585,10 +3373,10 @@ namespace Gnoss.ApiWrapper
         /// <param name="publishHome">(Optional) True if this resource must appear in the community home</param>
         /// <param name="communityShortName">(Optional) Community short name where the resource is published</param>
         /// <returns>True if success</returns>
-        public bool InsertPropertiesLoadedResource(Guid resourceId, List<Triple> tripleList, bool publishHome = false, string communityShortName = null)
+        public bool InsertPropertiesLoadedResource(Guid resourceId, List<Triple> tripleList, bool publishHome = false)
         {
             bool success = false;
-            Triples triplesToInsert = new Triples() { resource_id = resourceId, community_short_name = string.IsNullOrEmpty(communityShortName) ? CommunityShortName : communityShortName, publish_home = publishHome, triples_list = tripleList, end_of_load = true };
+            Triples triplesToInsert = new Triples() { resource_id = resourceId, community_short_name = string.IsNullOrEmpty(CommunityShortName) ? CommunityShortName : CommunityShortName, publish_home = publishHome, triples_list = tripleList, end_of_load = true };
 
             try
             {
@@ -3622,10 +3410,10 @@ namespace Gnoss.ApiWrapper
         /// <param name="publishHome">(Optional) True if this resource appeared in the community home</param>
         /// <param name="communityShortName">(Optional) Community short name where the resource is published</param>
         /// <returns>True if success</returns>
-        public bool DeletePropertiesLoadedResource(Guid resourceId, List<Triple> tripleList, bool publishHome = false, string communityShortName = null)
+        public bool DeletePropertiesLoadedResource(Guid resourceId, List<Triple> tripleList, bool publishHome = false)
         {
             bool success = false;
-            Triples triplesToDelete = new Triples() { resource_id = resourceId, community_short_name = string.IsNullOrEmpty(communityShortName) ? CommunityShortName : communityShortName, publish_home = publishHome, triples_list = tripleList, end_of_load = true };
+            Triples triplesToDelete = new Triples() { resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, triples_list = tripleList, end_of_load = true };
 
             try
             {
@@ -4086,12 +3874,12 @@ namespace Gnoss.ApiWrapper
             return resource;
         }
 
-        public Resource GetResource(Guid resourceId, string pCommunityShortName)
+        public Resource GetResource(Guid resourceId)
         {
             Resource resource = null;
             try
             {
-                string url = $"{ApiUrl}/resource/get-resource?resource_id={resourceId}&community_short_name={HttpUtility.UrlEncode(pCommunityShortName)}";
+                string url = $"{ApiUrl}/resource/get-resource?resource_id={resourceId}&community_short_name={HttpUtility.UrlEncode(CommunityShortName)}";
                 string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded")?.Trim('"');
                 resource = JsonConvert.DeserializeObject<Resource>(response);
 
@@ -4514,7 +4302,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="parameters"></param>
         /// <returns>resource identifier guid</returns>
-        public string MassiveComplexOntologyResourceCreation(List<ComplexOntologyResource> parameters, Guid pCargaID, bool hierarquicalCategories = false, string communityShortName = null)
+        public string MassiveComplexOntologyResourceCreation(List<ComplexOntologyResource> parameters, Guid pCargaID, bool hierarquicalCategories = false)
         {
             List<LoadResourceParams> listaLoadResourceParams = new List<LoadResourceParams>();
             foreach (ComplexOntologyResource resource in parameters)
@@ -4522,37 +4310,19 @@ namespace Gnoss.ApiWrapper
                 if (resource.TextCategories != null)
                 {
                     if (hierarquicalCategories)
-                    {
-                        if (string.IsNullOrEmpty(communityShortName))
-                        {
+                    {  
                             resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
-                        }
+                        
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(communityShortName))
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories, communityShortName);
-                        }
+                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);                        
                     }
                 }
 
                 string documentId = string.Empty;
-
-                if (string.IsNullOrEmpty(communityShortName))
-                {
-                    communityShortName = CommunityShortName;
-                }
-
-                LoadResourceParams resourceParam = GetResourceModelOfComplexOntologyResource(communityShortName, resource, false, false);
+                                
+                LoadResourceParams resourceParam = GetResourceModelOfComplexOntologyResource(resource, false, false);
                 listaLoadResourceParams.Add(resourceParam);
                 resource.Uploaded = true;
             }
@@ -4811,7 +4581,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>List with the modified resources identifiers</returns>
-        public List<Guid> GetModifiedResourcesFromDate(string communityShortName, string searchDate)
+        public List<Guid> GetModifiedResourcesFromDate(string searchDate)
         {
             List<Guid> resources = null;
             try
@@ -4822,15 +4592,15 @@ namespace Gnoss.ApiWrapper
                 //    return null;
                 //}
 
-                string url = $"{ApiUrl}/resource/get-modified-resources?community_short_name={communityShortName}&search_date={searchDate}";
+                string url = $"{ApiUrl}/resource/get-modified-resources?community_short_name={CommunityShortName}&search_date={searchDate}";
                 string response = WebRequest("GET", url);
                 resources = JsonConvert.DeserializeObject<List<Guid>>(response);
 
-                _logHelper.Debug($"Resources obtained of the community {communityShortName} from date {searchDate}");
+                _logHelper.Debug($"Resources obtained of the community {CommunityShortName} from date {searchDate}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the resources of {communityShortName} from date {searchDate}", ex.Message);
+                _logHelper.Error($"Error getting the resources of {CommunityShortName} from date {searchDate}", ex.Message);
                 throw;
             }
             return resources;
@@ -4843,7 +4613,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>ResourceNoveltiesModel with the novelties of the resource from the search date</returns>
-        public ResourceNoveltiesModel GetResourceNoveltiesFromDate(Guid resourceId, string communityShortName, string searchDate)
+        public ResourceNoveltiesModel GetResourceNoveltiesFromDate(Guid resourceId, string searchDate)
         {
             ResourceNoveltiesModel resource = null;
             try
@@ -4854,22 +4624,22 @@ namespace Gnoss.ApiWrapper
                 //    return null;
                 //}
 
-                string url = $"{ApiUrl}/resource/get-resource-novelties?resource_id={resourceId}&community_short_name={communityShortName}&search_date={searchDate}";
+                string url = $"{ApiUrl}/resource/get-resource-novelties?resource_id={resourceId}&community_short_name={CommunityShortName}&search_date={searchDate}";
                 string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
                 resource = JsonConvert.DeserializeObject<ResourceNoveltiesModel>(response);
 
                 if (resource != null)
                 {
-                    _logHelper.Debug($"Obtained the resource {resourceId} of the community {communityShortName} from date {searchDate}");
+                    _logHelper.Debug($"Obtained the resource {resourceId} of the community {CommunityShortName} from date {searchDate}");
                 }
                 else
                 {
-                    _logHelper.Debug($"The resource {resourceId} could not be obtained of the community {communityShortName} from date {searchDate}.");
+                    _logHelper.Debug($"The resource {resourceId} could not be obtained of the community {CommunityShortName} from date {searchDate}.");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the resource {resourceId} of the community {communityShortName} from date {searchDate}", ex.Message);
+                _logHelper.Error($"Error getting the resource {resourceId} of the community {CommunityShortName} from date {searchDate}", ex.Message);
                 throw;
             }
             return resource;
@@ -5109,7 +4879,7 @@ namespace Gnoss.ApiWrapper
             {
                 if (_communityApi == null)
                 {
-                    _communityApi = new CommunityApi(OAuthInstance, CommunityShortName, _httpContextAccessor, logHelper);
+                    _communityApi = new CommunityApi(OAuthInstance, _httpContextAccessor, logHelper);
                 }
                 return _communityApi;
             }

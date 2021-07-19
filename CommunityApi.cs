@@ -36,7 +36,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public CommunityApi(OAuthInfo oauth, string communityShortName, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper, communityShortName)
+        public CommunityApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
             _logHelper = logHelper.Instance;
             _httpContextAccessor = httpContextAccessor;
@@ -144,11 +144,11 @@ namespace Gnoss.ApiWrapper
         /// <param name="categoryName">Category name</param>
         /// <param name="communityShortName">Community short name</param>
         /// <param name="parentCategoryID">Parent category ID</param>
-        public Guid CreateCategory(string categoryName, string communityShortName, Guid? parentCategoryID)
+        public Guid CreateCategory(string categoryName, Guid? parentCategoryID)
         {
             try
             {
-                CommunityCategoryModel communityModel = new CommunityCategoryModel() { category_name = categoryName, community_short_name = communityShortName, parent_category_id = parentCategoryID };
+                CommunityCategoryModel communityModel = new CommunityCategoryModel() { category_name = categoryName, community_short_name = CommunityShortName, parent_category_id = parentCategoryID };
 
                 string url = $"{ApiUrl}/community/create-category";
 
@@ -301,24 +301,19 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Open an existing community
         /// </summary>
-        public void OpenCommunity(string communityShortName = null)
+        public void OpenCommunity()
         {
             try
             {
                 string url = $"{ApiUrl}/community/open-community";
 
-                if (string.IsNullOrEmpty(communityShortName))
-                {
-                    communityShortName = CommunityShortName;
-                }
+                WebRequestPostWithJsonObject(url, CommunityShortName);
 
-                WebRequestPostWithJsonObject(url, communityShortName);
-
-                _logHelper.Debug($"Community opened {communityShortName}");
+                _logHelper.Debug($"Community opened {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error opening community {communityShortName}: {ex.Message}");
+                _logHelper.Error($"Error opening community {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -899,11 +894,11 @@ namespace Gnoss.ApiWrapper
         /// Gets the community identifier
         /// </summary>
         /// <param name="communityShortName">Community short name</param>
-        public Guid GetCommunityId(string communityShortName)
+        public Guid GetCommunityId()
         {
             try
             {
-                string url = $"{ApiUrl}/community/get-community-id?community_short_name={HttpUtility.UrlEncode(communityShortName)}";
+                string url = $"{ApiUrl}/community/get-community-id?community_short_name={HttpUtility.UrlEncode(CommunityShortName)}";
 
                 string response = WebRequest("GET", url, acceptHeader: "application/json");
 
@@ -911,7 +906,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community {communityShortName} could not be found");
+                _logHelper.Error($"The community {CommunityShortName} could not be found");
                 throw;
             }
         }
@@ -921,11 +916,11 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="userId">User's identifier</param>
         /// <param name="communityShortName">Community short name</param>
-        public void BlockMember(Guid userId, string communityShortName)
+        public void BlockMember(Guid userId)
         {
             try
             {
-                UserCommunityModel parameters = new UserCommunityModel() { user_id = userId, community_short_name = communityShortName };
+                UserCommunityModel parameters = new UserCommunityModel() { user_id = userId, community_short_name = CommunityShortName };
 
                 string url = $"{ApiUrl}/community/block-member";
 
@@ -933,7 +928,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user {userId} of the community members '{communityShortName}' could not be blocked");
+                _logHelper.Error($"The user {userId} of the community members '{CommunityShortName}' could not be blocked");
                 throw;
             }
         }
@@ -943,11 +938,11 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="userId">User's identifier</param>
         /// <param name="communityShortName">Community short name</param>
-        public void UnblockMember(Guid userId, string communityShortName)
+        public void UnblockMember(Guid userId)
         {
             try
             {
-                UserCommunityModel parameters = new UserCommunityModel() { user_id = userId, community_short_name = communityShortName };
+                UserCommunityModel parameters = new UserCommunityModel() { user_id = userId, community_short_name = CommunityShortName };
 
                 string url = $"{ApiUrl}/community/block-member";
 
@@ -955,7 +950,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user {userId} of the community members '{communityShortName}' could not be unblocked");
+                _logHelper.Error($"The user {userId} of the community members '{CommunityShortName}' could not be unblocked");
                 throw;
             }
         }
@@ -965,17 +960,17 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="componentId">Component id to refresh</param>
         /// <param name="communityShortName">Community short name</param>
-        public void RefreshCMSComponent(Guid componentId, string communityShortName)
+        public void RefreshCMSComponent(Guid componentId)
         {
             try
             {
-                string url = $"{ApiUrl}/community/refresh-cms-component?component_id={componentId.ToString()}&community_short_name={HttpUtility.UrlEncode(communityShortName)}";
+                string url = $"{ApiUrl}/community/refresh-cms-component?component_id={componentId.ToString()}&community_short_name={HttpUtility.UrlEncode(CommunityShortName)}";
 
                 WebRequest("POST", url);
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The component id {componentId} of the community '{communityShortName}' could not be refreshed");
+                _logHelper.Error($"The component id {componentId} of the community '{CommunityShortName}' could not be refreshed");
                 throw;
             }
         }
@@ -984,17 +979,17 @@ namespace Gnoss.ApiWrapper
         /// Refresh the caché of all community's CMS components
         /// </summary>
         /// <param name="communityShortName">Community short name</param>
-        public void RefreshAllCMSComponents(string communityShortName)
+        public void RefreshAllCMSComponents()
         {
             try
             {
-                string url = $"{ApiUrl}/community/refresh-all-cms-components?community_short_name={HttpUtility.UrlEncode(communityShortName)}";
+                string url = $"{ApiUrl}/community/refresh-all-cms-components?community_short_name={HttpUtility.UrlEncode(CommunityShortName)}";
 
                 WebRequest("POST", url);
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The components of the community '{communityShortName}' could not be refreshed");
+                _logHelper.Error($"The components of the community '{CommunityShortName}' could not be refreshed");
                 throw;
             }
         }
@@ -1004,11 +999,11 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name</param>
         /// <returns></returns>
-        public CommunityInfoModel GetCommunityInfo(string communityShortName)
+        public CommunityInfoModel GetCommunityInfo()
         {
             try
             {
-                string url = $"{ApiUrl}/community/get-community-information?community_short_name={HttpUtility.UrlEncode(communityShortName)}";
+                string url = $"{ApiUrl}/community/get-community-information?community_short_name={HttpUtility.UrlEncode(CommunityShortName)}";
 
                 string response = WebRequest("GET", url, acceptHeader: "application/json");
 
@@ -1016,7 +1011,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community {communityShortName} could not be found");
+                _logHelper.Error($"The community {CommunityShortName} could not be found");
                 throw;
             }
         }
