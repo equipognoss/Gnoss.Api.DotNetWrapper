@@ -83,8 +83,8 @@ namespace Gnoss.ApiWrapper
         /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, string communityShortName, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, bool isDebugMode = false, int maxResourcesPerPackage = 1000, string ontologyName = null, string developerEmail = null)
-            : base(oauth, communityShortName, httpContextAccessor, logHelper, ontologyName, developerEmail)
+        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, bool isDebugMode = false, int maxResourcesPerPackage = 1000, string ontologyName = null, string developerEmail = null)
+            : base(oauth, httpContextAccessor, logHelper, ontologyName, developerEmail)
         {
             MaxResourcesPerPackage = maxResourcesPerPackage;
             this.isDebugMode = isDebugMode;
@@ -97,7 +97,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="isDebugMode">Only for debugging</param>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
         /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, bool isDebugMode = false, int maxResourcesPerPackage = 1000) : base(oauth, configFilePath, httpContextAccessor, logHelper)
+        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, bool isDebugMode = false, int maxResourcesPerPackage = 1000) : base(oauth, httpContextAccessor, logHelper)
         {
             MaxResourcesPerPackage = maxResourcesPerPackage;
             this.isDebugMode = isDebugMode;
@@ -108,7 +108,7 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="MassiveLoadResourceApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, configFilePath, httpContextAccessor, logHelper)
+        public MassiveLoadResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
             _logHelper = logHelper.Instance;
         }

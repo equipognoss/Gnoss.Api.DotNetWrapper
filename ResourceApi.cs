@@ -49,14 +49,13 @@ namespace Gnoss.ApiWrapper
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public ResourceApi(OAuthInfo oauth, string communityShortName, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string ontologyName = null, string developerEmail = null) : base(oauth, httpContextAccessor, logHelper)
+        public ResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper, string ontologyName = null, string developerEmail = null) : base(oauth, httpContextAccessor, logHelper)
         {
             DeveloperEmail = developerEmail;
             OntologyName = ontologyName;
             _logHelper = logHelper.Instance;
             this.logHelper = logHelper;
             _httpContextAccessor = httpContextAccessor;
-
             LoadApi();
         }
 
@@ -64,7 +63,7 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="ResourceApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public ResourceApi(OAuthInfo oauth, string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper, configFilePath)
+        public ResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
             DeveloperEmail = OAuthInstance.DeveloperEmail;
             _logHelper = logHelper.Instance;
