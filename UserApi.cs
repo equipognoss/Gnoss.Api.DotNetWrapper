@@ -20,7 +20,6 @@ namespace Gnoss.ApiWrapper
     /// </summary>
     public class UserApi : GnossApiWrapper
     {
-        private ILogHelper _logHelper;
 
         #region Constructors
 
@@ -29,18 +28,16 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public UserApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public UserApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         /// <summary>
         /// Consturtor of <see cref="UserApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public UserApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public UserApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         #endregion
@@ -64,16 +61,16 @@ namespace Gnoss.ApiWrapper
 
                 if (user != null)
                 {
-                    _logHelper.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
+                    Log.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
                 }
                 else
                 {
-                    _logHelper.Error($"Couldn't get the user {userShortName}: \r\n {response}");
+                    Log.Error($"Couldn't get the user {userShortName}: \r\n {response}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Couldn't get the user {userShortName}: \r\n {ex.Message}");
+                Log.Error($"Couldn't get the user {userShortName}: \r\n {ex.Message}");
                 throw;
             }
             return user;
@@ -96,16 +93,16 @@ namespace Gnoss.ApiWrapper
 
                 if (user != null)
                 {
-                    _logHelper.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
+                    Log.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
                 }
                 else
                 {
-                    _logHelper.Error($"Couldn't get the user {userId}: \r\n {response}");
+                    Log.Error($"Couldn't get the user {userId}: \r\n {response}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Couldn't get the user {userId}: \r\n {ex.Message}");
+                Log.Error($"Couldn't get the user {userId}: \r\n {ex.Message}");
                 throw;
             }
             return user;
@@ -128,16 +125,16 @@ namespace Gnoss.ApiWrapper
 
                 if (user != null)
                 {
-                    _logHelper.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
+                    Log.Debug($"The user {user.name} {user.last_name} has been obtained successfully");
                 }
                 else
                 {
-                    _logHelper.Error($"Couldn't get the user {email}: \r\n {response}");
+                    Log.Error($"Couldn't get the user {email}: \r\n {response}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Couldn't get the user {email}: \r\n {ex.Message}");
+                Log.Error($"Couldn't get the user {email}: \r\n {ex.Message}");
                 throw;
             }
             return user;
@@ -169,22 +166,22 @@ namespace Gnoss.ApiWrapper
 
                     if (validPassword)
                     {
-                        _logHelper.Debug($"The password for the user {user} is correct");
+                        Log.Debug($"The password for the user {user} is correct");
                     }
                     else
                     {
-                        _logHelper.Debug($"The password for the user {user} isn't correct");
+                        Log.Debug($"The password for the user {user} isn't correct");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error(ex.Message);
+                    Log.Error(ex.Message);
                     throw;
                 }
             }
             else
             {
-                _logHelper.Error("The user and the password can't be null or empty");
+                Log.Error("The user and the password can't be null or empty");
             }
 
             return validPassword;
@@ -204,11 +201,11 @@ namespace Gnoss.ApiWrapper
 
                 profileRol = WebRequest("GET", url)?.Trim('"');
 
-                _logHelper.Debug($"The profile role of {profileId} in {CommunityShortName} is {profileRol}");
+                Log.Debug($"The profile role of {profileId} in {CommunityShortName} is {profileRol}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the profile role of {profileId}: {ex.Message}");
+                Log.Error($"Error getting the profile role of {profileId}: {ex.Message}");
                 throw;
             }
 
@@ -234,16 +231,16 @@ namespace Gnoss.ApiWrapper
 
                 if (createdUser != null)
                 {
-                    _logHelper.Debug($"User created: {createdUser.name} {createdUser.last_name}");
+                    Log.Debug($"User created: {createdUser.name} {createdUser.last_name}");
                 }
                 else
                 {
-                    _logHelper.Error($"Error creating user {json}: {response}");
+                    Log.Error($"Error creating user {json}: {response}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating user {json}: \r\n{ex.Message}");
+                Log.Error($"Error creating user {json}: \r\n{ex.Message}");
                 throw;
             }
 
@@ -268,16 +265,16 @@ namespace Gnoss.ApiWrapper
 
                 if (createdUser != null)
                 {
-                    _logHelper.Debug($"User created: {createdUser.name} {createdUser.last_name}");
+                    Log.Debug($"User created: {createdUser.name} {createdUser.last_name}");
                 }
                 else
                 {
-                    _logHelper.Error($"Error creating user {json}: {response}");
+                    Log.Error($"Error creating user {json}: {response}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating user {json}: \r\n{ex.Message}");
+                Log.Error($"Error creating user {json}: \r\n{ex.Message}");
                 throw;
             }
 
@@ -300,7 +297,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error validation user {loginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error validation user {loginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
 
@@ -322,11 +319,11 @@ namespace Gnoss.ApiWrapper
                     string url = $"{ApiUrl}/user/generate-forgotten-password-url?login={loginOrEmail}&community_short_name={CommunityShortName}";
                     link = WebRequest("GET", url)?.Trim('"');
 
-                    _logHelper.Debug($"Forgotten password url generated {link}");
+                    Log.Debug($"Forgotten password url generated {link}");
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error($"Error generating forgotten password url for user {loginOrEmail}: {ex.Message}");
+                    Log.Error($"Error generating forgotten password url for user {loginOrEmail}: {ex.Message}");
                     throw;
                 }
             }
@@ -346,11 +343,11 @@ namespace Gnoss.ApiWrapper
                 string url = $"{ApiUrl}/user/modify-user";
                 WebRequest("POST", url, json, "application/json");
 
-                _logHelper.Debug($"User modify successfully {json}");
+                Log.Debug($"User modify successfully {json}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to modify user {json}: {ex.Message}");
+                Log.Error($"Error trying to modify user {json}: {ex.Message}");
                 throw;
             }
         }
@@ -371,12 +368,12 @@ namespace Gnoss.ApiWrapper
 
                 WebRequest("POST", url, postData, "application/json");
 
-                _logHelper.Debug($"User {userShortName} deleted successfully from the community {CommunityShortName}");
+                Log.Debug($"User {userShortName} deleted successfully from the community {CommunityShortName}");
 
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting user {userShortName} from the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error deleting user {userShortName} from the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -393,11 +390,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, userId);
 
-                _logHelper.Debug($"User {userId} deleted successfully");
+                Log.Debug($"User {userId} deleted successfully");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting user {userId}: {ex.Message}");
+                Log.Error($"Error deleting user {userId}: {ex.Message}");
                 throw;
             }
         }
@@ -420,11 +417,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequest("POST", url, postData, "application/json");
 
-                _logHelper.Debug($"User {userId} added successfully to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}");
+                Log.Debug($"User {userId} added successfully to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding user {userId} to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}: \r\n{ex.Message}");
+                Log.Error($"Error adding user {userId} to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -446,11 +443,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequest("POST", url, postData, "application/json");
 
-                _logHelper.Debug($"User {userId} change visibility in the communities: {string.Join(",", pComunidadesID)}");
+                Log.Debug($"User {userId} change visibility in the communities: {string.Join(",", pComunidadesID)}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding user {userId} change visibility in the communities: {string.Join(",", pComunidadesID)}: \r\n{ex.Message}");
+                Log.Error($"Error adding user {userId} change visibility in the communities: {string.Join(",", pComunidadesID)}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -474,11 +471,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequest("POST", url, postData, "application/json");
 
-                _logHelper.Debug($"User {userId} added successfully to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}");
+                Log.Debug($"User {userId} added successfully to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding user {userId} to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}: \r\n{ex.Message}");
+                Log.Error($"Error adding user {userId} to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -499,11 +496,11 @@ namespace Gnoss.ApiWrapper
 
                 users = JsonConvert.DeserializeObject<Dictionary<Guid, Userlite>>(result);
 
-                _logHelper.Debug($"Users obtained by Ids");
+                Log.Debug($"Users obtained by Ids");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the users", ex.Message);
+                Log.Error($"Error getting the users", ex.Message);
                 throw;
             }
             return users;
@@ -534,11 +531,11 @@ namespace Gnoss.ApiWrapper
 
                 users = JsonConvert.DeserializeObject<List<Guid>>(response);
 
-                _logHelper.Debug($"Users obtained of the community {CommunityShortName} from date {searchDate}");
+                Log.Debug($"Users obtained of the community {CommunityShortName} from date {searchDate}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the users of {CommunityShortName} from date {searchDate}", ex.Message);
+                Log.Error($"Error getting the users of {CommunityShortName} from date {searchDate}", ex.Message);
                 throw;
             }
             return users;
@@ -560,11 +557,11 @@ namespace Gnoss.ApiWrapper
 
                 communities = JsonConvert.DeserializeObject<List<string>>(response);
 
-                _logHelper.Debug($"Communities obtained for user {login}");
+                Log.Debug($"Communities obtained for user {login}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the communities of {login}", ex.Message);
+                Log.Error($"Error getting the communities of {login}", ex.Message);
                 throw;
             }
             return communities;
@@ -584,7 +581,7 @@ namespace Gnoss.ApiWrapper
             {
                 if (searchDate.Contains(" ") || !searchDate.Contains("T"))
                 {
-                    _logHelper.Error($"The search date string is not in the ISO8601 format {searchDate}");
+                    Log.Error($"The search date string is not in the ISO8601 format {searchDate}");
                     return null;
                 }
 
@@ -594,16 +591,16 @@ namespace Gnoss.ApiWrapper
 
                 if (user != null)
                 {
-                    _logHelper.Debug($"Obtained the user {userId} of the community {CommunityShortName} from the date {searchDate}");
+                    Log.Debug($"Obtained the user {userId} of the community {CommunityShortName} from the date {searchDate}");
                 }
                 else
                 {
-                    _logHelper.Debug($"The user {userId} could not be obtained of the community {CommunityShortName} from the date {searchDate}.");
+                    Log.Debug($"The user {userId} could not be obtained of the community {CommunityShortName} from the date {searchDate}.");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the user {userId} of the community {CommunityShortName} from the date {searchDate}", ex.Message);
+                Log.Error($"Error getting the user {userId} of the community {CommunityShortName} from the date {searchDate}", ex.Message);
                 throw;
             }
             return user;
@@ -672,7 +669,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user '{userId}' could not be blocked");
+                Log.Error($"The user '{userId}' could not be blocked");
                 throw;
             }
         }
@@ -690,7 +687,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user '{userId}' could not be unblocked");
+                Log.Error($"The user '{userId}' could not be unblocked");
                 throw;
             }
         }
@@ -710,7 +707,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be added to user '{userId}'");
+                Log.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be added to user '{userId}'");
                 throw;
             }
         }
@@ -730,7 +727,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be added to user '{userId}'");
+                Log.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be added to user '{userId}'");
                 throw;
             }
         }
@@ -754,7 +751,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be found.");
+                Log.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be found.");
                 throw;
             }
 
@@ -778,7 +775,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be found.");
+                Log.Error($"The social network login {socialNetworkUserId} at {socialNetwork} could not be found.");
                 throw;
             }
         }
@@ -799,7 +796,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"Impossible to check the emails {string.Join(",", emails)}");
+                Log.Error($"Impossible to check the emails {string.Join(",", emails)}");
                 throw;
             }
         }
@@ -821,7 +818,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"Impossible to get groups of {userId} from community  {CommunityShortName}. ");
+                Log.Error($"Impossible to get groups of {userId} from community  {CommunityShortName}. ");
                 throw;
             }
         }
@@ -844,7 +841,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user {userId} at {socialNetwork} could not be found.");
+                Log.Error($"The user {userId} at {socialNetwork} could not be found.");
                 throw;
             }
 
@@ -865,7 +862,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community CMS admin rol could not be added to user '{userId}'");
+                Log.Error($"The community CMS admin rol could not be added to user '{userId}'");
                 throw;
             }
         }
@@ -884,7 +881,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community CMS admin rol could not be removed from user '{userId}'");
+                Log.Error($"The community CMS admin rol could not be removed from user '{userId}'");
                 throw;
             }
         }

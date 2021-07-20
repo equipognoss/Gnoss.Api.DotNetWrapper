@@ -96,22 +96,22 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public GnossApiWrapper(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper)
+        public GnossApiWrapper(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper)
         {
             _httpContextAccessor = httpContextAccessor;
             _oauth = oauth;
-            this.mLog = logHelper.Instance;
+            this.mLog = logHelper;
         }
 
         /// <summary>
         /// Consturtor of <see cref="GnossApiWrapper"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public GnossApiWrapper(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper)
+        public GnossApiWrapper(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper)
         {
             _httpContextAccessor = httpContextAccessor;
             LoadConfigFile(configFilePath);
-            this.mLog = logHelper.Instance;
+            this.mLog = logHelper;
         }
 
         #endregion
@@ -127,14 +127,14 @@ namespace Gnoss.ApiWrapper
         {
             string tokenAfinidad = Guid.NewGuid().ToString();
 
-            if (_httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Request != null && !string.IsNullOrEmpty(_httpContextAccessor.HttpContext.Request.Headers["X-Request-ID"]))
+            if (_httpContextAccessor != null && _httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Request != null && !string.IsNullOrEmpty(_httpContextAccessor.HttpContext.Request.Headers["X-Request-ID"]))
             {
                 tokenAfinidad = _httpContextAccessor.HttpContext.Request.Headers["X-Request-ID"];
             }
 
             try
             {
-                if (_httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Items != null)
+                if (_httpContextAccessor != null && _httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Items != null)
                 {
 
                     _httpContextAccessor.HttpContext.Items.Add(_affinityTokenKey, tokenAfinidad);
@@ -155,7 +155,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                if (_httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Items != null)
+                if (_httpContextAccessor != null && _httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Items != null)
                 {
                     if (_httpContextAccessor.HttpContext.Items.Keys.Contains(_affinityTokenKey))
                     {
@@ -731,8 +731,15 @@ namespace Gnoss.ApiWrapper
                     //logPath = HttpContext.Current.Server.MapPath(logPath);
                 }
 
-                LogHelper.LogDirectory = logPath;
-                LogHelper.LogFileName = logFileName;
+                if(mLog == null)
+                {
+                    mLog = new LogHelperFile(logPath, logFileName);
+                }
+                else if(this.Log != null && this.Log is LogHelperFile)
+                {
+                    ((LogHelperFile)this.Log).LogDirectory = logPath;
+                    ((LogHelperFile)this.Log).LogFileName = logFileName;
+                }
             }
 
             if (!string.IsNullOrEmpty(logLevel))

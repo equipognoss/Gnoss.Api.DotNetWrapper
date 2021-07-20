@@ -47,17 +47,6 @@ namespace Gnoss.ApiWrapper.Helpers
         /// </summary>
         public LogApplicationInsightsHelper()
         {
-            if (string.IsNullOrEmpty(LogHelper.LogDirectory))
-            {
-                Console.WriteLine("Warning: The log has not been configured");
-            }
-            else
-            {
-                if (string.IsNullOrEmpty(LogHelper.LogFileName))
-                {
-                    LogHelper.LogFileName = "gnoss_api.log";
-                }
-            }
         }
 
         #endregion
@@ -188,34 +177,9 @@ namespace Gnoss.ApiWrapper.Helpers
         /// </summary>
         private void Write(LogLevels logLevel, string className, string memberName, string message, int numberWriteErrors = 3)
         {
-            string fileNameWithDate = $"{DateTime.Now.ToString("yyyy_MM_dd")}_{LogHelper.LogFileName}";
-            string absolutePath = $"{LogHelper.LogDirectory}/{fileNameWithDate}";
             string currentDate = DateTime.Now.ToString("dd/MM/yyyy");
             string currentTime = DateTime.Now.ToString("HH:mm:ss");
             string completeMessage = $"{currentDate}\t{currentTime}\t{Thread.CurrentThread.ManagedThreadId}\t{logLevel.ToString()}\t{className}\t{memberName}\t{message}";
-
-            if (!LogHelper.LogLocation.Equals(LogsAndTracesLocation.ApplicationInsights))
-            {
-                StreamWriter sw = null;
-                try
-                {
-                    sw = new StreamWriter(absolutePath, true);
-                    Console.WriteLine(completeMessage);
-                    sw.WriteLine(completeMessage);
-                    sw.Flush();
-                    sw.Dispose();
-                    sw.Close();
-                }
-                catch
-                {
-                    Thread.Sleep(500);
-                    if (numberWriteErrors > 0)
-                    {
-                        numberWriteErrors--;
-                        Write(logLevel, className, memberName, message, numberWriteErrors);
-                    }
-                }
-            }
 
             if (UtilTelemetry.EstaConfiguradaTelemetria && !LogHelper.LogLocation.Equals(LogsAndTracesLocation.File))
             {

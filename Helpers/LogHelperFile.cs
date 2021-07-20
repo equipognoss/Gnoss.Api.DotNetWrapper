@@ -37,25 +37,66 @@ namespace Gnoss.ApiWrapper.Helpers
 
         private bool _isActivated;
 
+        private static string _logDirectory;
+
         #endregion
+
+        /// <summary>
+        /// Gets or sets the log directory
+        /// </summary>
+        public string LogDirectory
+        {
+            get
+            {
+                return _logDirectory;
+            }
+            set
+            {
+                _logDirectory = value;
+
+                if (!string.IsNullOrEmpty(_logDirectory))
+                {
+                    if (!Path.IsPathRooted(_logDirectory))
+                    {
+                        _logDirectory = System.AppDomain.CurrentDomain.SetupInformation.ApplicationBase + _logDirectory;
+                    }
+
+                    if (!Directory.Exists(_logDirectory))
+                    {
+                        Directory.CreateDirectory(_logDirectory);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get or set the log file name. (Default: gnoss_api.log)
+        /// </summary>
+        public string LogFileName
+        {
+            get; set;
+        }
 
         #region Constructors
 
         /// <summary>
         /// Private constructor
         /// </summary>
-        public LogHelperFile()
+        public LogHelperFile(string directory, string logFileName)
         {
-            if (string.IsNullOrEmpty(LogHelper.LogDirectory))
+
+
+            if (string.IsNullOrEmpty(directory))
             {
                 _isActivated = false;
                 Console.WriteLine("Warning: The log has not been configured");
             }
             else
             {
-                if (string.IsNullOrEmpty(LogHelper.LogFileName))
+                LogDirectory = directory;
+                if (string.IsNullOrEmpty(logFileName))
                 {
-                    LogHelper.LogFileName = "gnoss_api.log";
+                    LogFileName = "gnoss_api.log";
                 }
                 _isActivated = true;
             }
@@ -163,8 +204,8 @@ namespace Gnoss.ApiWrapper.Helpers
                 StreamWriter sw = null;
                 try
                 {
-                    string fileNameWithDate = $"{DateTime.Now.ToString("yyyy_MM_dd")}_{LogHelper.LogFileName}";
-                    string absolutePath = $"{LogHelper.LogDirectory}/{fileNameWithDate}";
+                    string fileNameWithDate = $"{DateTime.Now.ToString("yyyy_MM_dd")}_{LogFileName}";
+                    string absolutePath = $"{LogDirectory}/{fileNameWithDate}";
                     string currentDate = DateTime.Now.ToString("dd/MM/yyyy");
                     string currentTime = DateTime.Now.ToString("HH:mm:ss");
                     string completeMessage = $"{currentDate}\t{currentTime}\t{Thread.CurrentThread.ManagedThreadId}\t{logLevel.ToString()}\t{className}\t{memberName}\t{message}";

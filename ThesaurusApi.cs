@@ -15,8 +15,6 @@ namespace Gnoss.ApiWrapper
     /// </summary>
     public class ThesaurusApi : GnossApiWrapper
     {
-        private ILogHelper _logHelper;
-
         #region Constructors
 
         /// <summary>
@@ -24,18 +22,16 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public ThesaurusApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth,httpContextAccessor, logHelper)
+        public ThesaurusApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth,httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         /// <summary>
         /// Consturtor of <see cref="ThesaurusApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public ThesaurusApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public ThesaurusApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         #endregion
@@ -58,14 +54,14 @@ namespace Gnoss.ApiWrapper
 
                 if (!string.IsNullOrEmpty(response))
                 {
-                    _logHelper.Debug($"Thesaurus obtained successfully");
+                    Log.Debug($"Thesaurus obtained successfully");
                 }
 
                 return response;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"There has been an error getting the thesaurus of the community {CommunityShortName} and ontology {thesaurusOntologyUrl}. {ex.Message}");
+                Log.Error($"There has been an error getting the thesaurus of the community {CommunityShortName} and ontology {thesaurusOntologyUrl}. {ex.Message}");
                 throw;
             }
         }
@@ -87,7 +83,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The category {pCategoriaAMoverId} has been moved");
+                Log.Debug($"The category {pCategoriaAMoverId} has been moved");
             }
             catch (Exception ex)
             {
@@ -112,7 +108,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The category {pCategoriaAEliminarId} has been deleted");
+                Log.Debug($"The category {pCategoriaAEliminarId} has been deleted");
             }
             catch (Exception ex)
             {
@@ -135,7 +131,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The category {categoryId} has been modified");
+                Log.Debug($"The category {categoryId} has been modified");
             }
             catch (Exception ex)
             {
@@ -158,7 +154,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The category {categoryName} has been created");
+                Log.Debug($"The category {categoryName} has been created");
             }
             catch (Exception ex)
             {
@@ -181,7 +177,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The category {categoryName} has been created");
+                Log.Debug($"The category {categoryName} has been created");
             }
             catch (Exception ex)
             {
@@ -205,7 +201,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The parent of the category {pCategoriaHijoId} is now {pCategoriaPadreId}");
+                Log.Debug($"The parent of the category {pCategoriaHijoId} is now {pCategoriaPadreId}");
             }
             catch (Exception ex)
             {
@@ -229,7 +225,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The category {pCategoriaId} has change, and now is {pNombre}");
+                Log.Debug($"The category {pCategoriaId} has change, and now is {pNombre}");
             }
             catch (Exception ex)
             {
@@ -252,7 +248,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"A semantic category has been added to the community {CommunityShortName}");
+                Log.Debug($"A semantic category has been added to the community {CommunityShortName}");
             }
             catch (Exception ex)
             {

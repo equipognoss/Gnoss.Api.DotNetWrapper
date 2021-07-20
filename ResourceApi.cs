@@ -28,8 +28,6 @@ namespace Gnoss.ApiWrapper
     {
         #region Members
 
-        private ILogHelper _logHelper;
-        private LogHelper logHelper;
         private IHttpContextAccessor _httpContextAccessor;
         private static string _ontologyUrl;
         private string _ontologyNameWithoutExtension;
@@ -49,10 +47,8 @@ namespace Gnoss.ApiWrapper
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public ResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public ResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
-            this.logHelper = logHelper;
             _httpContextAccessor = httpContextAccessor;
             LoadApi();
         }
@@ -61,12 +57,9 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="ResourceApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public ResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public ResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
-            DeveloperEmail = OAuthInstance.DeveloperEmail;
-            _logHelper = logHelper.Instance;
             _httpContextAccessor = httpContextAccessor;
-            this.logHelper = logHelper;
         }
 
         #endregion
@@ -223,10 +216,10 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                _logHelper.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
+                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
                 if (resource.ShortGnossId != Guid.Empty && documentId != resource.GnossId)
                 {
-                    _logHelper.Info($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
+                    Log.Info($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
                 }
 
                 if (!string.IsNullOrEmpty(rdfsPath) && !string.IsNullOrWhiteSpace(rdfsPath))
@@ -247,11 +240,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                _logHelper.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -268,13 +261,13 @@ namespace Gnoss.ApiWrapper
             try
             {
                 CreateSecondaryEntity(resource.SecondaryOntology.OntologyUrl, CommunityShortName, resource.RdfFile);
-                _logHelper.Debug($"Loaded secondary resource with ID: {resource.SecondaryOntology.Identifier}", this.GetType().Name);
+                Log.Debug($"Loaded secondary resource with ID: {resource.SecondaryOntology.Identifier}", this.GetType().Name);
                 success = true;
                 resource.Uploaded = true;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Resource has not been loaded the secondary resource with ID: {resource.Id}. Mensaje: {ex.Message}", this.GetType().Name);
+                Log.Error($"Resource has not been loaded the secondary resource with ID: {resource.Id}. Mensaje: {ex.Message}", this.GetType().Name);
             }
             return success;
         }
@@ -318,11 +311,11 @@ namespace Gnoss.ApiWrapper
                     imageId = resource.resource_attached_files[0].file_rdf_property;
                 }
 
-                _logHelper.Debug($"Massive uploading files correct of the resource '{imageId}' del recurso {resource.resource_id}");
+                Log.Debug($"Massive uploading files correct of the resource '{imageId}' del recurso {resource.resource_id}");
             }
             catch (Exception ex)
             {
-                _logHelper.Debug($"Error uploading files of the resource{resource.resource_id} {ex.Message}");
+                Log.Debug($"Error uploading files of the resource{resource.resource_id} {ex.Message}");
             }
         }
 
@@ -345,11 +338,11 @@ namespace Gnoss.ApiWrapper
             {
                 UploadImages(resource.resource_id, resource.resource_attached_files, resource.main_image);
 
-                _logHelper.Debug($"Massive uploading images correct of the resource '{resource.resource_id}'");
+                Log.Debug($"Massive uploading images correct of the resource '{resource.resource_id}'");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error uploading images of the resource {resource.resource_id} {ex.Message}");
+                Log.Error($"Error uploading images of the resource {resource.resource_id} {ex.Message}");
                 throw new GnossAPIException($"Error uploading images of the resource {resource.resource_id} {ex.Message}");
             }
         }
@@ -367,13 +360,13 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The xml file {fileName} of the ontology {OntologyUrl} has been upload in the communtiy {CommunityShortName}");
+                Log.Debug($"The xml file {fileName} of the ontology {OntologyUrl} has been upload in the communtiy {CommunityShortName}");
 
                 return true;
             }
             catch (Exception e)
             {
-                _logHelper.Error($"El XML {fileName} no se ha subido.{e.Message}");
+                Log.Error($"El XML {fileName} no se ha subido.{e.Message}");
                 return false;
             }
         }
@@ -390,12 +383,12 @@ namespace Gnoss.ApiWrapper
                 string url = $"{ApiUrl}/ontology/upload-partitioned-ontology";
                 FileOntology model = new FileOntology() { community_short_name = CommunityShortName, ontology_name = OntologyUrl, file_name = fileName, file = ontologyFile };
                 WebRequestPostWithJsonObject(url, model);
-                _logHelper.Debug($"The file of the ontology has been upload in the communtiy {CommunityShortName}");
+                Log.Debug($"The file of the ontology has been upload in the communtiy {CommunityShortName}");
                 return true;
             }
             catch (Exception e)
             {
-                _logHelper.Error($"El file {fileName} has not been uploaded.{e.Message}");
+                Log.Error($"El file {fileName} has not been uploaded.{e.Message}");
                 return false;
             }
         }
@@ -412,7 +405,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="isLast">There are not resources left to load</param>
         public void ModifyComplexOntologyResource(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast)
         {
-            _logHelper.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
+            Log.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
 
             try
             {
@@ -433,16 +426,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource.Modified)
                 {
-                    _logHelper.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{resource.Ontology.OntologyUrl}' with RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{resource.Ontology.OntologyUrl}' with RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
                 }
                 else
                 {
-                    _logHelper.Error($"The resource with id: {resource.ShortGnossId} of the ontology '{resource.Ontology.OntologyUrl}' has not been modified.", this.GetType().Name);
+                    Log.Error($"The resource with id: {resource.ShortGnossId} of the ontology '{resource.Ontology.OntologyUrl}' has not been modified.", this.GetType().Name);
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"The resource with id {resource.GnossId} has not been modified,{ex.Message}");
+                Log.Error($"The resource with id {resource.GnossId} has not been modified,{ex.Message}");
             }
         }
 
@@ -455,7 +448,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="rdfFile">Resource rdf file</param>
         public void ModifyComplexOntologyResourceRDF(ComplexOntologyResource resource, byte[] rdfFile, bool hierarquicalCategories, bool isLast)
         {
-            _logHelper.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
+            Log.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
 
             try
             {
@@ -477,16 +470,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource.Modified)
                 {
-                    _logHelper.Debug($"Successfully modified the resource with id: {resource.ShortGnossId}");
+                    Log.Debug($"Successfully modified the resource with id: {resource.ShortGnossId}");
                 }
                 else
                 {
-                    _logHelper.Error($"ERROR --> The resource with id: {resource.ShortGnossId}' has not been modified.");
+                    Log.Error($"ERROR --> The resource with id: {resource.ShortGnossId}' has not been modified.");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"ERROR --> The resource with id: {resource.ShortGnossId}' has not been modified.{ex.Message}");
+                Log.Error($"ERROR --> The resource with id: {resource.ShortGnossId}' has not been modified.{ex.Message}");
             }
         }
 
@@ -499,7 +492,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         public void ModifyComplexSemanticResourceCommunityShortName(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast)
         {
-            _logHelper.Trace($"******************** Begin modification of resource: {resource.GnossId}", this.GetType().Name, CommunityShortName);
+            Log.Trace($"******************** Begin modification of resource: {resource.GnossId}", this.GetType().Name, CommunityShortName);
             try
             {
                 if (resource.TextCategories != null)
@@ -519,16 +512,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource.Modified)
                 {
-                    _logHelper.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{resource.Ontology.OntologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{resource.Ontology.OntologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
                 }
                 else
                 {
-                    _logHelper.Error($"The resource with id: {resource.ShortGnossId} of the ontology '{resource.Ontology.OntologyUrl}' has not been modified.", this.GetType().Name);
+                    Log.Error($"The resource with id: {resource.ShortGnossId} of the ontology '{resource.Ontology.OntologyUrl}' has not been modified.", this.GetType().Name);
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"The resource with id{resource.GnossId} has not been modified {ex.Message}");
+                Log.Error($"The resource with id{resource.GnossId} has not been modified {ex.Message}");
             }
         }
 
@@ -559,7 +552,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"The basic ontology resource with id: {resource.GnossId} has not been modified,{ex.Message}");
+                Log.Error($"The basic ontology resource with id: {resource.GnossId} has not been modified,{ex.Message}");
             }
         }
 
@@ -581,7 +574,7 @@ namespace Gnoss.ApiWrapper
                 attempNumber = attempNumber + 1;
                 if (numAttemps > 1)
                 {
-                    _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                    Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 }
 
                 foreach (BasicOntologyResource rec in resourceList)
@@ -595,16 +588,16 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
                 if (numAttemps > 1)
                 {
-                    _logHelper.Trace($"******************** Lap number: {attempNumber} finalizada", this.GetType().Name);
+                    Log.Trace($"******************** Lap number: {attempNumber} finalizada", this.GetType().Name);
                 }
             }
         }
@@ -628,7 +621,7 @@ namespace Gnoss.ApiWrapper
                 attempNumber = attempNumber + 1;
                 if (numAttemps > 1)
                 {
-                    _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                    Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 }
 
                 foreach (ComplexOntologyResource rec in resourceList.Where(r => !r.Modified))
@@ -640,20 +633,20 @@ namespace Gnoss.ApiWrapper
                         ModifyComplexSemanticResourceWithOntologyAndCommunity(rec, hierarquicalCategories, processedNumber == resourceList.Count(), ontology);
 
                         resourcesToModify = resourcesToModify - 1;
-                        _logHelper.Debug($"There are {resourcesToModify} resources left to modify.");
+                        Log.Debug($"There are {resourcesToModify} resources left to modify.");
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
                 if (numAttemps > 1)
                 {
-                    _logHelper.Trace($"******************** Lap number: {attempNumber} finalizada", this.GetType().Name);
+                    Log.Trace($"******************** Lap number: {attempNumber} finalizada", this.GetType().Name);
                 }
             }
         }
@@ -668,7 +661,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="isLast">There are not resources left to load</param>
         public void ModifyComplexSemanticResourceWithOntologyAndCommunity(ComplexOntologyResource resource, bool hierarquicalCategories, bool isLast, string ontology)
         {
-            _logHelper.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
+            Log.Trace($"******************** Begin the resource modification: {resource.GnossId}", this.GetType().Name, CommunityShortName);
 
             try
             {
@@ -692,16 +685,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource.Modified)
                 {
-                    _logHelper.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{ontologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{ontologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
                 }
                 else
                 {
-                    _logHelper.Error($"The resource with id: {resource.ShortGnossId} of the ontology '{ontologyUrl}' has not been modified.", this.GetType().Name);
+                    Log.Error($"The resource with id: {resource.ShortGnossId} of the ontology '{ontologyUrl}' has not been modified.", this.GetType().Name);
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"The resource with id {resource.GnossId} has not been modified, {ex.Message}");
+                Log.Error($"The resource with id {resource.GnossId} has not been modified, {ex.Message}");
             }
         }
 
@@ -722,7 +715,7 @@ namespace Gnoss.ApiWrapper
                 attempNumber = attempNumber + 1;
                 if (numAttemps > 1)
                 {
-                    _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                    Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 }
 
                 foreach (ComplexOntologyResource rec in resourceList.Where(r => !r.Modified))
@@ -734,21 +727,21 @@ namespace Gnoss.ApiWrapper
                         ModifyComplexOntologyResource(rec, hierarquicalCategories, processedNumber == resourceList.Count());
 
                         resourcesToModify = resourcesToModify - 1;
-                        _logHelper.Debug($"There are {resourcesToModify} resources left to modify.");
+                        Log.Debug($"There are {resourcesToModify} resources left to modify.");
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
                 if (numAttemps > 1)
                 {
-                    _logHelper.Trace($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                    Log.Trace($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
                 }
             }
         }
@@ -762,7 +755,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="hierarchicalCategories">Indicates whether the categories has hierarchy</param>
         public void ModifyCategoriesTagsComplexOntologyResource(Guid resourceId, string property, List<string> listToModify, bool hierarchicalCategories)
         {
-            _logHelper.Debug($"******************** Start modification: ", this.GetType().Name);
+            Log.Debug($"******************** Start modification: ", this.GetType().Name);
 
             List<Guid> categoriesIdentifiers = null;
 
@@ -813,8 +806,8 @@ namespace Gnoss.ApiWrapper
             }
 
             ModifyProperty(resourceId, property, newObject);
-            _logHelper.Debug($"The resource '{resourceId}' has been modified correctly....{DateTime.Now}");
-            _logHelper.Debug($"******************** End modification", this.GetType().Name);
+            Log.Debug($"The resource '{resourceId}' has been modified correctly....{DateTime.Now}");
+            Log.Debug($"******************** End modification", this.GetType().Name);
         }
 
         /// <summary>
@@ -830,7 +823,7 @@ namespace Gnoss.ApiWrapper
             while (attempNumber < numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Begin the lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Begin the lap number: {attempNumber}", this.GetType().Name);
 
                 try
                 {
@@ -849,7 +842,7 @@ namespace Gnoss.ApiWrapper
                     LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, true);
                     resource.Modified = ModifyComplexOntologyResource(model);
 
-                    _logHelper.Debug($"Successfully modified the resource with ID: {resource.Id} and Gnoss identifier {resource.ShortGnossId}", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with ID: {resource.Id} and Gnoss identifier {resource.ShortGnossId}", this.GetType().Name);
                     if (resource.Modified)
                     {
                         try
@@ -885,24 +878,24 @@ namespace Gnoss.ApiWrapper
                         }
                         catch (Exception ex)
                         {
-                            _logHelper.Error($"ERROR replacing the image of the resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                            Log.Error($"ERROR replacing the image of the resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
                         }
                     }
                     else
                     {
-                        _logHelper.Error($"The resource with id: {resource.GnossId} has not been modified.", this.GetType().Name);
+                        Log.Error($"The resource with id: {resource.GnossId} has not been modified.", this.GetType().Name);
                     }
                 }
                 catch (GnossAPICategoryException gacex)
                 {
-                    _logHelper.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                    Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                    Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
                 }
 
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
             }
         }
 
@@ -946,7 +939,7 @@ namespace Gnoss.ApiWrapper
                 if (removeTripleList.Count > 0)
                 {
                     ModifyTripleList(resourceId, triplesList, LoadIdentifier, publishHome, null, resourceAttachedFiles, true);
-                    _logHelper.Debug($"Modified resource with attached. ResourceId: {resourceId}");
+                    Log.Debug($"Modified resource with attached. ResourceId: {resourceId}");
                 }
             }
         }
@@ -986,7 +979,7 @@ namespace Gnoss.ApiWrapper
                 ModifyTripleList(resourceId, triplesList, LoadIdentifier, publishHome, null, resourceAttachedFiles, true);
             }
 
-            _logHelper.Debug($"Modified the resource with attached file: {resourceId}");
+            Log.Debug($"Modified the resource with attached file: {resourceId}");
         }
 
         /// <summary>
@@ -1025,7 +1018,7 @@ namespace Gnoss.ApiWrapper
                 ModifyTripleList(resourceId, triplesList, LoadIdentifier, publishHome, null, resourceAttachedFiles, true);
             }
 
-            _logHelper.Debug($"Modified the resource with attached image: {resourceId}");
+            Log.Debug($"Modified the resource with attached image: {resourceId}");
         }
 
         #endregion
@@ -1048,7 +1041,7 @@ namespace Gnoss.ApiWrapper
             while (originalResourceList != null && originalResourceList.Where(rec => !rec.Deleted).Count() > 0 && attempNumber <= numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Starts lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Starts lap number: {attempNumber}", this.GetType().Name);
 
                 foreach (ComplexOntologyResource resource in originalResourceList)
                 {
@@ -1060,17 +1053,17 @@ namespace Gnoss.ApiWrapper
                             Delete(resource.ShortGnossId, LoadIdentifier, processedNumber == originalResourceList.Count);
                             numResourcesLeft--;
 
-                            _logHelper.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
+                            Log.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
                             resource.Deleted = true;
                             break;
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR deleting: {processedNumber} of {originalResourceList.Count}\tID: {resource.GnossId}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR deleting: {processedNumber} of {originalResourceList.Count}\tID: {resource.GnossId}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
 
                 originalResourceList = new List<ComplexOntologyResource>(resourcesToDelete);
                 resourceList = originalResourceList;
@@ -1111,7 +1104,7 @@ namespace Gnoss.ApiWrapper
             while (originalResourceList != null && originalResourceList.Count(rec => rec.Deleted == false) > 0 && attempNumber <= numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Starts lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Starts lap number: {attempNumber}", this.GetType().Name);
 
                 foreach (ComplexOntologyResource resource in resourcesToDelete.Where(rec => rec.Deleted == false))
                 {
@@ -1127,16 +1120,16 @@ namespace Gnoss.ApiWrapper
                         {
                             resource.Deleted = PersistentDelete(resource.ShortGnossId, deleteAttached, last);
                             numResourcesLeft--;
-                            _logHelper.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
+                            Log.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
                             break;
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR deleting: {processedNumber} of {originalResourceList.Count}\tID: {resource.GnossId}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR deleting: {processedNumber} of {originalResourceList.Count}\tID: {resource.GnossId}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
 
                 originalResourceList = new List<ComplexOntologyResource>(resourcesToDelete);
             }
@@ -1159,7 +1152,7 @@ namespace Gnoss.ApiWrapper
         public void LoadBasicOntologyResourceListIntNote(ref List<BasicOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 5)
         {
             LoadBasicOntologyResourceListInt(ref resourceList, hierarquicalCategories, TiposDocumentacion.note, numAttemps);
-            _logHelper.Debug("Resources successfully loaded. End of load");
+            Log.Debug("Resources successfully loaded. End of load");
         }
 
         /// <summary>
@@ -1171,7 +1164,7 @@ namespace Gnoss.ApiWrapper
         public void LoadBasicOntologyResourceListLink(ref List<BasicOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 2)
         {
             LoadBasicOntologyResourceListInt(ref resourceList, hierarquicalCategories, TiposDocumentacion.hyperlink, numAttemps);
-            _logHelper.Debug("Resources successfully loaded. End of load");
+            Log.Debug("Resources successfully loaded. End of load");
         }
 
         /// <summary>
@@ -1183,7 +1176,7 @@ namespace Gnoss.ApiWrapper
         public void LoadBasicOntologyResourceListFile(ref List<BasicOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 5)
         {
             LoadBasicOntologyResourceListInt(ref resourceList, hierarquicalCategories, TiposDocumentacion.server_file, numAttemps);
-            _logHelper.Debug("Resources successfully loaded. End of load");
+            Log.Debug("Resources successfully loaded. End of load");
         }
 
         /// <summary>
@@ -1195,7 +1188,7 @@ namespace Gnoss.ApiWrapper
         public void LoadBasicOntologyResourceListLinkVideo(ref List<BasicOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 5)
         {
             LoadBasicOntologyResourceListIntVideo(ref resourceList, hierarquicalCategories, TiposDocumentacion.hyperlink, numAttemps);
-            _logHelper.Debug("Resources successfully loaded. End of load");
+            Log.Debug("Resources successfully loaded. End of load");
         }
 
         /// <summary>
@@ -1207,7 +1200,7 @@ namespace Gnoss.ApiWrapper
         public void LoadBasicOntologyResourceListVideo(ref List<BasicOntologyResource> resourceList, bool hierarquicalCategories, int numAttemps = 5)
         {
             LoadBasicOntologyResourceListInt(ref resourceList, hierarquicalCategories, TiposDocumentacion.video, numAttemps);
-            _logHelper.Debug("Resources successfully loaded. End of load");
+            Log.Debug("Resources successfully loaded. End of load");
         }
 
         #endregion
@@ -1224,14 +1217,14 @@ namespace Gnoss.ApiWrapper
         /// <param name="resourceList">Resource list to delete</param>
         public void ModifySecondaryResourcesList(List<SecondaryResource> resourceList)
         {
-            _logHelper.Debug($"Modifying {resourceList.Count} resources");
+            Log.Debug($"Modifying {resourceList.Count} resources");
             int left = resourceList.Count;
             foreach (SecondaryResource rs in resourceList)
             {
                 if (ModifySecondaryResource(rs))
                 {
                     left--;
-                    _logHelper.Debug($"Still remaining {left} resources");
+                    Log.Debug($"Still remaining {left} resources");
                 }
             }
         }
@@ -1253,7 +1246,7 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 string mensaje = $"The secondary resource with ID: {resourceList.Id} cannot be modified . Menssage: {ex.Message}";
-                _logHelper.Error(mensaje, this.GetType().Name);
+                Log.Error(mensaje, this.GetType().Name);
                 resourceList.Modified = false;
                 throw new GnossAPIException(mensaje);
             }
@@ -1279,23 +1272,23 @@ namespace Gnoss.ApiWrapper
             while (urlList != null && urlList.Count > 0 && attempNumber <= numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 foreach (string Url in urlList)
                 {
                     try
                     {
                         processedNumber = processedNumber + 1;
                         DeleteSecondaryEntity(OntologyUrl, CommunityShortName, Url);
-                        _logHelper.Debug($"Successfully deleted th resource with ID: {Url}", this.GetType().Name);
+                        Log.Debug($"Successfully deleted th resource with ID: {Url}", this.GetType().Name);
                         resourcesToDelete.Remove(Url);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR deleting: {processedNumber} of {urlList.Count}\tID: {Url}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR deleting: {processedNumber} of {urlList.Count}\tID: {Url}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
                 urlList = new List<string>(resourcesToDelete);
             }
         }
@@ -1317,7 +1310,7 @@ namespace Gnoss.ApiWrapper
             while (resourceList != null && resourceList.Count > 0 && attempNumber <= numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 foreach (SecondaryResource resource in resourceList)
                 {
                     resource.Deleted = false;
@@ -1331,16 +1324,16 @@ namespace Gnoss.ApiWrapper
                             resultList.Add(resource);
                         }
 
-                        _logHelper.Debug($"Successfully deleted the resource with ID: {resource.Id}", this.GetType().Name);
+                        Log.Debug($"Successfully deleted the resource with ID: {resource.Id}", this.GetType().Name);
                         resourcesToDelete.Remove(resource);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR deleting: {processedNumber} of {resourceList.Count}\tID: {resource.Id}. Menssage: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR deleting: {processedNumber} of {resourceList.Count}\tID: {resource.Id}. Menssage: {ex.Message}", this.GetType().Name);
                     }
                 }
 
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
                 resourceList = new List<SecondaryResource>(resourcesToDelete);
             }
 
@@ -1471,7 +1464,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>DataSet with the query result</returns>
         public SparqlObject VirtuosoQuery(string selectPart, string wherePart, string ontologiaName, bool userMasterServer = true)
         {
-            _logHelper.Trace("Entering the method", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+            Log.Trace("Entering the method", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
             return VirtuosoQueryInt(selectPart, wherePart, ontologiaName, userMasterServer);
         }
 
@@ -1484,7 +1477,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>DataSet with the query result</returns>
         public SparqlObject VirtuosoQuery(string selectPart, string wherePart, Guid communityId, bool userMasterServer = true)
         {
-            _logHelper.Trace("Entering the method", this.GetType().Name);
+            Log.Trace("Entering the method", this.GetType().Name);
             return VirtuosoQueryInt(selectPart, wherePart, communityId.ToString(), userMasterServer);
         }
 
@@ -1546,7 +1539,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Unable to get the guid of {largeResourceId}. {ex.Message}");
+                Log.Error($"Unable to get the guid of {largeResourceId}. {ex.Message}");
                 return new Guid();
             }
         }
@@ -1590,7 +1583,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Debug($"Error downloading file: {urlRdf}. Error: {ex.Message}");
+                Log.Debug($"Error downloading file: {urlRdf}. Error: {ex.Message}");
             }
             return rdf;
         }
@@ -1683,11 +1676,11 @@ namespace Gnoss.ApiWrapper
 
             if (image != string.Empty)
             {
-                _logHelper.Debug($"Correct main image setting of resource {resourceId}, the of the new main image is {sizes[0]} and its name is {imageName}");
+                Log.Debug($"Correct main image setting of resource {resourceId}, the of the new main image is {sizes[0]} and its name is {imageName}");
             }
             else
             {
-                _logHelper.Debug($"The main image of the resource {resourceId} has been deleted.");
+                Log.Debug($"The main image of the resource {resourceId} has been deleted.");
             }
         }
 
@@ -1770,11 +1763,11 @@ namespace Gnoss.ApiWrapper
                 model = new ModifyResourceSubtype() { community_short_name = CommunityShortName, ontology_name = ontologyName, resource_id = resourceId, subtype = subtype, previous_type = previousType, user_id = userId };
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug("Ended resource subtype modification");
+                Log.Debug("Ended resource subtype modification");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error modifying resource subtype. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error modifying resource subtype. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
         }
@@ -1910,11 +1903,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -1963,11 +1956,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -2009,16 +2002,16 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                _logHelper.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
+                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
                 resource.GnossId = documentId;
             }
             catch (GnossAPICategoryException gacex)
             {
-                _logHelper.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -2045,7 +2038,7 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                _logHelper.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
+                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
 
                 if (!string.IsNullOrEmpty(rdfsPath) && !string.IsNullOrWhiteSpace(rdfsPath))
                 {
@@ -2065,11 +2058,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                _logHelper.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -2087,7 +2080,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="isLast">Indicates There are not resources left to load</param>
         private void LoadBasicOntologyResourceInt(BasicOntologyResource resource, bool hierarquicalCategories, TiposDocumentacion resourceType, bool isLast = false)
         {
-            _logHelper.Trace("******************** Begin Load ", this.GetType().Name);
+            Log.Trace("******************** Begin Load ", this.GetType().Name);
 
             if (((resource.CategoriesIds != null && resource.CategoriesIds.Count == 0) || resource.CategoriesIds == null) && resource.TextCategories != null && resource.TextCategories.Count > 0)
             {
@@ -2107,7 +2100,7 @@ namespace Gnoss.ApiWrapper
                 string documentId = CreateBasicOntologyResource(model);
                 resource.Uploaded = true;
                 resource.ShortGnossId = new Guid(documentId.Trim('"'));
-                _logHelper.Debug($"Loaded: {resource.GnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
+                Log.Debug($"Loaded: {resource.GnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
                 if (documentId != resource.GnossId)
                 {
                     throw new GnossAPIException($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API");
@@ -2115,19 +2108,19 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPIException ex)
             {
-                _logHelper.Info($"Resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Info($"Resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
-            _logHelper.Debug("******************** End Load", this.GetType().Name);
+            Log.Debug("******************** End Load", this.GetType().Name);
         }
 
         private void LoadBasicOntologyResourceIntVideo(BasicOntologyResource resource, bool hierarquicalCategories, TiposDocumentacion resourceType, bool isLast = false)
         {
-            _logHelper.Trace("******************** Begin Load ", this.GetType().Name);
+            Log.Trace("******************** Begin Load ", this.GetType().Name);
 
             if (hierarquicalCategories)
             {
@@ -2151,14 +2144,14 @@ namespace Gnoss.ApiWrapper
                 {
                 }
                 resource.ShortGnossId = new Guid(documentId);
-                _logHelper.Debug($"Loaded: {resource.Id}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
+                Log.Debug($"Loaded: {resource.Id}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
-            _logHelper.Debug("******************** End Load", this.GetType().Name);
+            Log.Debug("******************** End Load", this.GetType().Name);
         }
 
         private void LoadBasicOntologyResourceListInt(ref List<BasicOntologyResource> resourceList, bool hierarquicalCategories, TiposDocumentacion resourceType, int numAttemps = 2)
@@ -2171,7 +2164,7 @@ namespace Gnoss.ApiWrapper
             while (resourcesToLoad != null && resourcesToLoad.Count > 0 && attempNumber <= numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 foreach (BasicOntologyResource rec in resourceList)
                 {
                     processedNumber = processedNumber + 1;
@@ -2181,17 +2174,17 @@ namespace Gnoss.ApiWrapper
                         LoadBasicOntologyResourceInt(rec, hierarquicalCategories, resourceType, processedNumber == resourceList.Count());
                         if (rec.Uploaded)
                         {
-                            _logHelper.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
+                            Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
                         }
                         resourcesToLoad.Remove(rec);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
             }
         }
 
@@ -2204,22 +2197,22 @@ namespace Gnoss.ApiWrapper
             while (resourcesToLoad != null && resourcesToLoad.Count > 0 && attempNumber <= numAttemps)
             {
                 attempNumber = attempNumber + 1;
-                _logHelper.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
                 foreach (BasicOntologyResource rec in resourceList)
                 {
                     processedNumber = processedNumber + 1;
                     try
                     {
                         LoadBasicOntologyResourceIntVideo(rec, hierarquicalCategories, resourceType, processedNumber == resourceList.Count());
-                        _logHelper.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
+                        Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
                         resourcesToLoad.Remove(rec);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Mensaje: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Mensaje: {ex.Message}", this.GetType().Name);
                     }
                 }
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
             }
         }
 
@@ -2237,7 +2230,7 @@ namespace Gnoss.ApiWrapper
 
             WebRequestPostWithJsonObject(url, model);
 
-            _logHelper.Debug($"The secondary entity has been created in the graph {ontology_url} of the communtiy {community_short_name}");
+            Log.Debug($"The secondary entity has been created in the graph {ontology_url} of the communtiy {community_short_name}");
         }
 
         private void ModifySecondaryEntity(string ontology_url, string community_short_name, byte[] rdf)
@@ -2248,7 +2241,7 @@ namespace Gnoss.ApiWrapper
 
             WebRequestPostWithJsonObject(url, model);
 
-            _logHelper.Debug($"The secondary entity has been modified in the graph {ontology_url} of the communtiy {community_short_name}");
+            Log.Debug($"The secondary entity has been modified in the graph {ontology_url} of the communtiy {community_short_name}");
         }
 
         private void DeleteSecondaryEntity(string ontology_url, string community_short_name, string entity_id)
@@ -2259,7 +2252,7 @@ namespace Gnoss.ApiWrapper
 
             WebRequestPostWithJsonObject(url, model);
 
-            _logHelper.Debug($"The secondary entity {entity_id} has been deleted in the graph {ontology_url} of the communtiy {community_short_name}");
+            Log.Debug($"The secondary entity {entity_id} has been deleted in the graph {ontology_url} of the communtiy {community_short_name}");
         }
 
         #endregion
@@ -2313,7 +2306,7 @@ namespace Gnoss.ApiWrapper
                         }
                         ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, userId);
 
-                        _logHelper.Debug($"{processedNumber} of {resourceTriples.Count}. Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
+                        Log.Debug($"{processedNumber} of {resourceTriples.Count}. Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toModify.Remove(docID);
                         if (result.ContainsKey(docID))
                         {
@@ -2326,7 +2319,7 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"Resource {docID} : {ex.Message}");
+                        Log.Error($"Resource {docID} : {ex.Message}");
                         if (result.ContainsKey(docID))
                         {
                             result[docID] = false;
@@ -2337,7 +2330,7 @@ namespace Gnoss.ApiWrapper
                         }
                     }
                 }
-                _logHelper.Debug($"******************** Lap number: {attempNumber} finished");
+                Log.Debug($"******************** Lap number: {attempNumber} finished");
             }
 
             return result;
@@ -2387,7 +2380,7 @@ namespace Gnoss.ApiWrapper
                         }
                         ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, usuarioID);
 
-                        _logHelper.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
+                        Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toInsert.Remove(docID);
                         if (result.ContainsKey(docID))
                         {
@@ -2401,7 +2394,7 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"Resource{docID} : {ex.Message}");
+                        Log.Error($"Resource{docID} : {ex.Message}");
                         if (result.ContainsKey(docID))
                         {
                             result[docID] = false;
@@ -2412,7 +2405,7 @@ namespace Gnoss.ApiWrapper
                         }
                     }
                 }
-                _logHelper.Debug($"******************** Lap number: {attempNumber} finished");
+                Log.Debug($"******************** Lap number: {attempNumber} finished");
 
             }
 
@@ -2463,7 +2456,7 @@ namespace Gnoss.ApiWrapper
                         }
                         ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad);
 
-                        _logHelper.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
+                        Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toDelete.Remove(docID);
 
                         if (result.ContainsKey(docID))
@@ -2477,7 +2470,7 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"Resource {docID} : {ex.Message}");
+                        Log.Error($"Resource {docID} : {ex.Message}");
                         if (result.ContainsKey(docID))
                         {
                             result[docID] = false;
@@ -2488,7 +2481,7 @@ namespace Gnoss.ApiWrapper
                         }
                     }
                 }
-                _logHelper.Debug($"******************** Lap number: {attempNumber} finished");
+                Log.Debug($"******************** Lap number: {attempNumber} finished");
             }
 
             return result;
@@ -2693,7 +2686,7 @@ namespace Gnoss.ApiWrapper
                     ModifyTripleList(docID, valuesList, LoadIdentifier, publishHome, null, null, endOfLoad);
                     valuesList = new List<ModifyResourceTriple>();
 
-                    _logHelper.Debug($" Object: {docID}");
+                    Log.Debug($" Object: {docID}");
                     if (result.ContainsKey(docID))
                     {
                         result[docID] = true;
@@ -2705,7 +2698,7 @@ namespace Gnoss.ApiWrapper
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error($"Resource {docID} : {ex.Message}");
+                    Log.Error($"Resource {docID} : {ex.Message}");
                     valuesList = new List<ModifyResourceTriple>();
                     if (result.ContainsKey(docID))
                     {
@@ -2751,16 +2744,16 @@ namespace Gnoss.ApiWrapper
                         WebRequestPostWithJsonObject(url, model);
 
                         valuesList = new List<string[]>();
-                        _logHelper.Debug($"{processedNumber} of {resourceTriples.Count} Object: {secondaryEntityId}. Resource: {resourceTriples[secondaryEntityId].ToArray()}");
+                        Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {secondaryEntityId}. Resource: {resourceTriples[secondaryEntityId].ToArray()}");
                         toModify.Remove(secondaryEntityId);
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"Resource {secondaryEntityId} : {ex.Message}");
+                        Log.Error($"Resource {secondaryEntityId} : {ex.Message}");
                         valuesList = new List<string[]>();
                     }
                 }
-                _logHelper.Debug($"******************** Finished lap number: {attempNumber}");
+                Log.Debug($"******************** Finished lap number: {attempNumber}");
             }
         }
 
@@ -2797,16 +2790,16 @@ namespace Gnoss.ApiWrapper
                             endOfLoad = true;
                         }
                         ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, userId);
-                        _logHelper.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
+                        Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         pDiccionarioInsertar.Remove(docID);
                         inserted = true;
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"Resource {docID} : {ex.Message}");
+                        Log.Error($"Resource {docID} : {ex.Message}");
                     }
                 }
-                _logHelper.Debug($"******************** Lap number: {attempNumber} finished");
+                Log.Debug($"******************** Lap number: {attempNumber} finished");
 
             }
             return inserted;
@@ -2816,16 +2809,16 @@ namespace Gnoss.ApiWrapper
 
         private SparqlObject VirtuosoQueryInt(string selectPart, string wherePart, string graph, bool userMasterServer)
         {
-            _logHelper.Trace("Entering in the method", this.GetType().Name);
-            _logHelper.Trace($"SELECT: {selectPart}", this.GetType().Name);
-            _logHelper.Trace($"Grafo name: {graph}", this.GetType().Name);
-            _logHelper.Trace($"WHERE: {wherePart}", this.GetType().Name);
+            Log.Trace("Entering in the method", this.GetType().Name);
+            Log.Trace($"SELECT: {selectPart}", this.GetType().Name);
+            Log.Trace($"Grafo name: {graph}", this.GetType().Name);
+            Log.Trace($"WHERE: {wherePart}", this.GetType().Name);
 
             SparqlObject SO = new SparqlObject();
 
             try
             {
-                _logHelper.Trace("Query start", this.GetType().Name);
+                Log.Trace("Query start", this.GetType().Name);
 
                 string url = $"{ApiUrl}/sparql-endpoint/query";
 
@@ -2835,7 +2828,7 @@ namespace Gnoss.ApiWrapper
 
                 SO = JsonConvert.DeserializeObject<SparqlObject>(response);
 
-                _logHelper.Trace("Query end", this.GetType().Name);
+                Log.Trace("Query end", this.GetType().Name);
             }
             catch (WebException wex)
             {
@@ -2843,7 +2836,7 @@ namespace Gnoss.ApiWrapper
                 throw new GnossAPIException($"Could not make the query to Virtuoso.\n{resultado}");
             }
 
-            _logHelper.Trace("Leaving the method", this.GetType().Name);
+            Log.Trace("Leaving the method", this.GetType().Name);
             return SO;
         }
 
@@ -3029,13 +3022,13 @@ namespace Gnoss.ApiWrapper
                 string response = WebRequest($"GET", url, acceptHeader: "application/json");
                 int pendingActions = int.Parse(response);
 
-                _logHelper.Debug($"The ontology {ontology} has {pendingActions} pending actions");
+                Log.Debug($"The ontology {ontology} has {pendingActions} pending actions");
 
                 return pendingActions;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"There has been an error trying to know if there are outstanding resources{ex.Message}");
+                Log.Error($"There has been an error trying to know if there are outstanding resources{ex.Message}");
                 throw;
             }
         }
@@ -3054,11 +3047,11 @@ namespace Gnoss.ApiWrapper
 
                 communityShortName = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded")?.Trim('"');
 
-                _logHelper.Debug($"The community short name for the resource {resourceId} is {communityShortName}");
+                Log.Debug($"The community short name for the resource {resourceId} is {communityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the community short name", ex.Message);
+                Log.Error($"Error getting the community short name", ex.Message);
                 throw;
             }
             return communityShortName;
@@ -3085,22 +3078,22 @@ namespace Gnoss.ApiWrapper
 
                     if (result)
                     {
-                        _logHelper.Debug($"The user {userId} is allowed to edit the resource {resourceId} in {CommunityShortName}");
+                        Log.Debug($"The user {userId} is allowed to edit the resource {resourceId} in {CommunityShortName}");
                     }
                     else
                     {
-                        _logHelper.Debug($"The user {userId} is not allowed to edit the resource {resourceId} in {CommunityShortName}");
+                        Log.Debug($"The user {userId} is not allowed to edit the resource {resourceId} in {CommunityShortName}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error(ex.Message);
+                    Log.Error(ex.Message);
                     throw;
                 }
             }
             else
             {
-                _logHelper.Error($"Any of this are null or empty: resourceId, userId");
+                Log.Error($"Any of this are null or empty: resourceId, userId");
             }
 
             return result;
@@ -3128,22 +3121,22 @@ namespace Gnoss.ApiWrapper
 
                     if (result)
                     {
-                        _logHelper.Debug($"The user {userId} is allowed to edit the resource {resourceId} in {CommunityShortName}");
+                        Log.Debug($"The user {userId} is allowed to edit the resource {resourceId} in {CommunityShortName}");
                     }
                     else
                     {
-                        _logHelper.Debug($"The user {userId} is not allowed to edit the resource {resourceId} in {CommunityShortName}");
+                        Log.Debug($"The user {userId} is not allowed to edit the resource {resourceId} in {CommunityShortName}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error(ex.Message);
+                    Log.Error(ex.Message);
                     throw;
                 }
             }
             else
             {
-                _logHelper.Error($"Any of this are null or empty: resourceId, userId");
+                Log.Error($"Any of this are null or empty: resourceId, userId");
             }
 
             return result;
@@ -3165,12 +3158,12 @@ namespace Gnoss.ApiWrapper
 
                 if (visibilidad == null)
                 {
-                    _logHelper.Error($"Resource visbility not obtained: {resourceId}");
+                    Log.Error($"Resource visbility not obtained: {resourceId}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the visibility of {resourceId}: {ex.Message}");
+                Log.Error($"Error getting the visibility of {resourceId}: {ex.Message}");
                 throw;
             }
             return visibilidad;
@@ -3193,7 +3186,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the related resources of {string.Join(",", resourceIds)}: {ex.Message}");
+                Log.Error($"Error getting the related resources of {string.Join(",", resourceIds)}: {ex.Message}");
                 throw;
             }
             return listaIds;
@@ -3215,7 +3208,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the related resources of {resourceId}: {ex.Message}");
+                Log.Error($"Error getting the related resources of {resourceId}: {ex.Message}");
                 throw;
             }
             return listaIds;
@@ -3237,11 +3230,11 @@ namespace Gnoss.ApiWrapper
 
                 listaDocs = JsonConvert.DeserializeObject<Dictionary<string, List<Guid>>>(result);
 
-                _logHelper.Debug($"the user id {userid} published {result}");
+                Log.Debug($"the user id {userid} published {result}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the shared communities of {userid}: {ex.Message}");
+                Log.Error($"Error getting the shared communities of {userid}: {ex.Message}");
                 throw;
             }
             return listaDocs;
@@ -3257,11 +3250,11 @@ namespace Gnoss.ApiWrapper
 
                 valor = JsonConvert.DeserializeObject<string>(result);
 
-                _logHelper.Debug($"the proyect id {proyectoid} have styles path {result}");
+                Log.Debug($"the proyect id {proyectoid} have styles path {result}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the shared communities of {proyectoid}: {ex.Message}");
+                Log.Error($"Error getting the shared communities of {proyectoid}: {ex.Message}");
                 throw;
             }
             return valor;
@@ -3284,11 +3277,11 @@ namespace Gnoss.ApiWrapper
 
                 communities = JsonConvert.DeserializeObject<List<string>>(result);
 
-                _logHelper.Debug($"The resource {resourceId} has been shared in {result}");
+                Log.Debug($"The resource {resourceId} has been shared in {result}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the shared communities of {resourceId}: {ex.Message}");
+                Log.Error($"Error getting the shared communities of {resourceId}: {ex.Message}");
                 throw;
             }
             return communities;
@@ -3309,16 +3302,16 @@ namespace Gnoss.ApiWrapper
                 readers = JsonConvert.DeserializeObject<KeyReaders>(response);
                 if (readers != null)
                 {
-                    _logHelper.Debug($"Resource readers of {resourceId}: {response}");
+                    Log.Debug($"Resource readers of {resourceId}: {response}");
                 }
                 else
                 {
-                    _logHelper.Error($"Couldn't get readers of: {resourceId}");
+                    Log.Error($"Couldn't get readers of: {resourceId}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the resources of {resourceId}: {ex.Message}");
+                Log.Error($"Error getting the resources of {resourceId}: {ex.Message}");
                 throw;
             }
             return readers;
@@ -3344,16 +3337,16 @@ namespace Gnoss.ApiWrapper
 
                 if (unshared)
                 {
-                    _logHelper.Debug($"Resource {resourceId} unshared from {CommunityShortName}");
+                    Log.Debug($"Resource {resourceId} unshared from {CommunityShortName}");
                 }
                 else
                 {
-                    _logHelper.Debug($"Resource {resourceId} not unshared from {CommunityShortName}");
+                    Log.Debug($"Resource {resourceId} not unshared from {CommunityShortName}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to unsare the resource {resourceId} from {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error trying to unsare the resource {resourceId} from {CommunityShortName}: {ex.Message}");
                 throw;
             }
             return unshared;
@@ -3387,16 +3380,16 @@ namespace Gnoss.ApiWrapper
 
                 if (success)
                 {
-                    _logHelper.Debug($"Triples inserted in {resourceId}: JsonConvert.SerializeObject(triplesToInsert)");
+                    Log.Debug($"Triples inserted in {resourceId}: JsonConvert.SerializeObject(triplesToInsert)");
                 }
                 else
                 {
-                    _logHelper.Debug($"Triples not inserted in {resourceId}: JsonConvert.SerializeObject(triplesToInsert)");
+                    Log.Debug($"Triples not inserted in {resourceId}: JsonConvert.SerializeObject(triplesToInsert)");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to insert properties into {resourceId}: {ex.Message}. \r\n: Json: JsonConvert.SerializeObject(triplesToInsert)");
+                Log.Error($"Error trying to insert properties into {resourceId}: {ex.Message}. \r\n: Json: JsonConvert.SerializeObject(triplesToInsert)");
                 throw;
             }
             return success;
@@ -3424,16 +3417,16 @@ namespace Gnoss.ApiWrapper
 
                 if (success)
                 {
-                    _logHelper.Debug($"Triples deleted from {resourceId}: {JsonConvert.SerializeObject(triplesToDelete)}");
+                    Log.Debug($"Triples deleted from {resourceId}: {JsonConvert.SerializeObject(triplesToDelete)}");
                 }
                 else
                 {
-                    _logHelper.Debug($"Triples not deleted from {resourceId}: {JsonConvert.SerializeObject(triplesToDelete)}");
+                    Log.Debug($"Triples not deleted from {resourceId}: {JsonConvert.SerializeObject(triplesToDelete)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to delete properties from {resourceId}: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(triplesToDelete)}");
+                Log.Error($"Error trying to delete properties from {resourceId}: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(triplesToDelete)}");
                 throw;
             }
             return success;
@@ -3455,16 +3448,16 @@ namespace Gnoss.ApiWrapper
 
                 if (editorsList != null && editorsList.Count == 0)
                 {
-                    _logHelper.Debug($"Editors of the resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
+                    Log.Debug($"Editors of the resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
                 else
                 {
-                    _logHelper.Debug($"There is no editors for resources: {JsonConvert.SerializeObject(resourceId_list)}");
+                    Log.Debug($"There is no editors for resources: {JsonConvert.SerializeObject(resourceId_list)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the editors of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the editors of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
 
@@ -3488,16 +3481,16 @@ namespace Gnoss.ApiWrapper
 
                 if (urlsList != null && urlsList.Count == 0)
                 {
-                    _logHelper.Debug($"Download urls of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
+                    Log.Debug($"Download urls of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
                 else
                 {
-                    _logHelper.Debug($"There is no download urls for resources: {JsonConvert.SerializeObject(resourceId_list)}");
+                    Log.Debug($"There is no download urls for resources: {JsonConvert.SerializeObject(resourceId_list)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the download urls of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the download urls of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
             return urlsList;
@@ -3521,16 +3514,16 @@ namespace Gnoss.ApiWrapper
 
                 if (urlsList != null && urlsList.Count == 0)
                 {
-                    _logHelper.Debug($"Urls of resources {JsonConvert.SerializeObject(parameters)}: {response}");
+                    Log.Debug($"Urls of resources {JsonConvert.SerializeObject(parameters)}: {response}");
                 }
                 else
                 {
-                    _logHelper.Debug($"There is no urls for resources: {JsonConvert.SerializeObject(parameters)}");
+                    Log.Debug($"There is no urls for resources: {JsonConvert.SerializeObject(parameters)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the urls of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the urls of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
             return urlsList;
@@ -3552,11 +3545,11 @@ namespace Gnoss.ApiWrapper
                 readers = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, readers_list = readers_list, visibility = (short)visibility };
                 WebRequestPostWithJsonObject(url, readers);
 
-                _logHelper.Debug($"Ended resource readers setting");
+                Log.Debug($"Ended resource readers setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
+                Log.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
                 throw;
             }
         }
@@ -3577,11 +3570,11 @@ namespace Gnoss.ApiWrapper
                 readers = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
                 WebRequestPostWithJsonObject(url, readers);
 
-                _logHelper.Debug($"Ended resource readers setting");
+                Log.Debug($"Ended resource readers setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
+                Log.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
                 throw;
             }
         }
@@ -3600,11 +3593,11 @@ namespace Gnoss.ApiWrapper
                 readers = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
                 WebRequestPostWithJsonObject(url, readers);
 
-                _logHelper.Debug($"Ended resource readers setting");
+                Log.Debug($"Ended resource readers setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
+                Log.Error($"Error setting resource {resourceId} readers. \r\n Json: {JsonConvert.SerializeObject(readers)}", ex.Message);
                 throw;
             }
         }
@@ -3628,11 +3621,11 @@ namespace Gnoss.ApiWrapper
                 editors = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, readers_list = readers_list, visibility = (short)visibility };
                 WebRequestPostWithJsonObject(url, editors);
 
-                _logHelper.Debug($"Ended resource editors setting");
+                Log.Debug($"Ended resource editors setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
+                Log.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
                 throw;
             }
         }
@@ -3652,11 +3645,11 @@ namespace Gnoss.ApiWrapper
                 editors = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
                 WebRequestPostWithJsonObject(url, editors);
 
-                _logHelper.Debug($"Ended resource editors setting");
+                Log.Debug($"Ended resource editors setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
+                Log.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
                 throw;
             }
         }
@@ -3675,11 +3668,11 @@ namespace Gnoss.ApiWrapper
                 editors = new SetReadersEditorsParams() { resource_id = resourceId, community_short_name = CommunityShortName, readers_list = readers_list };
                 WebRequestPostWithJsonObject(url, editors);
 
-                _logHelper.Debug($"Ended resource editors setting");
+                Log.Debug($"Ended resource editors setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
+                Log.Error($"Error setting resource {resourceId} editors.\r\n Json: {JsonConvert.SerializeObject(editors)}", ex.Message);
                 throw;
             }
         }
@@ -3700,11 +3693,11 @@ namespace Gnoss.ApiWrapper
                 vote = new VotedParameters() { user_id = pIdentidadID, vote_value = pValorVoto, resource_id = pDocumentoID, project_id = pProyectoID };
                 WebRequestPostWithJsonObject(url, vote);
 
-                _logHelper.Debug($"Ended vote document setting");
+                Log.Debug($"Ended vote document setting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error vote Document {pDocumentoID}.\r\n Json: {JsonConvert.SerializeObject(vote)}", ex.Message);
+                Log.Error($"Error vote Document {pDocumentoID}.\r\n Json: {JsonConvert.SerializeObject(vote)}", ex.Message);
                 throw;
             }
         }
@@ -3729,16 +3722,16 @@ namespace Gnoss.ApiWrapper
 
                 if (emailsList != null && emailsList.Count == 0)
                 {
-                    _logHelper.Debug($"Urls of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
+                    Log.Debug($"Urls of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
                 else
                 {
-                    _logHelper.Debug($"There is no urls for resources: {JsonConvert.SerializeObject(resourceId_list)}");
+                    Log.Debug($"There is no urls for resources: {JsonConvert.SerializeObject(resourceId_list)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the urls of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the urls of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
             return emailsList;
@@ -3761,18 +3754,18 @@ namespace Gnoss.ApiWrapper
 
                 if (categoriesList != null && categoriesList.Count == resourceId_list.Count)
                 {
-                    _logHelper.Debug($"Categories of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
+                    Log.Debug($"Categories of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
                 else
                 {
                     List<Guid> listaRecursosSinCategoria = resourceId_list.Where(item => !categoriesList.Any(item2 => item2.resource_id.Equals(item))).ToList();
 
-                    _logHelper.Debug($"There is no categories for resources: {JsonConvert.SerializeObject(listaRecursosSinCategoria)}");
+                    Log.Debug($"There is no categories for resources: {JsonConvert.SerializeObject(listaRecursosSinCategoria)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the categories of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the categories of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
             return categoriesList;
@@ -3794,18 +3787,18 @@ namespace Gnoss.ApiWrapper
 
                 if (tagsList != null && tagsList.Count == resourceId_list.Count)
                 {
-                    _logHelper.Debug($"Tags of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
+                    Log.Debug($"Tags of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
                 else
                 {
                     List<Guid> listaRecursosSinTags = resourceId_list.Where(item => !tagsList.Any(item2 => item2.resource_id.Equals(item))).ToList();
 
-                    _logHelper.Debug($"There is no tags for resources: {JsonConvert.SerializeObject(resourceId_list)}");
+                    Log.Debug($"There is no tags for resources: {JsonConvert.SerializeObject(resourceId_list)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the tags of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the tags of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
             return tagsList;
@@ -3827,16 +3820,16 @@ namespace Gnoss.ApiWrapper
 
                 if (mainImagesList != null && mainImagesList.Count == 0)
                 {
-                    _logHelper.Debug($"Main images of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
+                    Log.Debug($"Main images of resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
                 else
                 {
-                    _logHelper.Debug($"There is no main images for resources: {JsonConvert.SerializeObject(resourceId_list)}");
+                    Log.Debug($"There is no main images for resources: {JsonConvert.SerializeObject(resourceId_list)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the main images of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
+                Log.Error($"Error getting the main images of resources: {JsonConvert.SerializeObject(resourceId_list)}. Error description: {ex.Message}");
                 throw;
             }
             return mainImagesList;
@@ -3859,16 +3852,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource != null)
                 {
-                    _logHelper.Debug($"Increased reading obtained");
+                    Log.Debug($"Increased reading obtained");
                 }
                 else
                 {
-                    _logHelper.Debug($"Error getting increased reading");
+                    Log.Debug($"Error getting increased reading");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the increased reading", ex.Message);
+                Log.Error($"Error getting the increased reading", ex.Message);
                 throw;
             }
             return resource;
@@ -3885,16 +3878,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource != null)
                 {
-                    _logHelper.Debug($"Resource {resourceId} obtained");
+                    Log.Debug($"Resource {resourceId} obtained");
                 }
                 else
                 {
-                    _logHelper.Debug($"Error getting the resource {resourceId}");
+                    Log.Debug($"Error getting the resource {resourceId}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the resource {resourceId}", ex.Message);
+                Log.Error($"Error getting the resource {resourceId}", ex.Message);
                 throw;
             }
             return resource;
@@ -3915,16 +3908,16 @@ namespace Gnoss.ApiWrapper
 
                 if (!string.IsNullOrEmpty(rdf))
                 {
-                    _logHelper.Debug($"Rdf obtained for the resource {resourceId}");
+                    Log.Debug($"Rdf obtained for the resource {resourceId}");
                 }
                 else
                 {
-                    _logHelper.Debug($"There is no rdf for the resource {resourceId}");
+                    Log.Debug($"There is no rdf for the resource {resourceId}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the rdf for the resource {resourceId}", ex.Message);
+                Log.Error($"Error getting the rdf for the resource {resourceId}", ex.Message);
                 throw;
             }
             return rdf;
@@ -3944,11 +3937,11 @@ namespace Gnoss.ApiWrapper
                 insertAttribute = new InsertAttributeParams() { graph = graph, value = value };
                 WebRequestPostWithJsonObject(url, insertAttribute);
 
-                _logHelper.Debug($"Ended inserting the value: {value} in the graph: {graph}");
+                Log.Debug($"Ended inserting the value: {value} in the graph: {graph}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error inserting value: {value} in the graph: {graph}. Error description: {ex.Message}.");
+                Log.Error($"Error inserting value: {value} in the graph: {graph}. Error description: {ex.Message}.");
                 throw;
             }
         }
@@ -3968,11 +3961,11 @@ namespace Gnoss.ApiWrapper
                 model = new DeleteParams() { resource_id = resourceId, community_short_name = CommunityShortName, charge_id = loadId, end_of_load = endOfCharge };
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug("Ended resource deleting");
+                Log.Debug("Ended resource deleting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error deleting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
         }
@@ -3993,11 +3986,11 @@ namespace Gnoss.ApiWrapper
                 model = new PersistentDeleteParams() { resource_id = resourceId, community_short_name = CommunityShortName, end_of_load = endOfCharge, delete_attached = deleteAttached };
                 WebRequestPostWithJsonObject(url, model);
                 deleted = true;
-                _logHelper.Debug("Ended resource persistent deleting");
+                Log.Debug("Ended resource persistent deleting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error on persistent deleting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error on persistent deleting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4019,11 +4012,11 @@ namespace Gnoss.ApiWrapper
                 model = new ExistsUrlParams() { community_short_name = CommunityShortName, url = url };
                 string response = WebRequestPostWithJsonObject(urlMethod, model);
                 exists = JsonConvert.DeserializeObject<bool>(response);
-                _logHelper.Debug("Ended resource persistent deleting");
+                Log.Debug("Ended resource persistent deleting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error on a searching of an url. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error on a searching of an url. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4050,11 +4043,11 @@ namespace Gnoss.ApiWrapper
                 model = new LoadResourceParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, main_image = mainImage };
                 WebRequestPostWithJsonObject(url, model);
                 loaded = true;
-                _logHelper.Debug("Ended images upload");
+                Log.Debug("Ended images upload");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error uploading resource {resourceId} images. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error uploading resource {resourceId} images. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4076,11 +4069,11 @@ namespace Gnoss.ApiWrapper
                 model = new LinkedParams() { resource_id = resourceId, community_short_name = CommunityShortName, resoruce_list_to_link = resourceListToLink };
                 WebRequestPostWithJsonObject(url, model);
                 loaded = true;
-                _logHelper.Debug("Ended link resources");
+                Log.Debug("Ended link resources");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error linked resource {resourceId}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error linked resource {resourceId}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4103,13 +4096,13 @@ namespace Gnoss.ApiWrapper
                 model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, publisher_email = publisher_email };
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug("Ended resource sharing");
+                Log.Debug("Ended resource sharing");
 
                 shared = true;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error sharing resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error sharing resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4129,13 +4122,13 @@ namespace Gnoss.ApiWrapper
                 string url = $"{ApiUrl}/resource/share-resources";
                 WebRequestPostWithJsonObject(url, parameters);
 
-                _logHelper.Debug("Ended resource sharing");
+                Log.Debug("Ended resource sharing");
 
                 shared = true;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error sharing resources. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
+                Log.Error($"Error sharing resources. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
                 throw;
             }
 
@@ -4156,13 +4149,13 @@ namespace Gnoss.ApiWrapper
                 model = new SetMainImageParams() { community_short_name = CommunityShortName, resource_id = resourceId, path = path };
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Ended resource main image setting");
+                Log.Debug($"Ended resource main image setting");
 
                 setted = true;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error setting resource main image {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error setting resource main image {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4191,16 +4184,16 @@ namespace Gnoss.ApiWrapper
 
                 if (Guid.TryParse(response, out commentId))
                 {
-                    _logHelper.Debug($"Ended resource {resourceId} comment: {commentId}");
+                    Log.Debug($"Ended resource {resourceId} comment: {commentId}");
                 }
                 else
                 {
-                    _logHelper.Debug($"Error commenting resource {resourceId}");
+                    Log.Debug($"Error commenting resource {resourceId}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error commenting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error commenting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -4222,11 +4215,11 @@ namespace Gnoss.ApiWrapper
                 model = new ModifyResourceProperty() { resource_id = resourceId, community_short_name = CommunityShortName, property = property, new_object = newObject };
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug("Ended resource deleting");
+                Log.Debug("Ended resource deleting");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)} Error: {ex.Message}");
+                Log.Error($"Error deleting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)} Error: {ex.Message}");
                 throw;
             }
         }
@@ -4247,16 +4240,16 @@ namespace Gnoss.ApiWrapper
 
                 if (!string.IsNullOrEmpty(resourceId))
                 {
-                    _logHelper.Debug($"Basic ontology resource created: {resourceId}");
+                    Log.Debug($"Basic ontology resource created: {resourceId}");
                 }
                 else
                 {
-                    _logHelper.Debug($"Basic ontology resource not created: {JsonConvert.SerializeObject(parameters)}");
+                    Log.Debug($"Basic ontology resource not created: {JsonConvert.SerializeObject(parameters)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to create a basic ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}");
+                Log.Error($"Error trying to create a basic ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}");
                 throw;
             }
             return resourceId;
@@ -4278,18 +4271,18 @@ namespace Gnoss.ApiWrapper
 
                 if (!string.IsNullOrEmpty(resourceId))
                 {
-                    _logHelper.Debug($"Complex ontology resource created: {resourceId}");
+                    Log.Debug($"Complex ontology resource created: {resourceId}");
                 }
                 else
                 {
                     PrepareAttachedToLog(parameters.resource_attached_files);
-                    _logHelper.Debug($"Complex ontology resource not created: {JsonConvert.SerializeObject(parameters)}");
+                    Log.Debug($"Complex ontology resource not created: {JsonConvert.SerializeObject(parameters)}");
                 }
             }
             catch (Exception ex)
             {
                 PrepareAttachedToLog(parameters.resource_attached_files);
-                _logHelper.Error($"Error trying to create a complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}");
+                Log.Error($"Error trying to create a complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}");
                 throw;
             }
 
@@ -4337,16 +4330,16 @@ namespace Gnoss.ApiWrapper
 
                 if (!string.IsNullOrEmpty(resourceId))
                 {
-                    _logHelper.Debug($"Complex ontology resource created: {resourceId}");
+                    Log.Debug($"Complex ontology resource created: {resourceId}");
                 }
                 else
                 {
-                    _logHelper.Debug($"Massive Complex ontology resource not created: {JsonConvert.SerializeObject(massiveLoad)}");
+                    Log.Debug($"Massive Complex ontology resource not created: {JsonConvert.SerializeObject(massiveLoad)}");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error trying to create a Massive complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(massiveLoad)}");
+                Log.Error($"Error trying to create a Massive complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(massiveLoad)}");
                 throw;
             }
 
@@ -4369,13 +4362,13 @@ namespace Gnoss.ApiWrapper
                 if (!string.IsNullOrEmpty(response))
                 {
                     modified = JsonConvert.DeserializeObject<bool>(response);
-                    _logHelper.Debug($"Complex ontology resource modified: {parameters.resource_id}");
+                    Log.Debug($"Complex ontology resource modified: {parameters.resource_id}");
                 }
             }
             catch (Exception ex)
             {
                 PrepareAttachedToLog(parameters.resource_attached_files);
-                _logHelper.Error($"Error modifying resource {parameters.resource_id}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
+                Log.Error($"Error modifying resource {parameters.resource_id}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
                 throw;
             }
 
@@ -4395,13 +4388,13 @@ namespace Gnoss.ApiWrapper
                 string url = $"{ApiUrl}/resource/modify-basic-ontology-resource";
                 string response = WebRequestPostWithJsonObject(url, parameters);
 
-                _logHelper.Debug("Ended resource main image setting");
+                Log.Debug("Ended resource main image setting");
 
                 modified = JsonConvert.DeserializeObject<bool>(response);
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error modifying resource {parameters.resource_id}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
+                Log.Error($"Error modifying resource {parameters.resource_id}. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
                 throw;
             }
 
@@ -4428,12 +4421,12 @@ namespace Gnoss.ApiWrapper
                 model = new ModifyResourceTripleListParams() { resource_triples = triplesList, charge_id = loadId, resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = resourceAttachedFiles, end_of_load = endOfLoad, user_id = userId };
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug("Ended resource triples list modification");
+                Log.Debug("Ended resource triples list modification");
             }
             catch (Exception ex)
             {
                 PrepareAttachedToLog(model.resource_attached_files);
-                _logHelper.Error($"Error modifying resource triples list. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error modifying resource triples list. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
         }
@@ -4483,11 +4476,11 @@ namespace Gnoss.ApiWrapper
                 }
 
                 WebRequestPostWithJsonObject(url, model);
-                _logHelper.Debug("Ended resource triples list modification");
+                Log.Debug("Ended resource triples list modification");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error modifying multiple resource triples list. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error modifying multiple resource triples list. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
         }
@@ -4505,7 +4498,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error modifying massive triples. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
+                Log.Error($"Error modifying massive triples. \r\n: Json: {JsonConvert.SerializeObject(parameters)}", ex.Message);
                 throw;
             }
         }
@@ -4528,7 +4521,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error, the document {resourceId} can't be locked.", ex.Message);
+                Log.Error($"Error, the document {resourceId} can't be locked.", ex.Message);
                 throw;
             }
         }
@@ -4549,7 +4542,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error, the document {resourceId} can't be unlocked.", ex.Message);
+                Log.Error($"Error, the document {resourceId} can't be unlocked.", ex.Message);
                 throw;
             }
         }
@@ -4570,7 +4563,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error, we couldn't verify if resource {resourceId} was locked.", ex.Message);
+                Log.Error($"Error, we couldn't verify if resource {resourceId} was locked.", ex.Message);
                 throw;
             }
         }
@@ -4588,7 +4581,7 @@ namespace Gnoss.ApiWrapper
             {
                 //if (searchDate.Contains(" ") || !searchDate.Contains("T"))
                 //{
-                //    _logHelper.Error($"The search date string is not in the ISO8601 format {searchDate}");
+                //    Log.Error($"The search date string is not in the ISO8601 format {searchDate}");
                 //    return null;
                 //}
 
@@ -4596,11 +4589,11 @@ namespace Gnoss.ApiWrapper
                 string response = WebRequest("GET", url);
                 resources = JsonConvert.DeserializeObject<List<Guid>>(response);
 
-                _logHelper.Debug($"Resources obtained of the community {CommunityShortName} from date {searchDate}");
+                Log.Debug($"Resources obtained of the community {CommunityShortName} from date {searchDate}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the resources of {CommunityShortName} from date {searchDate}", ex.Message);
+                Log.Error($"Error getting the resources of {CommunityShortName} from date {searchDate}", ex.Message);
                 throw;
             }
             return resources;
@@ -4620,7 +4613,7 @@ namespace Gnoss.ApiWrapper
             {
                 //if(searchDate.Contains(" ") || !searchDate.Contains("T"))
                 //{
-                //    _logHelper.Error($"The search date string is not in the ISO8601 format {searchDate}");
+                //    Log.Error($"The search date string is not in the ISO8601 format {searchDate}");
                 //    return null;
                 //}
 
@@ -4630,16 +4623,16 @@ namespace Gnoss.ApiWrapper
 
                 if (resource != null)
                 {
-                    _logHelper.Debug($"Obtained the resource {resourceId} of the community {CommunityShortName} from date {searchDate}");
+                    Log.Debug($"Obtained the resource {resourceId} of the community {CommunityShortName} from date {searchDate}");
                 }
                 else
                 {
-                    _logHelper.Debug($"The resource {resourceId} could not be obtained of the community {CommunityShortName} from date {searchDate}.");
+                    Log.Debug($"The resource {resourceId} could not be obtained of the community {CommunityShortName} from date {searchDate}.");
                 }
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the resource {resourceId} of the community {CommunityShortName} from date {searchDate}", ex.Message);
+                Log.Error($"Error getting the resource {resourceId} of the community {CommunityShortName} from date {searchDate}", ex.Message);
                 throw;
             }
             return resource;
@@ -4681,7 +4674,7 @@ namespace Gnoss.ApiWrapper
                     WebRequestPostWithJsonObject(url, model);
 
                     _loadIdentifier = loadIdentifier;
-                    _logHelper.Info($"Your load identifier is: {LoadIdentifier}. Developer: {DeveloperEmail}. Community: {CommunityShortName}");
+                    Log.Info($"Your load identifier is: {LoadIdentifier}. Developer: {DeveloperEmail}. Community: {CommunityShortName}");
                 }
                 else
                 {
@@ -4707,7 +4700,7 @@ namespace Gnoss.ApiWrapper
 
             if (DeveloperEmail != "")
             {
-                _logHelper.Info($"Valid identifier {LoadIdentifier} for the community {CommunityShortName}. Developer: {DeveloperEmail}");
+                Log.Info($"Valid identifier {LoadIdentifier} for the community {CommunityShortName}. Developer: {DeveloperEmail}");
                 _loadIdentifier = loadIdentifier;
 
                 return true;
@@ -4726,11 +4719,11 @@ namespace Gnoss.ApiWrapper
 
                 GraphsUrl = WebRequest($"GET", url, acceptHeader: "application/json")?.Trim('"');
 
-                _logHelper.Debug($"The url of the graphs is: {GraphsUrl}");
+                Log.Debug($"The url of the graphs is: {GraphsUrl}");
             }
             catch (Exception ex)
             {
-                _logHelper.Debug($"Error obtaining the intragnoss URL: {ex.Message}");
+                Log.Debug($"Error obtaining the intragnoss URL: {ex.Message}");
             }
         }
 
@@ -4815,7 +4808,7 @@ namespace Gnoss.ApiWrapper
             }
             set
             {
-                _logHelper.Trace(value);
+                Log.Trace(value);
                 _ontologyUrl = value;
             }
         }
@@ -4879,7 +4872,7 @@ namespace Gnoss.ApiWrapper
             {
                 if (_communityApi == null)
                 {
-                    _communityApi = new CommunityApi(OAuthInstance, _httpContextAccessor, logHelper);
+                    _communityApi = new CommunityApi(OAuthInstance, _httpContextAccessor, Log);
                 }
                 return _communityApi;
             }

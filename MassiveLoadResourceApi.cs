@@ -19,9 +19,7 @@ namespace Gnoss.ApiWrapper
     /// Resource Api for Massive Data Load
     /// </summary>
     public class MassiveLoadResourceApi : ResourceApi
-    {
-        private ILogHelper _logHelper;
-       
+    {       
         /// <summary>
         /// Massive data load identifier
         /// </summary>
@@ -83,20 +81,18 @@ namespace Gnoss.ApiWrapper
         /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper)
+        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper)
             : base(oauth, httpContextAccessor, logHelper)
         {
             this.IsDebugMode = IsDebugMode;
-            _logHelper = logHelper.Instance;
         }
 
         /// <summary>
         /// Consturtor of <see cref="MassiveLoadResourceApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public MassiveLoadResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public MassiveLoadResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         /// <summary>
@@ -129,12 +125,12 @@ namespace Gnoss.ApiWrapper
 
                 CreateMassiveDataLoad();
 
-                _logHelper.Debug($"Massive data load create with the identifier {MassiveLoadIdentifier}");
+                Log.Debug($"Massive data load create with the identifier {MassiveLoadIdentifier}");
                 return MassiveLoadIdentifier;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating the massive data load {MassiveLoadIdentifier}{ex.Message} {ex.StackTrace}");
+                Log.Error($"Error creating the massive data load {MassiveLoadIdentifier}{ex.Message} {ex.StackTrace}");
                 throw new GnossAPIException($"Error creating the massive data load {MassiveLoadIdentifier}{ex.Message} {ex.StackTrace}");
             }
         }
@@ -284,7 +280,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating the package of massive data load {ex.Message} {ex.StackTrace}");
+                Log.Error($"Error creating the package of massive data load {ex.Message} {ex.StackTrace}");
                 //throw new GnossAPIException($"Error creating the package of massive data load {identifier}{ex.Message}");
             }
         }
@@ -306,12 +302,12 @@ namespace Gnoss.ApiWrapper
                     DataLoadIdentifier = MassiveLoadIdentifier
                 };
                 WebRequestPostWithJsonObject(url, model);
-                _logHelper.Debug("Data load is closed");
+                Log.Debug("Data load is closed");
                 closed = true;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error closing the data load {MassiveLoadIdentifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error closing the data load {MassiveLoadIdentifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -340,11 +336,11 @@ namespace Gnoss.ApiWrapper
                 };
                 WebRequestPostWithJsonObject(url, model);
                 created = true;
-                _logHelper.Debug("Massive data load created");
+                Log.Debug("Massive data load created");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating massive data load {MassiveLoadIdentifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error creating massive data load {MassiveLoadIdentifier}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 
@@ -396,11 +392,11 @@ namespace Gnoss.ApiWrapper
                     CloseStreams();
                 }
 
-                _logHelper.Debug($"Package massive data load create with the identifier {MassiveLoadIdentifier}");
+                Log.Debug($"Package massive data load create with the identifier {MassiveLoadIdentifier}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating the package of massive data load {ex.Message}");
+                Log.Error($"Error creating the package of massive data load {ex.Message}");
             }
         }
 
@@ -441,11 +437,11 @@ namespace Gnoss.ApiWrapper
                 string url = $"{ApiUrl}/resource/create-massive-load-package";
                 WebRequestPostWithJsonObject(url, model);
                 created = true;
-                _logHelper.Debug("Massive data load package created");
+                Log.Debug("Massive data load package created");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating massive data load package {model.package_id}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                Log.Error($"Error creating massive data load package {model.package_id}. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
                 throw;
             }
 

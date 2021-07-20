@@ -57,7 +57,7 @@ namespace Gnoss.ApiWrapper.Helpers
     {
         #region Static members
 
-        private static string _logDirectory;
+        
 
         /// <summary>
         /// 
@@ -107,7 +107,7 @@ namespace Gnoss.ApiWrapper.Helpers
                         }
                         else
                         {
-                            instance = new LogHelperFile();
+                            instance = new LogHelperFile(null, null);
                         }
                     }
 
@@ -132,41 +132,7 @@ namespace Gnoss.ApiWrapper.Helpers
             get; set;
         }
 
-        /// <summary>
-        /// Gets or sets the log directory
-        /// </summary>
-        public static string LogDirectory
-        {
-            get
-            {
-                return _logDirectory;
-            }
-            set
-            {
-                _logDirectory = value;
-
-                if (!string.IsNullOrEmpty(_logDirectory))
-                {
-                    if (!Path.IsPathRooted(_logDirectory))
-                    {
-                        _logDirectory = System.AppDomain.CurrentDomain.SetupInformation.ApplicationBase + _logDirectory;
-                    }
-
-                    if (!Directory.Exists(_logDirectory))
-                    {
-                        Directory.CreateDirectory(_logDirectory);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get or set the log file name. (Default: gnoss_api.log)
-        /// </summary>
-        public static string LogFileName
-        {
-            get; set;
-        }
+        
         #endregion
     }
 }

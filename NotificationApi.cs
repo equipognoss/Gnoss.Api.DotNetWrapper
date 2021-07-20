@@ -14,26 +14,22 @@ namespace Gnoss.ApiWrapper
     /// </summary>
     public class NotificationApi : GnossApiWrapper
     {
-        private ILogHelper _logHelper;
-
         #region Constructors
 
         /// <summary>
         /// Constructor of <see cref="NotificationApi"/>
         /// </summary>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public NotificationApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public NotificationApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         /// <summary>
         /// Consturtor of <see cref="NotificationApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public NotificationApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public NotificationApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
         }
 
         #endregion
@@ -59,12 +55,12 @@ namespace Gnoss.ApiWrapper
                 string result = WebRequestPostWithJsonObject(url, model);
                 int mailID = Int32.Parse(result);
 
-                _logHelper.Debug($"Email {subject} sended to {string.Join(",", receivers)}");
+                Log.Debug($"Email {subject} sended to {string.Join(",", receivers)}");
                 return mailID;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error sending mail {subject} to {string.Join(",", receivers)}: \r\n{ex.Message}");
+                Log.Error($"Error sending mail {subject} to {string.Join(",", receivers)}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -78,12 +74,12 @@ namespace Gnoss.ApiWrapper
 
                 MailStateModel mailStateModel = JsonConvert.DeserializeObject<MailStateModel>(WebRequest("GET", url));
 
-                _logHelper.Debug($"Get mails sended with ID: {mailID}");
+                Log.Debug($"Get mails sended with ID: {mailID}");
                 return mailStateModel;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting mails with ID: {mailID}: \r\n{ex.Message}");
+                Log.Error($"Error getting mails with ID: {mailID}: \r\n{ex.Message}");
                 throw;
             }
         }

@@ -23,7 +23,6 @@ namespace Gnoss.ApiWrapper
 
         #region Members
 
-        private ILogHelper _logHelper;
         private IHttpContextAccessor _httpContextAccessor;
         private List<ThesaurusCategory> _communityCategories;
 
@@ -36,9 +35,8 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public CommunityApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public CommunityApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -46,9 +44,8 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="CommunityApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public CommunityApi(string configFilePath, IHttpContextAccessor httpContextAccessor, LogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public CommunityApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
         {
-            _logHelper = logHelper.Instance;
             _httpContextAccessor = httpContextAccessor;
         }
 
@@ -80,7 +77,7 @@ namespace Gnoss.ApiWrapper
             string response = WebRequest("GET", url, acceptHeader: "application/json");
             List<ThesaurusCategory> communityCategoriesWithoutHierarchy = JsonConvert.DeserializeObject<List<ThesaurusCategory>>(response);
 
-            _logHelper.Debug($"Loaded the categories of the communtiy {community_short_name}");
+            Log.Debug($"Loaded the categories of the communtiy {community_short_name}");
 
             LoadChildrenCategories(communityCategoriesWithoutHierarchy);
 
@@ -160,7 +157,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating category {categoryName}: \r\n{ex.Message}");
+                Log.Error($"Error creating category {categoryName}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -173,11 +170,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, pmodel);
 
-                _logHelper.Debug($"File update.");
+                Log.Debug($"File update.");
             }
             catch (Exception)
             {
-                _logHelper.Error($"Error File update");
+                Log.Error($"Error File update");
                 throw;
             }
         }
@@ -195,11 +192,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, communityModel);
 
-                _logHelper.Debug($"Community created {json}");
+                Log.Debug($"Community created {json}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating community {json}: \r\n{ex.Message}");
+                Log.Error($"Error creating community {json}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -217,11 +214,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, linkParentCommunity);
 
-                _logHelper.Debug($"Community created {json}");
+                Log.Debug($"Community created {json}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating community {json}: \r\n{ex.Message}");
+                Log.Error($"Error creating community {json}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -249,7 +246,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating community {json}: \r\n{ex.Message}");
+                Log.Error($"Error creating community {json}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -270,7 +267,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error getting the thesaurus from {CommunityShortName}: \r\n {ex.Message}");
+                Log.Error($"Error getting the thesaurus from {CommunityShortName}: \r\n {ex.Message}");
                 throw;
             }
         }
@@ -289,11 +286,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Thesaurus created in {CommunityShortName}");
+                Log.Debug($"Thesaurus created in {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating thesaurus {thesaurusXml} in {CommunityShortName}: \r\n {ex.Message}");
+                Log.Error($"Error creating thesaurus {thesaurusXml} in {CommunityShortName}: \r\n {ex.Message}");
                 throw;
             }
         }
@@ -309,11 +306,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, CommunityShortName);
 
-                _logHelper.Debug($"Community opened {CommunityShortName}");
+                Log.Debug($"Community opened {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error opening community {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error opening community {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -329,11 +326,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, CommunityShortName);
 
-                _logHelper.Debug($"Config graph community {CommunityShortName}");
+                Log.Debug($"Config graph community {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error graph community {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error graph community {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -352,11 +349,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Settings uploaded successfully to {CommunityShortName}");
+                Log.Debug($"Settings uploaded successfully to {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error uploading settings to community {CommunityShortName} {settingsXml}: \r\n {ex.Message}");
+                Log.Error($"Error uploading settings to community {CommunityShortName} {settingsXml}: \r\n {ex.Message}");
                 throw;
             }
         }
@@ -375,11 +372,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"CMS settings uploaded successfully to {CommunityShortName}");
+                Log.Debug($"CMS settings uploaded successfully to {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error uploading the CMS settings to community {CommunityShortName} {settingsCmsXml}: \r\n {ex.Message}");
+                Log.Error($"Error uploading the CMS settings to community {CommunityShortName} {settingsCmsXml}: \r\n {ex.Message}");
                 throw;
             }
         }
@@ -400,11 +397,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"User {userId} added to {CommunityShortName}");
+                Log.Debug($"User {userId} added to {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding member {userId} to {CommunityShortName}: {ex.Message} ");
+                Log.Error($"Error adding member {userId} to {CommunityShortName}: {ex.Message} ");
                 throw;
             }
         }
@@ -423,11 +420,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Member {userId} deleted from {CommunityShortName}");
+                Log.Debug($"Member {userId} deleted from {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting member {userId} from {CommunityShortName}: {ex.Message} ");
+                Log.Error($"Error deleting member {userId} from {CommunityShortName}: {ex.Message} ");
                 throw;
             }
         }
@@ -448,11 +445,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The group {groupShortName} of {organizationShortName} has been added to {CommunityShortName}");
+                Log.Debug($"The group {groupShortName} of {organizationShortName} has been added to {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding the group {groupShortName} of {organizationShortName} from {CommunityShortName}: {ex.Message} ");
+                Log.Error($"Error adding the group {groupShortName} of {organizationShortName} from {CommunityShortName}: {ex.Message} ");
                 throw;
             }
         }
@@ -472,12 +469,12 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"All the members from the group {groupShortName} of {organizationShortName} has been deleted to {CommunityShortName}");
+                Log.Debug($"All the members from the group {groupShortName} of {organizationShortName} has been deleted to {CommunityShortName}");
 
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting the group members {groupShortName} of {organizationShortName} from {CommunityShortName}: {ex.Message} ");
+                Log.Error($"Error deleting the group members {groupShortName} of {organizationShortName} from {CommunityShortName}: {ex.Message} ");
                 throw;
             }
         }
@@ -496,11 +493,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The member {userId} has been upgraded to administrator of {CommunityShortName}");
+                Log.Debug($"The member {userId} has been upgraded to administrator of {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error upgrading member {userId} to administrator in {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error upgrading member {userId} to administrator in {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -519,11 +516,11 @@ namespace Gnoss.ApiWrapper
 
                 string result = WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"All the members from the group { groupShortName} of { organizationShortName} has been upgraded to administrator in { CommunityShortName}. \r\n{result}");
+                Log.Debug($"All the members from the group { groupShortName} of { organizationShortName} has been upgraded to administrator in { CommunityShortName}. \r\n{result}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error upgrading to administrator the members from the group { groupShortName} of { organizationShortName} in { CommunityShortName}: {ex.Message}");
+                Log.Error($"Error upgrading to administrator the members from the group { groupShortName} of { organizationShortName} in { CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -547,11 +544,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Group {groupName} created in {CommunityShortName}");
+                Log.Debug($"Group {groupName} created in {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating group {groupName} in {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error creating group {groupName} in {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -570,11 +567,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Group {groupShortName} deleted in {CommunityShortName}");
+                Log.Debug($"Group {groupShortName} deleted in {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting group {groupShortName} in {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error deleting group {groupShortName} in {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -596,11 +593,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The users has been added to the group {groupShortName} of the communtiy {CommunityShortName}");
+                Log.Debug($"The users has been added to the group {groupShortName} of the communtiy {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding users {string.Join(",", members)} to group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error adding users {string.Join(",", members)} to group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -622,11 +619,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The certification levels has been added to the communtiy {CommunityShortName}");
+                Log.Debug($"The certification levels has been added to the communtiy {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error creating certification levels of the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error creating certification levels of the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -646,11 +643,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The users has been deleted from the group {groupShortName} of the communtiy {CommunityShortName}");
+                Log.Debug($"The users has been deleted from the group {groupShortName} of the communtiy {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error deleting users {string.Join(",", members)} from group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error deleting users {string.Join(",", members)} from group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -671,11 +668,11 @@ namespace Gnoss.ApiWrapper
 
                 members = JsonConvert.DeserializeObject<List<Guid>>(response);
 
-                _logHelper.Debug($"Users obtained from group {groupShortName} of the community {CommunityShortName}");
+                Log.Debug($"Users obtained from group {groupShortName} of the community {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error obtaining users from group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error obtaining users from group {groupShortName} of the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
             return members;
@@ -698,11 +695,11 @@ namespace Gnoss.ApiWrapper
 
                 members = JsonConvert.DeserializeObject<List<Guid>>(response);
 
-                _logHelper.Debug($"Users obtained from group {groupShortName} of the organization {organizationShortName}");
+                Log.Debug($"Users obtained from group {groupShortName} of the organization {organizationShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error obtaining users from group {groupShortName} of the organization {organizationShortName}: \r\n{ex.Message}");
+                Log.Error($"Error obtaining users from group {groupShortName} of the organization {organizationShortName}: \r\n{ex.Message}");
                 throw;
             }
             return members;
@@ -722,11 +719,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"User {userId} expelled from {CommunityShortName}");
+                Log.Debug($"User {userId} expelled from {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error expelling member {userId} from {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error expelling member {userId} from {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -742,11 +739,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, CommunityShortName);
 
-                _logHelper.Debug($"Community {CommunityShortName} closed");
+                Log.Debug($"Community {CommunityShortName} closed");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error closing {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error closing {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -765,11 +762,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"Community name of {CommunityShortName} changed to {newName}");
+                Log.Debug($"Community name of {CommunityShortName} changed to {newName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error changing name of {CommunityShortName} to {newName}: {ex.Message}");
+                Log.Error($"Error changing name of {CommunityShortName} to {newName}: {ex.Message}");
                 throw;
             }
         }
@@ -789,11 +786,11 @@ namespace Gnoss.ApiWrapper
 
                 groups = JsonConvert.DeserializeObject<List<GroupCommunityModel>>(response);
 
-                _logHelper.Debug($"Groups obtained from {CommunityShortName}");
+                Log.Debug($"Groups obtained from {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error obtaining groups from {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error obtaining groups from {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
             return groups;
@@ -813,11 +810,11 @@ namespace Gnoss.ApiWrapper
                 string url = $"{ApiUrl}/community/get-organization-short-name-from-member?community_short_name={CommunityShortName}&user_id={userId}";
 
                 organizationShortName = WebRequest("GET", url)?.Trim('"');
-                _logHelper.Debug($"Organization short name obtained from {userId} in {CommunityShortName}");
+                Log.Debug($"Organization short name obtained from {userId} in {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error obtaining the organization short name from {userId} in {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error obtaining the organization short name from {userId} in {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
 
@@ -839,11 +836,11 @@ namespace Gnoss.ApiWrapper
 
                 extraRegisterData = JsonConvert.DeserializeObject<List<ExtraRegisterData>>(response);
 
-                _logHelper.Debug($"Extra register data obtained from {CommunityShortName}");
+                Log.Debug($"Extra register data obtained from {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error obtaining extra register data from {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error obtaining extra register data from {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
             return extraRegisterData;
@@ -865,7 +862,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error("Imposible to obtain the main language");
+                Log.Error("Imposible to obtain the main language");
                 return null;
             }
         }
@@ -885,7 +882,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The person identifiers and emails of the community members '{CommunityShortName}' could not be obtained");
+                Log.Error($"The person identifiers and emails of the community members '{CommunityShortName}' could not be obtained");
                 return null;
             }
         }
@@ -906,7 +903,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community {CommunityShortName} could not be found");
+                Log.Error($"The community {CommunityShortName} could not be found");
                 throw;
             }
         }
@@ -928,7 +925,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user {userId} of the community members '{CommunityShortName}' could not be blocked");
+                Log.Error($"The user {userId} of the community members '{CommunityShortName}' could not be blocked");
                 throw;
             }
         }
@@ -950,7 +947,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The user {userId} of the community members '{CommunityShortName}' could not be unblocked");
+                Log.Error($"The user {userId} of the community members '{CommunityShortName}' could not be unblocked");
                 throw;
             }
         }
@@ -970,7 +967,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The component id {componentId} of the community '{CommunityShortName}' could not be refreshed");
+                Log.Error($"The component id {componentId} of the community '{CommunityShortName}' could not be refreshed");
                 throw;
             }
         }
@@ -989,7 +986,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The components of the community '{CommunityShortName}' could not be refreshed");
+                Log.Error($"The components of the community '{CommunityShortName}' could not be refreshed");
                 throw;
             }
         }
@@ -1011,7 +1008,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community {CommunityShortName} could not be found");
+                Log.Error($"The community {CommunityShortName} could not be found");
                 throw;
             }
         }
@@ -1033,7 +1030,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The community {communityId} could not be found");
+                Log.Error($"The community {communityId} could not be found");
                 throw;
             }
         }
@@ -1055,7 +1052,7 @@ namespace Gnoss.ApiWrapper
             }
             catch (System.Exception)
             {
-                _logHelper.Error($"The category {categoryId} could not be found");
+                Log.Error($"The category {categoryId} could not be found");
                 throw;
             }
         }
@@ -1082,11 +1079,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The member {userId} has been upgraded to administrator of {CommunityShortName}");
+                Log.Debug($"The member {userId} has been upgraded to administrator of {CommunityShortName}");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error upgrading member {userId} to administrator in {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error upgrading member {userId} to administrator in {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -1109,11 +1106,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The value was added correctly to cache to the community: {CommunityShortName} ");
+                Log.Debug($"The value was added correctly to cache to the community: {CommunityShortName} ");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding the cache to {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error adding the cache to {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
@@ -1134,11 +1131,11 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, model);
 
-                _logHelper.Debug($"The value was added correctly to cache to the community: {CommunityShortName} ");
+                Log.Debug($"The value was added correctly to cache to the community: {CommunityShortName} ");
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error adding the cache to {CommunityShortName}: {ex.Message}");
+                Log.Error($"Error adding the cache to {CommunityShortName}: {ex.Message}");
                 throw;
             }
         }
