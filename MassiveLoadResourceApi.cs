@@ -21,21 +21,6 @@ namespace Gnoss.ApiWrapper
     public class MassiveLoadResourceApi : ResourceApi
     {       
         /// <summary>
-        /// Massive data load identifier
-        /// </summary>
-        private Guid massiveLoadId;
-        
-        /// <summary>
-        /// Massive data load name
-        /// </summary>
-        private string loadName;
-        
-        /// <summary>
-        /// Directory path of the files
-        /// </summary>
-        private string filesDirectory;
-        
-        /// <summary>
         /// Massive load identifier
         /// </summary>
         public Guid MassiveLoadIdentifier { get; set; }
@@ -101,24 +86,24 @@ namespace Gnoss.ApiWrapper
         /// <param name="pName">Massive data load name</param>
         /// <param name="pFilesDirectory">Path directory of the massive data load files</param>
         /// <param name="pUrl">Url where the file directory should be responding</param>
-        /// <param name="onlyPrepareMassiveLoad">True if the massive data load should not be uploaded</param>
+        /// <param name="pOnlyPrepareMassiveLoad">True if the massive data load should not be uploaded</param>
         /// <returns>Identifier of the load</returns>
-        public Guid CreateMassiveDataLoad(string pName, string pFilesDirectory, string pUrl, bool onlyPrepareMassiveLoad = false)
+        public Guid CreateMassiveDataLoad(string pName, string pFilesDirectory, string pUrl, bool pOnlyPrepareMassiveLoad = false)
         {
             try
             {
-                if (onlyPrepareMassiveLoad && IsDebugMode)
+                if (pOnlyPrepareMassiveLoad && IsDebugMode)
                 {
                     throw new Exception("MassiveDataLoad can not be prepared when debugMode is activated. Please turn off debugMode and try again.");
                 }
 
-                this.onlyPrepareMassiveLoad = onlyPrepareMassiveLoad;
+                this.onlyPrepareMassiveLoad = pOnlyPrepareMassiveLoad;
                 FilesDirectory = pFilesDirectory;
                 Uri = pUrl;
                 LoadName = pName;
                 MassiveLoadIdentifier = Guid.NewGuid();
 
-                if (!IsDebugMode)
+                if (!IsDebugMode && !onlyPrepareMassiveLoad)
                 {
                     TestConnection();
                 }
@@ -190,7 +175,6 @@ namespace Gnoss.ApiWrapper
         /// Uploads an existing massive data load
         /// </summary>
         /// <param name="pMassiveLoadIdentifier">Massive data load identifier</param>
-        /// <returns>Identifier of the load</returns>
         public void UploadPreparedMassiveLoad(Guid pMassiveLoadIdentifier)
         {
             //MassiveLoadIdentifier = pMassiveLoadIdentifier;
@@ -269,7 +253,7 @@ namespace Gnoss.ApiWrapper
                         this.Log.Warn("DebugMode On, use it only for testing purpose. Please turn DebugMode off as soon as posible.");
                     }
                     SendPackage();
-
+                    
                     counter[OntologyNameWithoutExtension].ResourcesCount = 0;
                     counter[OntologyNameWithoutExtension].FileCount++;
                 }
@@ -297,6 +281,8 @@ namespace Gnoss.ApiWrapper
             try
             {
                 SendPackage();
+                InitializeResourceCounter();
+
                 model = new CloseMassiveDataLoadResource()
                 {
                     DataLoadIdentifier = MassiveLoadIdentifier
@@ -312,6 +298,15 @@ namespace Gnoss.ApiWrapper
             }
 
             return closed;
+        }
+
+        /// <summary>
+        /// Initialize the resource counter and the file ontology counter
+        /// </summary>
+        private void InitializeResourceCounter()
+        {
+            counter[OntologyNameWithoutExtension].ResourcesCount = 0;
+            counter[OntologyNameWithoutExtension].FileCount = 0;
         }
 
         /// <summary>
@@ -351,7 +346,9 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (!onlyPrepareMassiveLoad)
+                CloseStreams();
+
+                if (onlyPrepareMassiveLoad)
                 {
                     return;
                 }
@@ -373,7 +370,6 @@ namespace Gnoss.ApiWrapper
                 //Si es modo debug queremos los bytes de los ficheros directamente 
                 if (IsDebugMode)
                 {
-                    CloseStreams();
                     model.ontology_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
                     model.search_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
                     model.sql_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
@@ -386,11 +382,6 @@ namespace Gnoss.ApiWrapper
                 model.isLast = false;
 
                 CreatePackageMassiveDataLoad(model);
-
-                if (!IsDebugMode)
-                {
-                    CloseStreams();
-                }
 
                 Log.Debug($"Package massive data load create with the identifier {MassiveLoadIdentifier}");
             }
@@ -446,6 +437,24 @@ namespace Gnoss.ApiWrapper
             }
 
             return created;
+        }
+
+        public EstadoCargaModel LoadState(Guid pLoadId)
+        {
+            EstadoCargaModel estadoCarga;
+            try
+            {
+                string url = $"{ApiUrl}/resource/load-state";
+                string response = WebRequestPostWithJsonObject(url, pLoadId);
+
+                estadoCarga = JsonConvert.DeserializeObject<EstadoCargaModel>(response);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
+            return estadoCarga;
         }
     }
 }

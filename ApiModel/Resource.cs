@@ -842,6 +842,28 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to modify categories a resorce
+    /// </summary>
+    public class ModifyResourceCategories
+    {
+
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Resource to be modify categories
+        /// </summary>
+        public Guid resource_id { get; set; }
+
+        /// <summary>
+        /// List of categories to modify
+        /// </summary>
+        public List<Guid> categories { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to upload a resource
     /// </summary>
     public class LoadResourceParams

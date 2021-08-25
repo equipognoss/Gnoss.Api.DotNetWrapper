@@ -71,7 +71,6 @@ namespace Gnoss.ApiWrapper
             {
                 string url = $"{ApiUrl}/notification/mail-state?mail_id={mailID}";
 
-
                 MailStateModel mailStateModel = JsonConvert.DeserializeObject<MailStateModel>(WebRequest("GET", url));
 
                 Log.Debug($"Get mails sended with ID: {mailID}");

@@ -342,6 +342,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         public double duration { get; set; }
     }
 
+    [Serializable]
     public class ConsultaCacheModel
     {
         public string WhereSPARQL { get; set; }

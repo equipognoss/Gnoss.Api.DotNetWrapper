@@ -1092,15 +1092,15 @@ namespace Gnoss.ApiWrapper
         /// Add the value sended to cache
         /// </summary>
         /// <param name="key">Key to add to cache</param>
-        /// <param name="value">Value to add to cache</param>
+        /// <param name="queryValue">Value to add to cache</param>
         /// <param name="duration">Duration of the cache expirtation</param>
-        public void AddSearchToCache(string key, string value, double duration)
+        public void AddSearchToCache(string key, ConsultaCacheModel queryValue, double duration)
         {
             try
             {
                 string url = $"{ApiUrl}/community/add-search-to-cache";
 
-                ConsultaCacheModel queryValue = JsonConvert.DeserializeObject<ConsultaCacheModel>(value);
+                //ConsultaCacheModel queryValue = JsonConvert.DeserializeObject<ConsultaCacheModel>(value);
 
                 AddSearchToCacheModel model = new AddSearchToCacheModel() { key = key, value = queryValue, community_short_name = CommunityShortName, duration = duration };
 

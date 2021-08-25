@@ -264,6 +264,7 @@ namespace Gnoss.ApiWrapper
                 Log.Debug($"Loaded secondary resource with ID: {resource.SecondaryOntology.Identifier}", this.GetType().Name);
                 success = true;
                 resource.Uploaded = true;
+                resource.Id = $"{GraphsUrl}items/{resource.SecondaryOntology.Identifier}";
             }
             catch (Exception ex)
             {
@@ -4344,6 +4345,37 @@ namespace Gnoss.ApiWrapper
             }
 
             return resourceId;
+        }
+
+        /// <summary>
+        /// Modify a categories resource
+        /// </summary>
+        /// <param name="pResouceID">Resource identifier</param>
+        /// <param name="pCategoriesIDs">Categories to modify</param>
+        /// <returns>True if modify correct</returns>
+        public bool ModifyCategoriasRecursoInt(Guid pResouceID, List<Guid> pCategoriesIDs, string pCommunityShortName)
+        {
+            bool modified = false;
+            try
+            {
+                string url = $"{ApiUrl}/resource/chage-categories-resource";
+
+                ModifyResourceCategories parameters = new ModifyResourceCategories() { resource_id = pResouceID, categories = pCategoriesIDs, community_short_name = pCommunityShortName };
+                string response = WebRequestPostWithJsonObject(url, parameters);
+
+                if (!string.IsNullOrEmpty(response))
+                {
+                    modified = JsonConvert.DeserializeObject<bool>(response);
+                    Log.Debug($"categories resource modified: {pResouceID}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error modifying categories {pResouceID}.", ex.Message);
+                throw;
+            }
+
+            return modified;
         }
 
         /// <summary>
