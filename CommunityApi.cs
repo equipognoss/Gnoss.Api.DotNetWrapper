@@ -23,7 +23,6 @@ namespace Gnoss.ApiWrapper
 
         #region Members
 
-        private IHttpContextAccessor _httpContextAccessor;
         private List<ThesaurusCategory> _communityCategories;
 
         #endregion
@@ -35,18 +34,16 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public CommunityApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public CommunityApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
-            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
         /// Consturtor of <see cref="CommunityApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public CommunityApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public CommunityApi(string configFilePath) : base(configFilePath)
         {
-            _httpContextAccessor = httpContextAccessor;
         }
 
         #endregion

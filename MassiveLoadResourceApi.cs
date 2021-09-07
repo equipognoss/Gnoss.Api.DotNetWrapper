@@ -66,8 +66,8 @@ namespace Gnoss.ApiWrapper
         /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public MassiveLoadResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper)
-            : base(oauth, httpContextAccessor, logHelper)
+        public MassiveLoadResourceApi(OAuthInfo oauth, ILogHelper logHelper = null)
+            : base(oauth, logHelper)
         {
             this.IsDebugMode = IsDebugMode;
         }
@@ -76,7 +76,7 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="MassiveLoadResourceApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public MassiveLoadResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public MassiveLoadResourceApi(string configFilePath) : base(configFilePath)
         {
         }
 

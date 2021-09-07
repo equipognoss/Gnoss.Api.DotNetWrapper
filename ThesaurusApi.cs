@@ -22,7 +22,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public ThesaurusApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth,httpContextAccessor, logHelper)
+        public ThesaurusApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
         }
 
@@ -30,7 +30,7 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="ThesaurusApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public ThesaurusApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public ThesaurusApi(string configFilePath) : base(configFilePath)
         {
         }
 

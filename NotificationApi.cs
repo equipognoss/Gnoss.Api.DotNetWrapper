@@ -20,7 +20,7 @@ namespace Gnoss.ApiWrapper
         /// Constructor of <see cref="NotificationApi"/>
         /// </summary>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public NotificationApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public NotificationApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
         }
 
@@ -28,7 +28,7 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="NotificationApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public NotificationApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public NotificationApi(string configFilePath) : base(configFilePath)
         {
         }
 

@@ -47,9 +47,8 @@ namespace Gnoss.ApiWrapper
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
         /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
-        public ResourceApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public ResourceApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
-            _httpContextAccessor = httpContextAccessor;
             LoadApi();
         }
 
@@ -57,9 +56,8 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="ResourceApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public ResourceApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public ResourceApi(string configFilePath) : base(configFilePath)
         {
-            _httpContextAccessor = httpContextAccessor;
         }
 
         #endregion
@@ -4904,7 +4902,7 @@ namespace Gnoss.ApiWrapper
             {
                 if (_communityApi == null)
                 {
-                    _communityApi = new CommunityApi(OAuthInstance, _httpContextAccessor, Log);
+                    _communityApi = new CommunityApi(OAuthInstance, Log);
                 }
                 return _communityApi;
             }

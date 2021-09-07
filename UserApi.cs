@@ -28,7 +28,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public UserApi(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(oauth, httpContextAccessor, logHelper)
+        public UserApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
         }
 
@@ -36,7 +36,7 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="UserApi"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public UserApi(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper) : base(configFilePath, httpContextAccessor, logHelper)
+        public UserApi(string configFilePath) : base(configFilePath)
         {
         }
 

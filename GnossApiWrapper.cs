@@ -69,8 +69,8 @@ namespace Gnoss.ApiWrapper
         private IHttpContextAccessor _httpContextAccessor;
 
         private const string _affinityTokenKey = "AffinityTokenGnossAPI";
+        private string tokenAfinidad;
 
-        private static ConcurrentDictionary<int, string> _affinityTokenPerProcess = new ConcurrentDictionary<int, string>();
         private Dictionary<Guid, string> _resourceLockTokens = new Dictionary<Guid, string>();
 
         /// <summary>
@@ -96,9 +96,8 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public GnossApiWrapper(OAuthInfo oauth, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper)
+        public GnossApiWrapper(OAuthInfo oauth,  ILogHelper logHelper = null)
         {
-            _httpContextAccessor = httpContextAccessor;
             _oauth = oauth;
             this.mLog = logHelper;
         }
@@ -107,11 +106,9 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="GnossApiWrapper"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public GnossApiWrapper(string configFilePath, IHttpContextAccessor httpContextAccessor, ILogHelper logHelper)
+        public GnossApiWrapper(string configFilePath)
         {
-            _httpContextAccessor = httpContextAccessor;
             LoadConfigFile(configFilePath);
-            this.mLog = logHelper;
         }
 
         #endregion
@@ -125,54 +122,14 @@ namespace Gnoss.ApiWrapper
 
         private string GenerateAffinityToken()
         {
-            string tokenAfinidad = Guid.NewGuid().ToString();
-
-            if (_httpContextAccessor != null && _httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Request != null && !string.IsNullOrEmpty(_httpContextAccessor.HttpContext.Request.Headers["X-Request-ID"]))
-            {
-                tokenAfinidad = _httpContextAccessor.HttpContext.Request.Headers["X-Request-ID"];
-            }
-
-            try
-            {
-                if (_httpContextAccessor != null && _httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Items != null)
-                {
-
-                    _httpContextAccessor.HttpContext.Items.Add(_affinityTokenKey, tokenAfinidad);
-                }
-                else
-                {
-                    _affinityTokenPerProcess.TryAdd(Thread.CurrentThread.ManagedThreadId, tokenAfinidad);
-                }
-            }
-            catch { }
+            tokenAfinidad = Guid.NewGuid().ToString();
 
             return tokenAfinidad;
         }
 
         private string GetAffinityToken()
         {
-            string resultado = null;
-
-            try
-            {
-                if (_httpContextAccessor != null && _httpContextAccessor.HttpContext.Request != null && _httpContextAccessor.HttpContext.Items != null)
-                {
-                    if (_httpContextAccessor.HttpContext.Items.Keys.Contains(_affinityTokenKey))
-                    {
-                        resultado = _httpContextAccessor.HttpContext.Items[_affinityTokenKey] as string;
-                    }
-                }
-                else
-                {
-                    if (_affinityTokenPerProcess.ContainsKey(Thread.CurrentThread.ManagedThreadId))
-                    {
-                        resultado = _affinityTokenPerProcess[Thread.CurrentThread.ManagedThreadId];
-                    }
-                }
-            }
-            catch { }
-
-            return resultado;
+            return tokenAfinidad;
         }
 
         protected string GetLockTokenForResource(Guid resourceId)
@@ -237,7 +194,10 @@ namespace Gnoss.ApiWrapper
                 {
                     StreamReader sr = new StreamReader(ex.Response.GetResponseStream());
                     message = sr.ReadToEnd();
-                    mLog.Error($"{ex.Message}. \r\nResponse: {message}");
+                    if (mLog != null) 
+                    {
+                        mLog.Error($"{ex.Message}. \r\nResponse: {message}");
+                    }
                 }
                 catch { }
 
@@ -397,7 +357,10 @@ namespace Gnoss.ApiWrapper
                 {
                     StreamReader sr = new StreamReader(ex.Response.GetResponseStream());
                     message = sr.ReadToEnd();
-                    mLog.Error($"{ex.Message}. \r\nResponse: {message}");
+                    if (mLog != null)
+                    {
+                        mLog.Error($"{ex.Message}. \r\nResponse: {message}");
+                    }
                 }
                 catch { }
 
@@ -439,7 +402,10 @@ namespace Gnoss.ApiWrapper
                 {
                     StreamReader sr = new StreamReader(ex.Response.GetResponseStream());
                     message = sr.ReadToEnd();
-                    mLog.Error($"{ex.Message}. \r\nResponse: {message}");
+                    if (mLog != null)
+                    {
+                        mLog.Error($"{ex.Message}. \r\nResponse: {message}");
+                    }
                 }
                 catch { }
 
