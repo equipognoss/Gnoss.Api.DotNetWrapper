@@ -17,20 +17,8 @@ namespace Gnoss.ApiWrapper.Helpers
     /// <summary>
     /// Utilities to use images
     /// </summary>
-    public class ImageHelper
+    public static class ImageHelper
     {
-        private ILogHelper _logHelper;
-
-        #region Constructor
-        public ImageHelper(LogHelper logHelper = null)
-        {
-            if (logHelper != null)
-            {
-                _logHelper = logHelper.Instance;
-            }
-        }
-        #endregion
-
         #region Methods
 
         /// <summary>
@@ -39,7 +27,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="widthInPixels">Width to resize</param>
         /// <returns>New image with width = <paramref name="widthInPixels"/></returns>
-        public Bitmap ResizeImageToWidth(Bitmap image, float widthInPixels, bool pResizeAlways = false)
+        public static Bitmap ResizeImageToWidth(Bitmap image, float widthInPixels, bool pResizeAlways = false)
         {
             try
             {
@@ -57,19 +45,17 @@ namespace Gnoss.ApiWrapper.Helpers
                 else
                 {
                     resultImage = image;
-                    if (_logHelper != null)
-                    {
-                        _logHelper.Info("The original image has less width than widthInPixels. Return the original image", ClassName);
-                    }
+                    //if (_logHelper != null)
+                    //{
+                    //    _logHelper.Info("The original image has less width than widthInPixels. Return the original image", ClassName);
+                    //}
                 }
                 return resultImage;
             }
             catch (Exception ex)
             {
-                if (_logHelper != null)
-                {
-                    _logHelper.Error($"Error in resize: {ex.Message}");
-                }
+
+                throw new GnossAPIException($"Error in resize: {ex.Message}");
                 return null;
             }
         }
@@ -81,7 +67,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="widthInPixels" >Width to resize</param>
         /// <param name="heightInPixels">Height to resize</param>
         /// <returns>New image with width = <paramref name="widthInPixels"/> and height = <paramref name="heightInPixels"/></returns>
-        public Bitmap ResizeImageToHeightAndWidth(Bitmap image, float widthInPixels, float heightInPixels)
+        public static Bitmap ResizeImageToHeightAndWidth(Bitmap image, float widthInPixels, float heightInPixels)
         {
             float height = image.Height;
             float width = image.Width;
@@ -128,10 +114,6 @@ namespace Gnoss.ApiWrapper.Helpers
                 else
                 {
                     resultImage = image;
-                    if (_logHelper != null)
-                    {
-                        _logHelper.Info("The original image has less width and height than widthInPixels and heightInPixels. Return the original image", ClassName);
-                    }
                 }
             }
             return resultImage;
@@ -143,7 +125,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="heightInPixels">Height to resize</param>
         /// <returns>New image with height = <paramref name="heightInPixels"/></returns>
-        public Bitmap ResizeImageToHeight(Bitmap image, float heightInPixels, bool pResizeAlways = false)
+        public static Bitmap ResizeImageToHeight(Bitmap image, float heightInPixels, bool pResizeAlways = false)
         {
             float height = image.Height;
             float width = image.Width;
@@ -159,10 +141,6 @@ namespace Gnoss.ApiWrapper.Helpers
             else
             {
                 resultImage = image;
-                if (_logHelper != null)
-                {
-                    _logHelper.Info("The original image has less height than heightInPixels. Return the original image", ClassName);
-                }
             }
             return resultImage;
         }
@@ -173,17 +151,13 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image</param>
         /// <param name="squareSize">Size in pixels of the width and height of the result image</param>
         /// <returns>Square image</returns>
-        public Bitmap CropImageToSquare(Bitmap image, float squareSize)
+        public static Bitmap CropImageToSquare(Bitmap image, float squareSize)
         {
             Bitmap resultImage = null;
             float height = image.Height;
             float width = image.Width;
             if (height <= squareSize && width <= squareSize)
             {
-                if (_logHelper != null)
-                {
-                    _logHelper.Info("The original image is smaller than the required. returns the original image", ClassName);
-                }
                 resultImage = image;
                 return resultImage;
             }
@@ -258,7 +232,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image</param>
         /// <param name="squareSize">Size in pixels of the width and height of the result image</param>
         /// <returns>Square image</returns>
-        public Bitmap CropImageToHeightAndWidth(Bitmap image, float pHeight, float pWidth)
+        public static Bitmap CropImageToHeightAndWidth(Bitmap image, float pHeight, float pWidth)
         {
             float aspcetRatioDeseado = pHeight / pWidth;
 
@@ -410,7 +384,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// </summary>
         /// <param name="imageUrlOrPath">Url or local path of the image</param>
         /// <returns>Image</returns>
-        internal Bitmap ReadImageFromUrlOrLocalPath(string imageUrlOrPath)
+        internal static Bitmap ReadImageFromUrlOrLocalPath(string imageUrlOrPath)
         {
             Bitmap image = null;
             if (Uri.IsWellFormedUriString(imageUrlOrPath, UriKind.Absolute))
@@ -427,7 +401,7 @@ namespace Gnoss.ApiWrapper.Helpers
                     }
                     catch (Exception ex)
                     {
-                        _logHelper.Error($"Error reading the image {imageUrlOrPath}: {ex.Message}");
+                        throw new GnossAPIException($"Error reading the image {imageUrlOrPath}: {ex.Message}");
                     }
                 }
                 else

@@ -15,13 +15,10 @@ namespace Gnoss.ApiWrapper.Model
     /// </summary>
     public class BasicOntologyResource : BaseResource
     {
-        private ImageHelper _imageHelper;
-
         #region Constructor
 
-        public BasicOntologyResource(ImageHelper imageHelper)
+        public BasicOntologyResource()
         {
-            _imageHelper = imageHelper;
         }
 
         #endregion
@@ -89,7 +86,7 @@ namespace Gnoss.ApiWrapper.Model
 
             if (size != 0)
             {
-                resizedImage = _imageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(image), size);
+                resizedImage = ImageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(image), size);
                 AttachedFile = ImageHelper.BitmapToByteArray(resizedImage);
             }
         }
