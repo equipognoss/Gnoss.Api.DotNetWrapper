@@ -22,9 +22,12 @@ namespace Gnoss.ApiWrapper.Helpers
         private ILogHelper _logHelper;
 
         #region Constructor
-        public ImageHelper(LogHelper logHelper)
+        public ImageHelper(LogHelper logHelper = null)
         {
-            _logHelper = logHelper.Instance;
+            if (logHelper != null)
+            {
+                _logHelper = logHelper.Instance;
+            }
         }
         #endregion
 
@@ -54,13 +57,19 @@ namespace Gnoss.ApiWrapper.Helpers
                 else
                 {
                     resultImage = image;
-                    _logHelper.Info("The original image has less width than widthInPixels. Return the original image", ClassName);
+                    if (_logHelper != null)
+                    {
+                        _logHelper.Info("The original image has less width than widthInPixels. Return the original image", ClassName);
+                    }
                 }
                 return resultImage;
             }
             catch (Exception ex)
             {
-                _logHelper.Error($"Error in resize: {ex.Message}");
+                if (_logHelper != null)
+                {
+                    _logHelper.Error($"Error in resize: {ex.Message}");
+                }
                 return null;
             }
         }
@@ -119,8 +128,10 @@ namespace Gnoss.ApiWrapper.Helpers
                 else
                 {
                     resultImage = image;
-                    _logHelper.Info("The original image has less width and height than widthInPixels and heightInPixels. Return the original image", ClassName);
-
+                    if (_logHelper != null)
+                    {
+                        _logHelper.Info("The original image has less width and height than widthInPixels and heightInPixels. Return the original image", ClassName);
+                    }
                 }
             }
             return resultImage;
@@ -148,7 +159,10 @@ namespace Gnoss.ApiWrapper.Helpers
             else
             {
                 resultImage = image;
-                _logHelper.Info("The original image has less height than heightInPixels. Return the original image", ClassName);
+                if (_logHelper != null)
+                {
+                    _logHelper.Info("The original image has less height than heightInPixels. Return the original image", ClassName);
+                }
             }
             return resultImage;
         }
@@ -166,7 +180,10 @@ namespace Gnoss.ApiWrapper.Helpers
             float width = image.Width;
             if (height <= squareSize && width <= squareSize)
             {
-                _logHelper.Info("The original image is smaller than the required. returns the original image", ClassName);
+                if (_logHelper != null)
+                {
+                    _logHelper.Info("The original image is smaller than the required. returns the original image", ClassName);
+                }
                 resultImage = image;
                 return resultImage;
             }

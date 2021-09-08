@@ -101,7 +101,7 @@ namespace Gnoss.ApiWrapper.Helpers
                         {
                             instance = new LogApplicationInsightsHelper();
                         }
-                        else if (!string.IsNullOrEmpty(LogHelperLogstash.EndPoint) && (LogHelper.LogLocation == LogsAndTracesLocation.Logstash || LogHelper.LogLocation == LogsAndTracesLocation.FileAndLogstash))
+                        else if (_httpContextAccessor != null && !string.IsNullOrEmpty(LogHelperLogstash.EndPoint) && (LogHelper.LogLocation == LogsAndTracesLocation.Logstash || LogHelper.LogLocation == LogsAndTracesLocation.FileAndLogstash))
                         {
                             instance = new LogHelperLogstash(_httpContextAccessor);
                         }

@@ -201,10 +201,14 @@ namespace Gnoss.ApiWrapper.Model
         /// <summary>
         /// Empty constructor
         /// </summary>
-        public ComplexOntologyResource(ImageHelper imageHelper, LogHelper logHelper)
+        public ComplexOntologyResource(LogHelper logHelper = null)
         {
-            _imageHelper = imageHelper;
-            _logHelper = logHelper.Instance;
+            _imageHelper = new ImageHelper(logHelper);
+            if (logHelper != null)
+            {
+                _logHelper = logHelper.Instance;
+            }
+            
             Initialize();
         }
 
@@ -212,10 +216,13 @@ namespace Gnoss.ApiWrapper.Model
         /// Constructor of <see cref="ComplexOntologyResource"/>, asigning only the GnossId property
         /// </summary>
         /// <param name="largeGnossId">Gnoss identifier used as subject in the ontology graph</param>
-        public ComplexOntologyResource(string largeGnossId, ImageHelper imageHelper, LogHelper logHelper)
+        public ComplexOntologyResource(string largeGnossId, LogHelper logHelper = null)
         {
-            _imageHelper = imageHelper;
-            _logHelper = logHelper.Instance;
+            _imageHelper = new ImageHelper(logHelper);
+            if (logHelper != null)
+            {
+                _logHelper = logHelper.Instance;
+            }
             Initialize();
             if (largeGnossId != null)
             {
@@ -231,8 +238,13 @@ namespace Gnoss.ApiWrapper.Model
         /// Constructor of <see cref="ComplexOntologyResource"/>, asigning only the ShortGnossId property
         /// </summary>
         /// <param name="shortGnossId">Internal GNOSS identifier used as subject in the shearch graph</param>
-        public ComplexOntologyResource(Guid shortGnossId)
+        public ComplexOntologyResource(Guid shortGnossId, LogHelper logHelper = null)
         {
+            _imageHelper = new ImageHelper(logHelper);
+            if (logHelper != null)
+            {
+                _logHelper = logHelper.Instance;
+            }
             Initialize();
             ShortGnossId = shortGnossId;
         }
@@ -613,7 +625,10 @@ namespace Gnoss.ApiWrapper.Model
                 }
                 catch (Exception ex)
                 {
-                    _logHelper.Error($"Error attaching image {downloadUrl}: {ex.Message}");
+                    if (_logHelper != null)
+                    {
+                        _logHelper.Error($"Error attaching image {downloadUrl}: {ex.Message}");
+                    }
                 }
             }
             return success;
