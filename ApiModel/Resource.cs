@@ -655,11 +655,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if it's the end of the load
         /// </summary>
         public bool end_of_load { get; set; }
-
-        /// <summary>
-        /// Load identifier
-        /// </summary>
-        public string charge_id { get; set; }
     }
 
     /// <summary>
@@ -994,11 +989,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if the resource must be published in the home of the community
         /// </summary>
         public bool publish_home { get; set; }
-
-        /// <summary>
-        /// Load identifier
-        /// </summary>
-        public string load_id { get; set; }
 
         /// <summary>
         /// Path of the resource main image
@@ -1362,11 +1352,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if the resource must be published in the home of the community
         /// </summary>
         public bool publish_home { get; set; }
-
-        /// <summary>
-        /// Load identifier
-        /// </summary>
-        public string charge_id { get; set; }
 
         /// <summary>
         /// Resource main image

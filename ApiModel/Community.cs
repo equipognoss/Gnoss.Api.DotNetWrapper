@@ -5,26 +5,6 @@ using System.Web;
 
 namespace Gnoss.ApiWrapper.ApiModel
 {
-    /// <summary>
-    /// Parameters to register a resources upload
-    /// </summary>
-    public class RegisterLoadModel
-    {
-        /// <summary>
-        /// Load identifier
-        /// </summary>
-        public string load_id { get; set; }
-
-        /// <summary>
-        /// Community short name
-        /// </summary>
-        public string community_short_name { get; set; }
-
-        /// <summary>
-        /// Developers email responsible of this upload of resources
-        /// </summary>
-        public string email_responsible { get; set; }
-    }
 
     /// <summary>
     /// Represents a community

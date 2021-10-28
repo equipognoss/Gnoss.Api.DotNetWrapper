@@ -873,7 +873,7 @@ namespace Gnoss.ApiWrapper
                                 }
                             }
 
-                            ModifyTripleList(resource.ShortGnossId, triplesList, LoadIdentifier, resource.PublishInHome, resource.MainImage, resourceAttachedFiles, true);
+                            ModifyTripleList(resource.ShortGnossId, triplesList, resource.PublishInHome, resource.MainImage, resourceAttachedFiles, true);
                         }
                         catch (Exception ex)
                         {
@@ -937,7 +937,7 @@ namespace Gnoss.ApiWrapper
 
                 if (removeTripleList.Count > 0)
                 {
-                    ModifyTripleList(resourceId, triplesList, LoadIdentifier, publishHome, null, resourceAttachedFiles, true);
+                    ModifyTripleList(resourceId, triplesList, publishHome, null, resourceAttachedFiles, true);
                     Log.Debug($"Modified resource with attached. ResourceId: {resourceId}");
                 }
             }
@@ -975,7 +975,7 @@ namespace Gnoss.ApiWrapper
                     resourceAttachedFiles.Add(attach);
                 }
 
-                ModifyTripleList(resourceId, triplesList, LoadIdentifier, publishHome, null, resourceAttachedFiles, true);
+                ModifyTripleList(resourceId, triplesList, publishHome, null, resourceAttachedFiles, true);
             }
 
             Log.Debug($"Modified the resource with attached file: {resourceId}");
@@ -1014,7 +1014,7 @@ namespace Gnoss.ApiWrapper
                     resourceAttachedFiles.Add(attach);
                 }
 
-                ModifyTripleList(resourceId, triplesList, LoadIdentifier, publishHome, null, resourceAttachedFiles, true);
+                ModifyTripleList(resourceId, triplesList, publishHome, null, resourceAttachedFiles, true);
             }
 
             Log.Debug($"Modified the resource with attached image: {resourceId}");
@@ -1049,7 +1049,7 @@ namespace Gnoss.ApiWrapper
                     {
                         while (!resource.Deleted)
                         {
-                            Delete(resource.ShortGnossId, LoadIdentifier, processedNumber == originalResourceList.Count);
+                            Delete(resource.ShortGnossId, processedNumber == originalResourceList.Count);
                             numResourcesLeft--;
 
                             Log.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
@@ -2303,7 +2303,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, userId);
+                        ModifyTripleList(docID, listaValores, publishHome, null, null, endOfLoad, userId);
 
                         Log.Debug($"{processedNumber} of {resourceTriples.Count}. Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toModify.Remove(docID);
@@ -2377,7 +2377,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, usuarioID);
+                        ModifyTripleList(docID, listaValores, publishHome, null, null, endOfLoad, usuarioID);
 
                         Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toInsert.Remove(docID);
@@ -2453,7 +2453,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad);
+                        ModifyTripleList(docID, listaValores, publishHome, null, null, endOfLoad);
 
                         Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         toDelete.Remove(docID);
@@ -2682,7 +2682,7 @@ namespace Gnoss.ApiWrapper
                     {
                         endOfLoad = true;
                     }
-                    ModifyTripleList(docID, valuesList, LoadIdentifier, publishHome, null, null, endOfLoad);
+                    ModifyTripleList(docID, valuesList, publishHome, null, null, endOfLoad);
                     valuesList = new List<ModifyResourceTriple>();
 
                     Log.Debug($" Object: {docID}");
@@ -2788,7 +2788,7 @@ namespace Gnoss.ApiWrapper
                         {
                             endOfLoad = true;
                         }
-                        ModifyTripleList(docID, listaValores, LoadIdentifier, publishHome, null, null, endOfLoad, userId);
+                        ModifyTripleList(docID, listaValores, publishHome, null, null, endOfLoad, userId);
                         Log.Debug($"{processedNumber} of {resourceTriples.Count} Object: {docID}. Resource: {resourceTriples[docID].ToArray()}");
                         pDiccionarioInsertar.Remove(docID);
                         inserted = true;
@@ -2837,18 +2837,6 @@ namespace Gnoss.ApiWrapper
 
             Log.Trace("Leaving the method", this.GetType().Name);
             return SO;
-        }
-
-        /// <summary>         
-        ///  Register a unique identifier for large load of resources. If any problem occurs, you will recive an email at DeveloperMail with this identifier and the error's description. 
-        /// </summary>
-        private void LoadIdentifierGenerator()
-        {
-            if (string.IsNullOrEmpty(_loadIdentifier))
-            {
-                _loadIdentifier = $"{CommunityShortName}~{DateTime.Now.Year}/{DateTime.Now.Month}/{DateTime.Now.Day}~{DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}";
-                RegisterLoadIdentifier(_loadIdentifier);
-            }
         }
 
         private void PrepareAttachedToLog(List<SemanticAttachedResource> resourceAttachedFiles)
@@ -2911,7 +2899,6 @@ namespace Gnoss.ApiWrapper
             model.creation_date = rec.CreationDate;
 
             model.publish_home = rec.PublishInHome;
-            model.load_id = LoadIdentifier;
             model.visibility = (short)rec.Visibility;
             model.editors_list = rec.EditorsGroups;
             model.readers_list = rec.ReadersGroups;
@@ -2987,7 +2974,6 @@ namespace Gnoss.ApiWrapper
 
             model.publisher_email = rec.PublisherEmail;
             model.publish_home = rec.PublishInHome;
-            model.load_id = LoadIdentifier;
             model.main_image = rec.MainImage;
             model.visibility = (short)rec.Visibility;
             model.editors_list = rec.EditorsGroups;
@@ -3949,15 +3935,14 @@ namespace Gnoss.ApiWrapper
         /// Logical delete of the resource
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>
-        /// <param name="loadId">charge identifier</param>
         /// <param name="endOfCharge">marks the end of the charge</param>
-        public void Delete(Guid resourceId, string loadId, bool endOfCharge = false)
+        public void Delete(Guid resourceId, bool endOfCharge = false)
         {
             DeleteParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/delete";
-                model = new DeleteParams() { resource_id = resourceId, community_short_name = CommunityShortName, charge_id = loadId, end_of_load = endOfCharge };
+                model = new DeleteParams() { resource_id = resourceId, community_short_name = CommunityShortName, end_of_load = endOfCharge };
                 WebRequestPostWithJsonObject(url, model);
 
                 Log.Debug("Ended resource deleting");
@@ -4442,13 +4427,13 @@ namespace Gnoss.ApiWrapper
         /// <param name="publishHome">indicates whether the home must be updated</param>
         /// <param name="endOfLoad">indicates the resource modified is the last and it must deletes cache</param>
         /// <param name="userId">User that try to modify the resource </param>
-        public void ModifyTripleList(Guid resourceId, List<ModifyResourceTriple> triplesList, string loadId, bool publishHome, string mainImage, List<SemanticAttachedResource> resourceAttachedFiles, bool endOfLoad, Guid? userId = null)
+        public void ModifyTripleList(Guid resourceId, List<ModifyResourceTriple> triplesList, bool publishHome, string mainImage, List<SemanticAttachedResource> resourceAttachedFiles, bool endOfLoad, Guid? userId = null)
         {
             ModifyResourceTripleListParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/modify-triple-list";
-                model = new ModifyResourceTripleListParams() { resource_triples = triplesList, charge_id = loadId, resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = resourceAttachedFiles, end_of_load = endOfLoad, user_id = userId };
+                model = new ModifyResourceTripleListParams() { resource_triples = triplesList, resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = resourceAttachedFiles, end_of_load = endOfLoad, user_id = userId };
                 WebRequestPostWithJsonObject(url, model);
 
                 Log.Debug("Ended resource triples list modification");
@@ -4465,11 +4450,10 @@ namespace Gnoss.ApiWrapper
         /// Method to add / modify / delete triples of multiple complex ontology resources
         /// </summary>
         /// <param name="multipleResourcesTriples">Dictionary with resource identifier guid and the resource triples list to modify. <see cref="ModifyResourceTriple"/></param>
-        /// <param name="loadId">charge identifier string</param>
         /// <param name="multipleResourcesAttachedFiles">Dictionary with resource identifier guid and the resource attached files list. <see cref="SemanticAttachedResource"/></param>
         /// <param name="mainImage">main image string</param>
         /// <param name="publishHome">indicates whether the home must be updated</param>
-        public void ModifyMultipleResourcesTripleList(Dictionary<Guid, List<ModifyResourceTriple>> multipleResourcesTriples, string loadId, bool publishHome, string mainImage, Dictionary<Guid, List<SemanticAttachedResource>> multipleResourcesAttachedFiles)
+        public void ModifyMultipleResourcesTripleList(Dictionary<Guid, List<ModifyResourceTriple>> multipleResourcesTriples, bool publishHome, string mainImage, Dictionary<Guid, List<SemanticAttachedResource>> multipleResourcesAttachedFiles)
         {
             List<ModifyResourceTripleListParams> model = null;
             try
@@ -4502,7 +4486,7 @@ namespace Gnoss.ApiWrapper
                     {
                         endOfLoad = true;
                     }
-                    model.Add(new ModifyResourceTripleListParams() { resource_triples = triplesList, charge_id = loadId, resource_id = resourceID, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = attachedList, end_of_load = endOfLoad });
+                    model.Add(new ModifyResourceTripleListParams() { resource_triples = triplesList, resource_id = resourceID, community_short_name = CommunityShortName, publish_home = publishHome, main_image = mainImage, resource_attached_files = attachedList, end_of_load = endOfLoad });
                 }
 
                 WebRequestPostWithJsonObject(url, model);
@@ -4687,60 +4671,6 @@ namespace Gnoss.ApiWrapper
 
         }
 
-        /// <summary>
-        /// Register a load identifier to load resources to the community
-        /// </summary>
-        /// <param name="loadIdentifier">Identifier to register</param>
-        public void RegisterLoadIdentifier(string loadIdentifier)
-        {
-            if (!string.IsNullOrEmpty(loadIdentifier))
-            {
-                if (!string.IsNullOrEmpty(DeveloperEmail))
-                {
-                    string url = $"{ApiUrl}/community/register-load";
-
-                    RegisterLoadModel model = new RegisterLoadModel() { load_id = loadIdentifier, community_short_name = CommunityShortName, email_responsible = DeveloperEmail };
-
-                    WebRequestPostWithJsonObject(url, model);
-
-                    _loadIdentifier = loadIdentifier;
-                    Log.Info($"Your load identifier is: {LoadIdentifier}. Developer: {DeveloperEmail}. Community: {CommunityShortName}");
-                }
-                else
-                {
-                    throw new GnossAPIArgumentException("The property DeveloperEmail cannot be null or empty. You must set it at the ResourceApi constructor", "email_responsible");
-                }
-            }
-            else
-            {
-                throw new GnossAPIArgumentException("Required. It can't be null or empty", "loadIdentifier");
-            }
-        }
-
-        /// <summary>
-        /// Check if a load identifier is already registered
-        /// </summary>
-        /// <param name="loadIdentifier">identifier to check</param>
-        /// <returns>True if the load identifier is already registered</returns>
-        public bool CheckLoadIdentifier(string loadIdentifier)
-        {
-            string url = $"{ApiUrl}/community/get-responsible-load?community_short_name={CommunityShortName}&load_id={loadIdentifier}";
-
-            DeveloperEmail = WebRequest("GET", url, acceptHeader: "application/json");
-
-            if (DeveloperEmail != "")
-            {
-                Log.Info($"Valid identifier {LoadIdentifier} for the community {CommunityShortName}. Developer: {DeveloperEmail}");
-                _loadIdentifier = loadIdentifier;
-
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         private void GetGraphsUrl()
         {
             try
@@ -4864,32 +4794,6 @@ namespace Gnoss.ApiWrapper
             {
                 _ontologyNameWithoutExtension = OntologyUrl.Substring(OntologyUrl.LastIndexOf("/") + 1);
                 return _ontologyNameWithoutExtension;
-            }
-        }
-
-        /// <summary>
-        /// Identifier for large load of resources. If any problem occurs, you will recive an email at DeveloperMail with this identifier and the error's description. 
-        /// </summary>
-        public string LoadIdentifier
-        {
-            get
-            {
-                if (_loadIdentifier == null)
-                {
-                    LoadIdentifierGenerator();
-                }
-                return _loadIdentifier;
-            }
-            set
-            {
-                if (CheckLoadIdentifier(value))
-                {
-                    _loadIdentifier = value;
-                }
-                else
-                {
-                    throw new GnossAPIArgumentException($"Invalid identifier {value} for the community {CommunityShortName}. The load identifer must be registered before. ", "LoadIdentifier");
-                }
             }
         }
 
