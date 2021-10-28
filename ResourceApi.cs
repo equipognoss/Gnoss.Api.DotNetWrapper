@@ -176,7 +176,7 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -408,7 +408,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -451,7 +451,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -494,7 +494,7 @@ namespace Gnoss.ApiWrapper
             Log.Trace($"******************** Begin modification of resource: {resource.GnossId}", this.GetType().Name, CommunityShortName);
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -534,7 +534,7 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -664,7 +664,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -826,7 +826,7 @@ namespace Gnoss.ApiWrapper
 
                 try
                 {
-                    if (resource.TextCategories != null)
+                    if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                     {
                         if (hierarquicalCategories)
                         {
@@ -1981,7 +1981,7 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -2019,7 +2019,7 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {
@@ -4299,7 +4299,7 @@ namespace Gnoss.ApiWrapper
             List<LoadResourceParams> listaLoadResourceParams = new List<LoadResourceParams>();
             foreach (ComplexOntologyResource resource in parameters)
             {
-                if (resource.TextCategories != null)
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
                     {  
