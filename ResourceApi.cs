@@ -2019,9 +2019,9 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
+                if (resource.TextCategories != null)
                 {
-                    if (hierarquicalCategories)
+                    if (hierarquicalCategories && resource.TextCategories.Count > 0)
                     {
                         resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
@@ -2821,7 +2821,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/query";
 
-                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = graph, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
+                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
@@ -3336,87 +3336,7 @@ namespace Gnoss.ApiWrapper
             }
             return unshared;
         }
-
-        /// <summary>
-        /// Inserts properties in Triples format in a loaded resource
-        /// To create a new secondary entity, this properties must be sent: 
-        /// .- Property of the parent resource
-        /// .- rdfType
-        /// .- rdfLabel
-        /// .- The property hasEntidad of the secondaryEntity: subject = GraphsUrl + resource, predicate = http://gnoss/hasEntidad, and object = the property binded with the parent resource
-        /// .- The properties of the secondary entities
-        /// </summary>
-        /// <param name="resourceId">Resource identifier</param>
-        /// <param name="tripleList">List of Triple</param>
-        /// <param name="publishHome">(Optional) True if this resource must appear in the community home</param>
-        /// <param name="communityShortName">(Optional) Community short name where the resource is published</param>
-        /// <returns>True if success</returns>
-        public bool InsertPropertiesLoadedResource(Guid resourceId, List<Triple> tripleList, bool publishHome = false)
-        {
-            bool success = false;
-            Triples triplesToInsert = new Triples() { resource_id = resourceId, community_short_name = string.IsNullOrEmpty(CommunityShortName) ? CommunityShortName : CommunityShortName, publish_home = publishHome, triples_list = tripleList, end_of_load = true };
-
-            try
-            {
-                string url = $"{ApiUrl}/resource/insert-props-loaded-resource";
-
-                string response = WebRequestPostWithJsonObject(url, triplesToInsert);
-                success = JsonConvert.DeserializeObject<bool>(response);
-
-                if (success)
-                {
-                    Log.Debug($"Triples inserted in {resourceId}: JsonConvert.SerializeObject(triplesToInsert)");
-                }
-                else
-                {
-                    Log.Debug($"Triples not inserted in {resourceId}: JsonConvert.SerializeObject(triplesToInsert)");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error trying to insert properties into {resourceId}: {ex.Message}. \r\n: Json: JsonConvert.SerializeObject(triplesToInsert)");
-                throw;
-            }
-            return success;
-        }
-
-        /// <summary>
-        /// Delete a list of triples from a loaded resource
-        /// </summary>
-        /// <param name="resourceId">Resource identifier</param>
-        /// <param name="tripleList">List of Triple to delete</param>
-        /// <param name="publishHome">(Optional) True if this resource appeared in the community home</param>
-        /// <param name="communityShortName">(Optional) Community short name where the resource is published</param>
-        /// <returns>True if success</returns>
-        public bool DeletePropertiesLoadedResource(Guid resourceId, List<Triple> tripleList, bool publishHome = false)
-        {
-            bool success = false;
-            Triples triplesToDelete = new Triples() { resource_id = resourceId, community_short_name = CommunityShortName, publish_home = publishHome, triples_list = tripleList, end_of_load = true };
-
-            try
-            {
-                string url = $"{ApiUrl}/resource/delete-props-loaded-resource";
-
-                string response = WebRequestPostWithJsonObject(url, triplesToDelete);
-                success = JsonConvert.DeserializeObject<bool>(response);
-
-                if (success)
-                {
-                    Log.Debug($"Triples deleted from {resourceId}: {JsonConvert.SerializeObject(triplesToDelete)}");
-                }
-                else
-                {
-                    Log.Debug($"Triples not deleted from {resourceId}: {JsonConvert.SerializeObject(triplesToDelete)}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error trying to delete properties from {resourceId}: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(triplesToDelete)}");
-                throw;
-            }
-            return success;
-        }
-
+                
         /// <summary>
         /// Gets the short names of resource editors and editors groups.
         /// </summary>

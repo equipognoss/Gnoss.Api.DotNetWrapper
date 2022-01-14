@@ -13,6 +13,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Web;
 using System.Xml;
 
 namespace Gnoss.ApiWrapper
@@ -259,11 +260,11 @@ namespace Gnoss.ApiWrapper
         {
             string signUrl = webRequest.RequestUri.ToString();
 
-            if (!string.IsNullOrEmpty(webRequest.RequestUri.Query))
+            if (signUrl.Contains("?"))
             {
-                signUrl = webRequest.RequestUri.ToString().Replace(webRequest.RequestUri.Query, "");
-
+                signUrl = signUrl.Substring(0, signUrl.IndexOf('?'));
             }
+
             OAuthInfo OAuth2 = new OAuthInfo(signUrl, OAuthInstance.Token, OAuthInstance.TokenSecret, OAuthInstance.ConsumerKey, OAuthInstance.ConsumerSecret, OAuthInstance.DeveloperEmail);
             string[] partesUrlOAuth = OAuth2.OAuthSignedUrl.Split('?');
 

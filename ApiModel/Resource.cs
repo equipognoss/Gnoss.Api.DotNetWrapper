@@ -319,11 +319,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         public Guid resource_id { get; set; }
 
         /// <summary>
-        /// Triple list
-        /// </summary>
-        public List<Triple> triples_list { get; set; }
-
-        /// <summary>
         /// True if the resource must be published in the home of the community (by default false)
         /// </summary>
         public bool publish_home { get; set; }
@@ -332,32 +327,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if it's the end of the load and must delete the cache
         /// </summary>
         public bool end_of_load { get; set; }
-    }
-
-    /// <summary>
-    /// Triple representation
-    /// </summary>
-    public class Triple
-    {
-        /// <summary>
-        /// Subject
-        /// </summary>
-        public string subject { get; set; }
-
-        /// <summary>
-        /// Predicate
-        /// </summary>
-        public string predicate { get; set; }
-
-        /// <summary>
-        /// Object
-        /// </summary>
-        public string object_t { get; set; }
-
-        /// <summary>
-        /// Languaje of the object
-        /// </summary>
-        public string language { get; set; }
     }
 
     /// <summary>
