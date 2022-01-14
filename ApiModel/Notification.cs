@@ -39,11 +39,25 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Community short name
         /// </summary>
         public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Transmitter smtp config defined
+        /// </summary>
+        public MailConfigurationModel transmitter_mail_configuration { get; set; }
     }
 
     public class MailStateModel
     {
         public List<string> pending_mails { get; set; }
         public List<string> error_mails { get; set; }
+    }
+
+    public class MailConfigurationModel
+    {
+        public string email { get; set; }
+        public string smtp { get; set; }
+        public short puerto { get; set; }
+        public string clave { get; set; }
+        public string tipo { get; set; }
     }
 }
