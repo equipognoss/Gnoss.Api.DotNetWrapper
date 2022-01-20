@@ -73,7 +73,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="receivers">Receivers of the notification</param>
         /// <param name="senderMask">Mask sender of the notification</param>
         /// <param name="pTransmitterMailConfiguration">Transmitter mail configuration</param>
-        public int SendEmailSMTPDefined(string subject, string message, List<string> receivers, List<MailConfigurationModel> pTransmitterMailConfiguration, bool isHTML = false, string senderMask = "")
+        public int SendEmailSMTPDefined(string subject, string message, List<string> receivers, MailConfigurationModel pTransmitterMailConfiguration, bool isHTML = false, string senderMask = "")
         {
             try
             {
