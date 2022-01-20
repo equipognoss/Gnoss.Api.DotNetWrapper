@@ -63,7 +63,8 @@ namespace Gnoss.ApiWrapper.Helpers
         /// 
         /// </summary>
         private static ILogHelper instance;
-
+        private string mDirectory;
+        private string mFileName;
         #endregion
 
         #region Properties
@@ -75,6 +76,15 @@ namespace Gnoss.ApiWrapper.Helpers
             // Defult log level: Warning. Writes Fatal, Error and Warning messages. 
             LogHelper.LogLevel = LogLevels.WARN;
             _httpContextAccessor = httpContextAccessor;
+        }
+
+        public LogHelper(string directory, string fileName, IHttpContextAccessor httpContextAccessor = null)
+        {
+            // Defult log level: Warning. Writes Fatal, Error and Warning messages. 
+            LogHelper.LogLevel = LogLevels.WARN;
+            _httpContextAccessor = httpContextAccessor;
+            mDirectory = directory;
+            mFileName = fileName;
         }
 
         /// <summary>
@@ -107,7 +117,7 @@ namespace Gnoss.ApiWrapper.Helpers
                         }
                         else
                         {
-                            instance = new LogHelperFile(null, null);
+                            instance = new LogHelperFile(mDirectory, mFileName);
                         }
                     }
 

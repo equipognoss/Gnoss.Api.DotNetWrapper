@@ -84,8 +84,6 @@ namespace Gnoss.ApiWrapper.Helpers
         /// </summary>
         public LogHelperFile(string directory, string logFileName)
         {
-
-
             if (string.IsNullOrEmpty(directory))
             {
                 _isActivated = false;
