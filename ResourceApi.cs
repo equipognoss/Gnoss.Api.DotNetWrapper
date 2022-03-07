@@ -4591,6 +4591,30 @@ namespace Gnoss.ApiWrapper
 
         }
 
+        /// <summary>
+        /// Check if a load identifier is already registered
+        /// </summary>
+        /// <param name="loadIdentifier">identifier to check</param>
+        /// <returns>True if the load identifier is already registered</returns>
+        public bool RefreshHeavyCache(Guid communityID, Guid organizationID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/refresh-heavy-cache?community_id={communityID}&organization_id={organizationID}";
+
+                WebRequestPostWithJsonObject(url, "");
+
+                Log.Info($"community {communityID}. Organization: {organizationID}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                return false;
+            }
+        }
+
         private void GetGraphsUrl()
         {
             try
