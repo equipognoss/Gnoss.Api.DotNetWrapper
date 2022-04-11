@@ -156,7 +156,7 @@ namespace Gnoss.ApiWrapper
                 }
 
                 //Test resource api
-                string url = $"{ApiUrl}/resource/test-massive-load";
+                string url = $"{ApiUrl}/massiveresource/test-massive-load";
 
                 MassiveDataLoadTestResource resource = new MassiveDataLoadTestResource()
                 {
@@ -275,7 +275,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>True if the data load is closed</returns>
         public bool CloseMassiveDataLoad()
         {
-            string url = $"{ApiUrl}/resource/close-massive-load";
+            string url = $"{ApiUrl}/massiveresource/close-massive-load";
             CloseMassiveDataLoadResource model = null;
             bool closed = false;
             try
@@ -321,7 +321,7 @@ namespace Gnoss.ApiWrapper
             
             try
             {
-                string url = $"{ApiUrl}/resource/create-massive-load";
+                string url = $"{ApiUrl}/massiveresource/create-massive-load";
 
                 model = new MassiveDataLoadResource()
                 {
@@ -425,7 +425,7 @@ namespace Gnoss.ApiWrapper
             bool created = false;
             try
             {
-                string url = $"{ApiUrl}/resource/create-massive-load-package";
+                string url = $"{ApiUrl}/massiveresource/create-massive-load-package";
                 WebRequestPostWithJsonObject(url, model);
                 created = true;
                 Log.Debug("Massive data load package created");
@@ -444,7 +444,7 @@ namespace Gnoss.ApiWrapper
             EstadoCargaModel estadoCarga;
             try
             {
-                string url = $"{ApiUrl}/resource/load-state";
+                string url = $"{ApiUrl}/massiveresource/load-state";
                 string response = WebRequestPostWithJsonObject(url, pLoadId);
 
                 estadoCarga = JsonConvert.DeserializeObject<EstadoCargaModel>(response);
