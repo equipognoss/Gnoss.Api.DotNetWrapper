@@ -1252,7 +1252,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         public AumentedReading lecturaAumentada { get; set; }
 
         /// <summary>
-        /// Resource's link
+        /// Resource link
         /// </summary>
         public string link { get; set; }
 

@@ -2019,18 +2019,20 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.CategoriesIds == null)
                 {
-                    if (hierarquicalCategories && resource.TextCategories.Count > 0)
+                    if (resource.TextCategories != null)
                     {
-                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                    }
-                    else
-                    {
-                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        if (hierarquicalCategories && resource.TextCategories.Count > 0)
+                        {
+                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        }
+                        else
+                        {
+                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        }
                     }
                 }
-
                 string documentId = string.Empty;
 
                 LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
