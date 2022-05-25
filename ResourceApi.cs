@@ -1485,7 +1485,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
-        /// <param name="graphs">List of the graphs in which you want consult</param>
+        /// <param name="graphs">List of the graphs in which you want search</param>
         /// <returns>DataSet with the query result</returns>
         public SparqlObject VirtuosoQueryMultipleGraph(string selectPart, string wherePart, List<string> graphs)
         {

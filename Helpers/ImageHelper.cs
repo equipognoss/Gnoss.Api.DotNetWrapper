@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 using System.Drawing.Imaging;
 using System.Net;
-using System.Threading.Tasks;
-using System.Threading;
-using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.Exceptions;
 using System.Runtime.Serialization;
 using System.Drawing;

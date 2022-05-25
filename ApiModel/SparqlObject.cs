@@ -9,7 +9,6 @@ namespace Gnoss.ApiWrapper.ApiModel
 {
     public class SparqlObject
     {
-
         /// <summary>
         /// Head of the sparql query
         /// </summary>
@@ -24,16 +23,12 @@ namespace Gnoss.ApiWrapper.ApiModel
             public List<string> vars { get; set; }
         }
 
-
-
         public class Data
         {
             public string type { get; set; }
             public string value { get; set; }
             public string datatype { get; set; }
         }
-
-
 
         public class Results
         {
