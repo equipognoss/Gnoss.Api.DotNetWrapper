@@ -1480,6 +1480,19 @@ namespace Gnoss.ApiWrapper
             return VirtuosoQueryInt(selectPart, wherePart, communityId.ToString(), userMasterServer);
         }
 
+        /// <summary>
+        /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the community identifier
+        /// </summary>
+        /// <param name="selectPart">The 'SELECT' query part</param>
+        /// <param name="wherePart">The 'WHERE' query part</param>
+        /// <param name="graphs">List of the graphs in which you want consult</param>
+        /// <returns>DataSet with the query result</returns>
+        public SparqlObject VirtuosoQueryMultipleGraph(string selectPart, string wherePart, List<string> graphs)
+        {
+            Log.Trace("Entering the method", this.GetType().Name);
+            return VirtuosoQueryMultipleGraphInt(selectPart, wherePart, graphs);
+        }
+
         #endregion
 
         /// <summary>
@@ -2839,6 +2852,39 @@ namespace Gnoss.ApiWrapper
 
             Log.Trace("Leaving the method", this.GetType().Name);
             return SO;
+        }
+
+        private SparqlObject VirtuosoQueryMultipleGraphInt(string selectPart, string wherePart, List<string> graph_list)
+        {
+            Log.Trace("Entering in the method", this.GetType().Name);
+            Log.Trace($"SELECT: {selectPart}", this.GetType().Name);
+            Log.Trace($"Grafo name: {graph_list}", this.GetType().Name);
+            Log.Trace($"WHERE: {wherePart}", this.GetType().Name);
+
+            SparqlObject sparqlObject = new SparqlObject();
+
+            try
+            {
+                Log.Trace("Query start", this.GetType().Name);
+
+                string url = $"{ApiUrl}/sparql-endpoint/query-multiple-graph";
+
+                SparqlQueryMultipleGraph model = new SparqlQueryMultipleGraph() { ontology_list = graph_list, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+
+                sparqlObject = JsonConvert.DeserializeObject<SparqlObject>(response);
+
+                Log.Trace("Query end", this.GetType().Name);
+            }
+            catch (WebException wex)
+            {
+                string resultado = wex.Response.Headers["ErrorDescription"].Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query to Virtuoso.\n{resultado}");
+            }
+
+            Log.Trace("Leaving the method", GetType().Name);
+            return sparqlObject;
         }
 
         private void PrepareAttachedToLog(List<SemanticAttachedResource> resourceAttachedFiles)
