@@ -8,8 +8,7 @@ using System.Reflection;
 using Gnoss.ApiWrapper.Exceptions;
 using System.Threading;
 using System.Runtime.CompilerServices;
-using static Es.Riam.Util.UtilTelemetry;
-using Es.Riam.Util;
+using static Utils.UtilTelemetry;
 
 namespace Gnoss.ApiWrapper.Helpers
 {    /// <summary>

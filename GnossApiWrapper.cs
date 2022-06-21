@@ -1,5 +1,4 @@
-﻿using Es.Riam.Util;
-using Gnoss.ApiWrapper.ApiModel;
+﻿using Gnoss.ApiWrapper.ApiModel;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.OAuth;
@@ -15,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Web;
 using System.Xml;
+using Utils;
 
 namespace Gnoss.ApiWrapper
 {
