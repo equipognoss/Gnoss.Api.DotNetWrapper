@@ -297,6 +297,7 @@ namespace Gnoss.ApiWrapper
         ///     rdf_attached_files = image to load byte[]
         /// main_image = main image string
         /// </param>
+        [Obsolete("MassiveUploadFiles is deprecated, please use UploadImages instead.")]
         public void MassiveUploadFiles(LoadResourceParams resource)
         {
             try
@@ -331,6 +332,7 @@ namespace Gnoss.ApiWrapper
         ///     rdf_attached_files = image to load byte[]
         /// main_image = main image string
         /// </param>
+        [Obsolete("MassiveUploadImages is deprecated, please use UploadImages instead.")]
         public void MassiveUploadImages(LoadResourceParams resource)
         {
             try
@@ -3988,11 +3990,11 @@ namespace Gnoss.ApiWrapper
         public bool UploadImages(Guid resourceId, List<SemanticAttachedResource> imageList, string mainImage)
         {
             bool loaded = false;
-            LoadResourceParams model = null;
+            UploadImagesParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/upload-images";
-                model = new LoadResourceParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, main_image = mainImage };
+                model = new UploadImagesParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, main_image = mainImage };
                 WebRequestPostWithJsonObject(url, model);
                 loaded = true;
                 Log.Debug("Ended images upload");

@@ -828,6 +828,35 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to upload images of a resource
+    /// </summary>
+    public class UploadImagesParams
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        [Required]
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Resource attached files
+        /// </summary>
+        [Required]
+        public List<SemanticAttachedResource> resource_attached_files { get; set; }
+
+        /// <summary>
+        /// Identifier of the resource
+        /// </summary>
+        [Required]
+        public Guid resource_id { get; set; }
+
+        /// <summary>
+        /// Main image of the resource
+        /// </summary>
+        public string main_image { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to upload a resource
     /// </summary>
     public class LoadResourceParams
