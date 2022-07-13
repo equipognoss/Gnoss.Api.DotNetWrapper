@@ -12,6 +12,6 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=equipognoss_Gnoss.Api.DotNetWrapper&metric=bugs)](https://sonarcloud.io/summary/new_code?id=equipognoss_Gnoss.Api.DotNetWrapper)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=equipognoss_Gnoss.Api.DotNetWrapper&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=equipognoss_Gnoss.Api.DotNetWrapper)
 
-GNOSS Api Wrapper for manage the content and configuration of a GNOSS Semantic Web through GNOSS API
+GNOSS Api Wrapper for manage the content and configuration of a GNOSS Semantic AI Platform through GNOSS API
 
 
