@@ -389,6 +389,7 @@ namespace Gnoss.ApiWrapper.Model
                         file = ms.ToArray();
                     }
 
+                    client.Dispose();
                     stream.Flush();
                     stream.Close();
                 }

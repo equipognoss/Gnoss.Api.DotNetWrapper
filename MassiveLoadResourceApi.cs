@@ -144,6 +144,7 @@ namespace Gnoss.ApiWrapper
                 //download nq file
                 WebClient client = new WebClient();
                 client.DownloadFile($"{Uri}/test.nq", downloadedTestFilePath);
+                client.Dispose();
 
                 //summarie of downloaded nq file
                 byte[] downloadedFileHash = new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(downloadedTestFilePath));

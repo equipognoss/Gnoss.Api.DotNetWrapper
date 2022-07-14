@@ -73,6 +73,19 @@ namespace Gnoss.ApiWrapper.Model
             return hashOntoloyPropertyName ^ hashOntologyPropertyValue ^ hashOntologyPropertyLanguage;
         }
 
+        public override bool Equals(object obj)
+        {
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                OntologyProperty ontologyPropertyParam = (OntologyProperty) obj;
+                return ontologyPropertyParam.Name == Name && ontologyPropertyParam.Value.ToString() == Value.ToString() && ontologyPropertyParam.Language == Language;
+            }
+        }
+
         #endregion
 
         #region Properties
@@ -80,7 +93,7 @@ namespace Gnoss.ApiWrapper.Model
         /// <summary>
         /// Gets or sets the property value
         /// </summary>
-        public Object Value
+        public object Value
         {
             get; set;
         }

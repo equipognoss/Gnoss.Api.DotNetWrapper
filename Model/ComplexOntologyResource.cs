@@ -27,21 +27,6 @@ namespace Gnoss.ApiWrapper.Model
         #region Properties
 
         /// <summary>
-        /// Gets or sets the GNOSS Identifier
-        /// </summary>
-        public override string GnossId
-        {
-            get
-            {
-                return base.GnossId;
-            }
-            set
-            {
-                base.GnossId = value;
-            }
-        }
-
-        /// <summary>
         /// Gets or sets the rdf file
         /// </summary>
         public byte[] RdfFile

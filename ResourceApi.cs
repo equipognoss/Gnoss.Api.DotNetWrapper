@@ -180,34 +180,15 @@ namespace Gnoss.ApiWrapper
                 {
                     if (hierarquicalCategories)
                     {
-                        if (string.IsNullOrEmpty(CommunityShortName))
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
+                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                     else
                     {
-                        if (string.IsNullOrEmpty(CommunityShortName))
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
-                        else
-                        {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        }
+                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                 }
 
                 string documentId = string.Empty;
-
-                if (string.IsNullOrEmpty(CommunityShortName))
-                {
-                    CommunityShortName = CommunityShortName;
-                }
 
                 resource.RdfFile = rdfFile;
                 LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
@@ -777,11 +758,7 @@ namespace Gnoss.ApiWrapper
                 {
                     foreach (string identificador in listToModify)
                     {
-                        if (string.IsNullOrEmpty(identificador))
-                        {
-                            newObject = $"{identificador.Trim()},";
-                        }
-                        else
+                        if (!string.IsNullOrEmpty(identificador))
                         {
                             newObject += $"{identificador.Trim()},";
                         }
@@ -1054,7 +1031,6 @@ namespace Gnoss.ApiWrapper
 
                             Log.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
                             resource.Deleted = true;
-                            break;
                         }
                     }
                     catch (Exception ex)
@@ -1115,13 +1091,9 @@ namespace Gnoss.ApiWrapper
                             last = true;
                         }
 
-                        while (true)
-                        {
-                            resource.Deleted = PersistentDelete(resource.ShortGnossId, deleteAttached, last);
-                            numResourcesLeft--;
-                            Log.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
-                            break;
-                        }
+                        resource.Deleted = PersistentDelete(resource.ShortGnossId, deleteAttached, last);
+                        numResourcesLeft--;
+                        Log.Debug($"Successfully deleted the resource with ID: {resource.GnossId}. {numResourcesLeft} resources left", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
@@ -3336,7 +3308,7 @@ namespace Gnoss.ApiWrapper
             }
             return unshared;
         }
-                
+
         /// <summary>
         /// Gets the short names of resource editors and editors groups.
         /// </summary>
@@ -4207,18 +4179,18 @@ namespace Gnoss.ApiWrapper
                 if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                 {
                     if (hierarquicalCategories)
-                    {  
-                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                        
+                    {
+                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+
                     }
                     else
                     {
-                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);                        
+                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                     }
                 }
 
                 string documentId = string.Empty;
-                                
+
                 LoadResourceParams resourceParam = GetResourceModelOfComplexOntologyResource(resource, false, false);
                 listaLoadResourceParams.Add(resourceParam);
                 resource.Uploaded = true;
