@@ -11,55 +11,23 @@ namespace Gnoss.ApiWrapper.Model
     /// <summary>
     /// Represents a property from an ontology
     /// </summary>
-    public class OntologyProperty : IEquatable<OntologyProperty>
+    public class OntologyProperty
     {
+        #region Const
+
+        private const string _languagePattern = @"^[a-z]{2,2}$";
+
+        #endregion
+
         #region Members 
 
         private string _language;
-        private string _languagePattern = @"^[a-z]{2,2}$";
+        
 
         #endregion
 
         #region Public methods
-
-        /// <summary>
-        /// Returns true if <paramref name="property"/> is equals to the current property
-        /// </summary>
-        /// <param name="property"><see cref="OntologyProperty"/> property to compare</param>
-        /// <returns><c>true</c> if <paramref name="property"/> is equals to the current property, <c>false</c> in another case</returns>
-        public bool Equals(OntologyProperty property)
-        {
-            if (!this.GetType().FullName.Equals(property.GetType().FullName))
-            {
-                return false;
-            }
-            else
-            {
-                if (!string.IsNullOrEmpty(property.Language))
-                {
-                    if (Name.Equals(property.Name) && Value.Equals(property.Value) && Language.Equals(property.Language))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    if ((Name == null && property.Name == null) || (Value != null && Name.Equals(property.Name) && Value.Equals(property.Value)))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
-
+               
         /// <summary>
         /// Gets the HashCode of the property
         /// </summary>
@@ -73,15 +41,20 @@ namespace Gnoss.ApiWrapper.Model
             return hashOntoloyPropertyName ^ hashOntologyPropertyValue ^ hashOntologyPropertyLanguage;
         }
 
-        public override bool Equals(object obj)
+        /// <summary>
+        /// Returns true if <paramref name="pProperty"/> is equals to the current property
+        /// </summary>
+        /// <param name="pProperty"><see cref="OntologyProperty"/> property to compare</param>
+        /// <returns><c>true</c> if <paramref name="pProperty"/> is equals to the current property, <c>false</c> in another case</returns>
+        public override bool Equals(object pProperty)
         {
-            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            if ((pProperty == null) || !GetType().Equals(pProperty.GetType()))
             {
                 return false;
             }
             else
             {
-                OntologyProperty ontologyPropertyParam = (OntologyProperty) obj;
+                OntologyProperty ontologyPropertyParam = (OntologyProperty) pProperty;
                 return ontologyPropertyParam.Name == Name && ontologyPropertyParam.Value.ToString() == Value.ToString() && ontologyPropertyParam.Language == Language;
             }
         }

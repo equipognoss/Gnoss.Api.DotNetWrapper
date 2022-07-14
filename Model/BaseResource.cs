@@ -23,7 +23,7 @@ namespace Gnoss.ApiWrapper.Model
         private string _automaticTagsTextFromTitle;
         private string _automaticTagsTextFromDescription;
         private DateTime _creationDate;
-        
+
         private List<Multilanguage> _multilanguageTitle;
         private List<Multilanguage> _multilanguageDescription;
 
@@ -73,7 +73,7 @@ namespace Gnoss.ApiWrapper.Model
                     if (_gnossId != null && _gnossId.Contains("_"))
                     {
                         string[] result = _gnossId.Split('_');
-                        ShortGnossId = new Guid(result[result.Count() - 2]);
+                        ShortGnossId = new Guid(result[result.Length - 2]);
                     }
                     else
                     {
@@ -129,21 +129,21 @@ namespace Gnoss.ApiWrapper.Model
             set
             {
                 _multilanguageTitle = value;
-                string title = string.Empty;
+                StringBuilder title = new StringBuilder();
                 foreach (Multilanguage languageTitle in _multilanguageTitle)
                 {
                     if (!string.IsNullOrEmpty(languageTitle.String))
                     {
-                        title += $"{languageTitle.String}@{languageTitle.Language}|||";
+                        title.Append($"{languageTitle.String}@{languageTitle.Language}|||");
                     }
                     else
                     {
                         Title = string.Empty;
                     }
                 }
-                if (title != string.Empty)
+                if (title.Length > 0)
                 {
-                    Title = title;
+                    Title = title.ToString();
                 }
             }
         }
@@ -180,21 +180,21 @@ namespace Gnoss.ApiWrapper.Model
             set
             {
                 _multilanguageDescription = value;
-                string description = string.Empty;
+                StringBuilder description = new StringBuilder();
                 foreach (Multilanguage languageDescription in _multilanguageDescription)
                 {
                     if (!string.IsNullOrEmpty(languageDescription.String))
                     {
-                        description += $"{languageDescription.String}@{languageDescription.Language}|||";
+                        description.Append($"{languageDescription.String}@{languageDescription.Language}|||");
                     }
                     else
                     {
                         Description = string.Empty;
                     }
                 }
-                if (description != string.Empty)
+                if (description.Length > 0)
                 {
-                    Description = description;
+                    Description = description.ToString();
                 }
             }
         }
@@ -323,7 +323,7 @@ namespace Gnoss.ApiWrapper.Model
         {
             get
             {
-                if(_creationDate == DateTime.MinValue)
+                if (_creationDate == DateTime.MinValue)
                 {
                     _creationDate = DateTime.Now;
                 }
@@ -360,9 +360,12 @@ namespace Gnoss.ApiWrapper.Model
             get; set;
         }
 
+        /// <summary>
+        /// Gets or sets the AumentedReadig of the resource
+        /// </summary>
         public AumentedReading AumentedReading
         {
-            get;set;
+            get; set;
         }
 
         #endregion
@@ -411,7 +414,7 @@ namespace Gnoss.ApiWrapper.Model
             }
             else
             {
-                throw new GnossAPIArgumentException("downloadUrl can't be null or empty", "downloadUrl");
+                throw new GnossAPIArgumentException("downloadUrl can't be null or empty", downloadUrl);
             }
 
             return file;
