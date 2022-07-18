@@ -259,7 +259,7 @@ namespace Gnoss.ApiWrapper.ApiModel
     /// <summary>
     /// Represents a sparql query
     /// </summary>
-    public partial class sparqlQuery
+    public partial class SparqlQuery
     {
         /// <summary>
         /// Ontology name or community identifier to query. It will be used in the form clause
@@ -423,6 +423,9 @@ namespace Gnoss.ApiWrapper.ApiModel
         public string community_short_name { get; set; }
     }
 
+    /// <summary>
+    /// Voted parameters model
+    /// </summary>
     public class VotedParameters
     {
 
@@ -687,7 +690,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Categories of the destination community
         /// </summary>
         public List<Guid> categories { get; set; }
-
+        
+        /// <summary>
+        /// Mail of the resource publisher
+        /// </summary>
         public string publisher_email { get; set; }
     }
 
@@ -1011,6 +1017,9 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string subtype { get; set; }
 
+        /// <summary>
+        /// Previous type of the resource
+        /// </summary>
         public string previous_type { get; set; }
 
         /// <summary>
@@ -1096,7 +1105,8 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// SQL file rute
         /// </summary>
         public string sql_rute { get; set; }
-        /// Ontology file bytes
+        /// <summary>
+        /// Onotology bytes
         /// </summary>
         public byte[] ontology_bytes { get; set; }
         /// <summary>
@@ -1253,9 +1263,12 @@ namespace Gnoss.ApiWrapper.ApiModel
 
     }
 
+    /// <summary>
+    /// Model of the aumented reading
+    /// </summary>
     public class AumentedReading
     {
-    /// <summary>
+        /// <summary>
         /// increased-reading title
         /// </summary>
         public string title { get; set; }
@@ -1338,9 +1351,18 @@ namespace Gnoss.ApiWrapper.ApiModel
         public Guid? user_id { get; set; }
     }
 
+    /// <summary>
+    /// Model of massive load
+    /// </summary>
     public class MassiveResourceLoad
     {
+        /// <summary>
+        /// List of resource to load
+        /// </summary>
         public List<LoadResourceParams> resources { get; set; }
+        /// <summary>
+        /// Identifier of the load
+        /// </summary>
         public Guid load_id { get; set; }
     }
 

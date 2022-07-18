@@ -83,10 +83,22 @@ namespace Gnoss.ApiWrapper.ApiModel
         public Guid admin_id { get; set; }
     }
 
+    /// <summary>
+    /// Represents a category of a community
+    /// </summary>
     public class CommunityCategoryModel
     {
+        /// <summary>
+        /// Short name of the community
+        /// </summary>
         public string community_short_name { get; set; }
+        /// <summary>
+        /// Name of the category
+        /// </summary>
         public string category_name { get; set; }
+        /// <summary>
+        /// Identifier of the parent category
+        /// </summary>
         public Guid? parent_category_id { get; set; }
     }
 
@@ -298,6 +310,9 @@ namespace Gnoss.ApiWrapper.ApiModel
         public string community_short_name { get; set; }
     }
 
+    /// <summary>
+    /// Model to Add results of the query to cache
+    /// </summary>
     public class AddSearchToCacheModel
     {
         /// <summary>
@@ -322,12 +337,27 @@ namespace Gnoss.ApiWrapper.ApiModel
         public double duration { get; set; }
     }
 
+    /// <summary>
+    /// Model to add a query to cache
+    /// </summary>
     [Serializable]
     public class ConsultaCacheModel
     {
+        /// <summary>
+        /// Where of the query
+        /// </summary>
         public string WhereSPARQL { get; set; }
+        /// <summary>
+        /// Where to facets of the query
+        /// </summary>
         public string WhereFacetasSPARQL { get; set; }
+        /// <summary>
+        /// Order by of the query
+        /// </summary>
         public string OrderBy { get; set; }
+        /// <summary>
+        /// If omit the rdfType or no in the query
+        /// </summary>
         public bool OmitirRdfType { get; set; }
     }
 

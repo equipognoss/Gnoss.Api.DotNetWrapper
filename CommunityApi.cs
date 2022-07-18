@@ -32,7 +32,7 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Constructor of <see cref="CommunityApi"/>
         /// </summary>
-        /// <param name="communityShortName">Community short name which you want to use the API</param>
+        /// <param name="logHelper">Log Helper which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         public CommunityApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
@@ -81,6 +81,10 @@ namespace Gnoss.ApiWrapper
             return communityCategoriesWithoutHierarchy;
         }
 
+        /// <summary>
+        /// Load the children of the categories
+        /// </summary>
+        /// <param name="categories">Categories to load their childrens</param>
         private void LoadChildrenCategories(List<ThesaurusCategory> categories)
         {
             foreach (ThesaurusCategory category in categories)
@@ -136,7 +140,6 @@ namespace Gnoss.ApiWrapper
         /// Create a category
         /// </summary>
         /// <param name="categoryName">Category name</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <param name="parentCategoryID">Parent category ID</param>
         public Guid CreateCategory(string categoryName, Guid? parentCategoryID)
         {
@@ -159,6 +162,10 @@ namespace Gnoss.ApiWrapper
             }
         }
 
+        /// <summary>
+        /// Upload the content of a file
+        /// </summary>
+        /// <param name="pmodel">Model to load the content of a file</param>
         public void UploadContentFile(UploadContentModel pmodel)
         {
             try
@@ -251,7 +258,6 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Create a thesaurus for a community
         /// </summary>
-        /// <param name="thesaurusXml">Thesaurus to create</param>
         public string GetThesaurus()
         {
             try
@@ -581,7 +587,6 @@ namespace Gnoss.ApiWrapper
         /// <param name="sendNotification">It indicates whether a massage is going to be sent to users telling them has been added to the group</param>
         public void AddMembersToGroup(string groupShortName, List<Guid> members, bool sendNotification = false)
         {
-            string miembros = string.Empty;
             try
             {
                 string url = $"{ApiUrl}/community/add-members-to-community-group";
@@ -602,12 +607,10 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Add a list of users to a community group
         /// </summary>
-        /// <param name="groupShortName">Short name of the group</param>
-        /// <param name="members">List users that want to add</param>
-        /// <param name="sendNotification">It indicates whether a massage is going to be sent to users telling them has been added to the group</param>
+        /// <param name="certificationLevelsDescription">List with the descripction of te diferents certification's levels</param>
+        /// <param name="certificationPolitics">Certification of the politics</param>
         public void CreateCertificatioLevels(List<string> certificationLevelsDescription, string certificationPolitics)
         {
-            string miembros = string.Empty;
             try
             {
                 string url = $"{ApiUrl}/community/create-certification-levels";
@@ -880,14 +883,13 @@ namespace Gnoss.ApiWrapper
             catch (System.Exception)
             {
                 Log.Error($"The person identifiers and emails of the community members '{CommunityShortName}' could not be obtained");
-                return null;
+                return new Dictionary<Guid, string>();
             }
         }
 
         /// <summary>
         /// Gets the community identifier
         /// </summary>
-        /// <param name="communityShortName">Community short name</param>
         public Guid GetCommunityId()
         {
             try
@@ -909,7 +911,6 @@ namespace Gnoss.ApiWrapper
         /// Blocks a member in a community
         /// </summary>
         /// <param name="userId">User's identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         public void BlockMember(Guid userId)
         {
             try
@@ -931,7 +932,6 @@ namespace Gnoss.ApiWrapper
         /// Unblocks a member in a community
         /// </summary>
         /// <param name="userId">User's identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         public void UnblockMember(Guid userId)
         {
             try
@@ -953,7 +953,6 @@ namespace Gnoss.ApiWrapper
         /// Refresh the caché of a CMS component
         /// </summary>
         /// <param name="componentId">Component id to refresh</param>
-        /// <param name="communityShortName">Community short name</param>
         public void RefreshCMSComponent(Guid componentId)
         {
             try
@@ -972,7 +971,6 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Refresh the caché of all community's CMS components
         /// </summary>
-        /// <param name="communityShortName">Community short name</param>
         public void RefreshAllCMSComponents()
         {
             try
@@ -991,7 +989,6 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Gets the basic information of a community
         /// </summary>
-        /// <param name="communityShortName">Community short name</param>
         /// <returns></returns>
         public CommunityInfoModel GetCommunityInfo()
         {
@@ -1054,7 +1051,13 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        public bool checkIsAdminCommunity(string pShortName, Guid pUserID)
+        /// <summary>
+        /// Check if the user is the administrator of the community
+        /// </summary>
+        /// <param name="pShortName"></param>
+        /// <param name="pUserID"></param>
+        /// <returns></returns>
+        public bool CheckIsAdminCommunity(string pShortName, Guid pUserID)
         {
             bool esAdmin = false;
             UserCommunityModel model = new UserCommunityModel();
@@ -1066,6 +1069,10 @@ namespace Gnoss.ApiWrapper
             return esAdmin;
         }
 
+        /// <summary>
+        /// Remove the administrator category of a user
+        /// </summary>
+        /// <param name="userId"></param>
         public void DowngradeMemberFromAdministrator(Guid userId)
         {
             try
@@ -1096,8 +1103,6 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/community/add-search-to-cache";
-
-                //ConsultaCacheModel queryValue = JsonConvert.DeserializeObject<ConsultaCacheModel>(value);
 
                 AddSearchToCacheModel model = new AddSearchToCacheModel() { key = key, value = queryValue, community_short_name = CommunityShortName, duration = duration };
 

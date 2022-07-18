@@ -42,19 +42,19 @@ namespace Gnoss.ApiWrapper.Model
         }
 
         /// <summary>
-        /// Returns true if <paramref name="pProperty"/> is equals to the current property
+        /// Returns true if <paramref name="obj"/> is equals to the current property
         /// </summary>
-        /// <param name="pProperty"><see cref="OntologyProperty"/> property to compare</param>
-        /// <returns><c>true</c> if <paramref name="pProperty"/> is equals to the current property, <c>false</c> in another case</returns>
-        public override bool Equals(object pProperty)
+        /// <param name="obj"><see cref="OntologyProperty"/> property to compare</param>
+        /// <returns><c>true</c> if <paramref name="obj"/> is equals to the current property, <c>false</c> in another case</returns>
+        public override bool Equals(object obj)
         {
-            if ((pProperty == null) || !GetType().Equals(pProperty.GetType()))
+            if ((obj == null) || !GetType().Equals(obj.GetType()))
             {
                 return false;
             }
             else
             {
-                OntologyProperty ontologyPropertyParam = (OntologyProperty) pProperty;
+                OntologyProperty ontologyPropertyParam = (OntologyProperty) obj;
                 return ontologyPropertyParam.Name == Name && ontologyPropertyParam.Value.ToString() == Value.ToString() && ontologyPropertyParam.Language == Language;
             }
         }

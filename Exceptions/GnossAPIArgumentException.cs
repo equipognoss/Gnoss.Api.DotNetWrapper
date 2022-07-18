@@ -8,6 +8,7 @@ namespace Gnoss.ApiWrapper.Exceptions
     /// <summary>
     /// Exception produced if there is invalid arguments
     /// </summary>
+    [Serializable]
     public class GnossAPIArgumentException : GnossAPIException
     {
         /// <summary>

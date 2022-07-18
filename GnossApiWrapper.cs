@@ -82,6 +82,9 @@ namespace Gnoss.ApiWrapper
         private OAuthInfo _oauth = null;
         private ILogHelper mLog;
 
+        /// <summary>
+        /// Log helper
+        /// </summary>
         public ILogHelper Log
         {
             get { return mLog; }

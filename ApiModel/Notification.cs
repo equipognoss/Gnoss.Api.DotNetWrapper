@@ -46,18 +46,45 @@ namespace Gnoss.ApiWrapper.ApiModel
         public MailConfigurationModel transmitter_mail_configuration { get; set; }
     }
 
+    /// <summary>
+    /// Model to show the state of an email
+    /// </summary>
     public class MailStateModel
     {
+        /// <summary>
+        /// List of emails pending to send
+        /// </summary>
         public List<string> pending_mails { get; set; }
+        /// <summary>
+        /// List with the email that can't be sended
+        /// </summary>
         public List<string> error_mails { get; set; }
     }
 
+    /// <summary>
+    /// Model to configure the mail
+    /// </summary>
     public class MailConfigurationModel
     {
+        /// <summary>
+        /// Email
+        /// </summary>
         public string email { get; set; }
+        /// <summary>
+        /// Smtp of the mail server
+        /// </summary>
         public string smtp { get; set; }
+        /// <summary>
+        /// Port of the mail server
+        /// </summary>
         public short puerto { get; set; }
+        /// <summary>
+        /// Password of the user to login in the mail server
+        /// </summary>
         public string clave { get; set; }
+        /// <summary>
+        /// Kind of the mail server
+        /// </summary>
         public string tipo { get; set; }
     }
 }
