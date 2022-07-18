@@ -98,12 +98,12 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Consturtor of <see cref="GnossApiWrapper"/>
         /// </summary>
-        /// <param name="communityShortName">Community short name which you want to use the API</param>
+        /// <param name="logHelper">Log helper which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
         public GnossApiWrapper(OAuthInfo oauth,  ILogHelper logHelper = null)
         {
             _oauth = oauth;
-            this.mLog = logHelper;
+            mLog = logHelper;
         }
 
         /// <summary>
@@ -136,6 +136,11 @@ namespace Gnoss.ApiWrapper
             return tokenAfinidad;
         }
 
+        /// <summary>
+        /// Get the Lock Token of a resource
+        /// </summary>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
         protected string GetLockTokenForResource(Guid resourceId)
         {
             if (_resourceLockTokens.ContainsKey(resourceId))
@@ -145,6 +150,11 @@ namespace Gnoss.ApiWrapper
             return null;
         }
 
+        /// <summary>
+        /// Set the Lock token of a resource
+        /// </summary>
+        /// <param name="resourceId"></param>
+        /// <param name="token"></param>
         protected void SetLockTokenForResource(Guid resourceId, string token)
         {
             if (!_resourceLockTokens.ContainsKey(resourceId))
