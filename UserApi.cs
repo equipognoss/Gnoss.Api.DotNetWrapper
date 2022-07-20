@@ -607,6 +607,29 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Gets the UserID form Cookie
+        /// </summary>
+        /// <param name="pCookie">cookie</params>
+        /// <returns>UserID from cookie</returns>
+        public Guid GetUserIDFromCookie(string pCookie)
+        {
+            Guid userID = Guid.Empty;
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-cookie?cookie={pCookie}";
+                string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+                userID = JsonConvert.DeserializeObject<Guid>(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting the user from the cookie", ex.Message);
+                throw;
+            }
+            return userID;
+        }
+
+
+        /// <summary>
         /// Gets a single use token or a long live token to use it in a login action. 
         /// To login a user, the user must be redirected to the Login service URL, at the page externallogin.aspx
         /// with the parameters ?loginToken={thistoken}, webToken={webToken}, redirect={urlRedirect}
