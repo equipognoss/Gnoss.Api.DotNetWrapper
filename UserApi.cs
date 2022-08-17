@@ -571,7 +571,6 @@ namespace Gnoss.ApiWrapper
         /// Gets the novelties of the user from a datetime
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
         public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string searchDate)
@@ -804,10 +803,11 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Adds the Community CMS Admin rol to a user
+        /// Checks if the emails already exists in the database
         /// </summary>
-        /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
+        /// <param name="emails">Email list that you want to check</param>
+        /// <returns>Email list that already exists in the database</returns>
+        /// <example>POST user/exists-email-in-database</example>
         public List<string> ExistsEmails(List<string> emails)
         {
             try
@@ -825,10 +825,29 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Return short path of the personal profile of the user
+        /// </summary>
+        /// <param name="user_id">Identifier of the user</param>
+        /// <returns>True or false if the user has or not photo</returns>
+        /// <example>POST user/get-user-photo</example>
+        public string GetUserPhoto(Guid user_id)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-photo";
+                return WebRequestPostWithJsonObject(url, user_id);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Gets the user's groups in a community
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <returns></returns>
         public List<string> GetGroupsPerCommunity(Guid userId)
         {
@@ -875,7 +894,6 @@ namespace Gnoss.ApiWrapper
         /// Adds the Community CMS Admin rol to a user
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         public void AddCmsAdminRolToUser(Guid userId)
         {
             try
@@ -894,7 +912,6 @@ namespace Gnoss.ApiWrapper
         /// Removes the Community CMS Admin rol to a user
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         public void RemoveCmsAdminRolToUser(Guid userId)
         {
             try
@@ -910,6 +927,5 @@ namespace Gnoss.ApiWrapper
         }
 
         #endregion
-
     }
 }

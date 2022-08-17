@@ -307,6 +307,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// User prefered language
         /// </summary>
         public string languaje { get; set; }
+        
+        /// <summary>
+        /// Photo of personal profile
+        /// </summary>
+        public string photo { get; set; }
     }
 
     /// <summary>

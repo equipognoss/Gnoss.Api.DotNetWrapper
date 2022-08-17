@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Gnoss.ApiWrapper
 {
@@ -218,18 +219,15 @@ namespace Gnoss.ApiWrapper
                 List<string> searchTriples = resource.ToSearchGraphTriples(this);
                 KeyValuePair<Guid, string> acidData = resource.ToAcidData(this);
 
-                //string uri = resource.GetURI(this);
-                //string pathArchivoURI = $@"C:\Users\fortiz\Desktop\relacionArtista.txt";
-                //string lineaURI = $"{resource.GetID()}|||{uri} \r\n";
                 string pathOntology = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
                 string pathSearch = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
                 string pathAcid = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
 
                 if (streamData == null || streamOntology == null || streamSearch == null)
                 {
-                    streamData = new StreamWriter(pathAcid);
-                    streamOntology = new StreamWriter(pathOntology);
-                    streamSearch = new StreamWriter(pathSearch);
+                    streamData = new StreamWriter(new FileStream(pathAcid, FileMode.OpenOrCreate), Encoding.UTF8);
+                    streamOntology = new StreamWriter(new FileStream(pathOntology, FileMode.OpenOrCreate), Encoding.UTF8);
+                    streamSearch = new StreamWriter(new FileStream(pathSearch, FileMode.OpenOrCreate), Encoding.UTF8);
                 }
 
                 foreach (string triple in ontologyTriples)
@@ -241,10 +239,6 @@ namespace Gnoss.ApiWrapper
                     streamSearch.WriteLine(triple);
                 }
                 streamData.WriteLine($"{acidData.Key}|||{acidData.Value}");
-
-                //File.AppendAllLines(pathOntology, ontologyTriples);
-                //File.AppendAllLines(pathSearch, searchTriples);
-                //File.AppendAllLines(pathAcid, new List<string>() { acidData.Key + "|||" + acidData.Value });
 
                 if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
                 {
@@ -265,7 +259,6 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 Log.Error($"Error creating the package of massive data load {ex.Message} {ex.StackTrace}");
-                //throw new GnossAPIException($"Error creating the package of massive data load {identifier}{ex.Message}");
             }
         }
 
