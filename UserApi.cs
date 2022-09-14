@@ -615,7 +615,7 @@ namespace Gnoss.ApiWrapper
             Guid userID = Guid.Empty;
             try
             {
-                string url = $"{ApiUrl}/user/get-user-cookie?cookie={pCookie}";
+                string url = $"{ApiUrl}/user/get-user-cookie?pCookie={pCookie}";
                 string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
                 userID = JsonConvert.DeserializeObject<Guid>(response);
             }

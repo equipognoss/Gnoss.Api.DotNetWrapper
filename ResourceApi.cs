@@ -4678,6 +4678,7 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 Log.Debug($"Error obtaining the intragnoss URL: {ex.Message}");
+                throw;
             }
         }
 
