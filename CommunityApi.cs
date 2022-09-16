@@ -144,11 +144,11 @@ namespace Gnoss.ApiWrapper
             {
                 CommunityCategoryModel communityModel = new CommunityCategoryModel() { category_name = categoryName, community_short_name = CommunityShortName, parent_category_id = parentCategoryID };
 
-                string url = $"{ApiUrl}/community/create-category";
+                string url = $"{ApiUrl}/community/create-category?category_name={communityModel.category_name}&community_short_name={communityModel.community_short_name}&parent_category={communityModel.parent_category_id}";
 
                 Log.Fatal($"Inicio llamada 1.{communityModel.category_name} | 2.{communityModel.community_short_name} | 3.{communityModel.parent_category_id}");
-
-                string response = WebRequestPostWithJsonObject(url, communityModel);
+                
+                string response = WebRequest("GET", url);
 
                 return JsonConvert.DeserializeObject<Guid>(response);
             }
