@@ -304,6 +304,26 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Gets the userID by login or email
+        /// </summary>
+        /// <param name="pLoginOrEmail">Login o email of the user</param>
+        public void GetUserIdByLogin(string pLoginOrEmail)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-id-by-login?pLogin={pLoginOrEmail}";
+
+                WebRequest("POST", url, "", "application/json");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting user's ID for user {pLoginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
+                throw;
+            }
+
+        }
+
+        /// <summary>
         /// Gets the URL to recover the password of a user
         /// </summary>
         /// <param name="loginOrEmail">Login o email of the user</param>
