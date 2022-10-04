@@ -306,18 +306,18 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Gets the userID by login or email
         /// </summary>
-        /// <param name="pLoginOrEmail">Login o email of the user</param>
-        public void GetUserIdByLogin(string pLoginOrEmail)
+        /// <param name="pLogin">Login o email of the user</param>
+        public void GetUserIdByLogin(string pLogin)
         {
             try
             {
-                string url = $"{ApiUrl}/user/get-user-id-by-login?pLogin={pLoginOrEmail}";
+                string url = $"{ApiUrl}/user/get-user-id-by-login";
 
-                WebRequest("POST", url, "", "application/json");
+                WebRequestPostWithJsonObject(url, pLogin);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error getting user's ID for user {pLoginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
+                Log.Error($"Error getting user's ID for user {pLogin} from the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
 
