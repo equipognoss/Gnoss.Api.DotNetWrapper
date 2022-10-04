@@ -307,13 +307,15 @@ namespace Gnoss.ApiWrapper
         /// Gets the userID by login or email
         /// </summary>
         /// <param name="pLogin">Login o email of the user</param>
-        public void GetUserIdByLogin(string pLogin)
+        public Guid GetUserIdByLogin(string pLogin)
         {
             try
             {
-                string url = $"{ApiUrl}/user/get-user-id-by-login";
+                string url = $"{ApiUrl}/user/get-user-id-by-login?pLogin={pLogin}";
+                string response = WebRequest("GET", url);
+                Guid usuarioID = JsonConvert.DeserializeObject<Guid>(response);
 
-                WebRequestPostWithJsonObject(url, pLogin);
+                return usuarioID;
             }
             catch (Exception ex)
             {
