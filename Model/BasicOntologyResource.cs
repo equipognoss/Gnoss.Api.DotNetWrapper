@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net;
 using System.IO;
 using Gnoss.ApiWrapper.Helpers;
-using System.Drawing;
-using Gnoss.ApiWrapper.Exceptions;
+using SixLabors.ImageSharp;
 
 namespace Gnoss.ApiWrapper.Model
 {
@@ -81,13 +76,14 @@ namespace Gnoss.ApiWrapper.Model
         {
             byte[] image = ReadFile(downloadUrl);
 
-            Bitmap resizedImage = null;
+            Image resizedImage = null;
             GenerateSnapshot = true;
 
             if (size != 0)
             {
-                resizedImage = ImageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(image), size);
-                AttachedFile = ImageHelper.BitmapToByteArray(resizedImage);
+                resizedImage = ImageHelper.ByteArrayToImage(image);
+                ImageHelper.ResizeImageToWidth(resizedImage, size);
+                AttachedFile = ImageHelper.ImageToByteArray(resizedImage);
             }
         }
 

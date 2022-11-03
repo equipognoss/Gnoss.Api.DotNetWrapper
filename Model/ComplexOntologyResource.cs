@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Drawing;
 using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.ApiModel;
+using SixLabors.ImageSharp;
 
 namespace Gnoss.ApiWrapper.Model
 {
@@ -200,7 +200,7 @@ namespace Gnoss.ApiWrapper.Model
         /// Empty constructor
         /// </summary>
         public ComplexOntologyResource()
-        {            
+        {
             Initialize();
         }
 
@@ -557,11 +557,11 @@ namespace Gnoss.ApiWrapper.Model
         /// <returns>True if the image has been attached successfully</returns>
         public bool AttachImage(string downloadUrl, List<ImageAction> actions, string predicate, bool mainImage, string extension, OntologyEntity entity = null, bool saveOriginalImage = true, bool saveMaxSizedImage = false)
         {
-            Bitmap imagenOriginal = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
+            Image imagenOriginal = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
             bool imagenAdjuntada = false;
             if (imagenOriginal != null)
             {
-                imagenAdjuntada = AttachImageInternal(ImageHelper.BitmapToByteArray(imagenOriginal), actions, predicate, mainImage, Guid.Empty, false, entity, extension, saveOriginalImage, saveMaxSizedImage);
+                imagenAdjuntada = AttachImageInternal(ImageHelper.ImageToByteArray(imagenOriginal), actions, predicate, mainImage, Guid.Empty, false, entity, extension, saveOriginalImage, saveMaxSizedImage);
             }
             return imagenAdjuntada;
         }
@@ -596,20 +596,20 @@ namespace Gnoss.ApiWrapper.Model
         /// <returns>True if the image has been uploaded successfully</returns>
         public bool AttachImageWithoutReference(string downloadUrl, List<ImageAction> actions, bool mainImage, Guid imageId, string extension, bool saveOriginalImage = true, bool saveMaxSizedImage = false, bool saveMainImage = true)
         {
-            Bitmap originalImage = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
+            Image originalImage = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
 
             bool success = false;
             if (originalImage != null)
             {
                 try
                 {
-                    success = AttachImageInternal(ImageHelper.BitmapToByteArray(originalImage), actions, string.Empty, mainImage, imageId, false, null, extension, saveOriginalImage, saveMaxSizedImage, saveMainImage);
+                    success = AttachImageInternal(ImageHelper.ImageToByteArray(originalImage), actions, string.Empty, mainImage, imageId, false, null, extension, saveOriginalImage, saveMaxSizedImage, saveMainImage);
                     originalImage.Dispose();
                 }
                 catch (Exception ex)
                 {
                     throw new GnossAPIException($"Error attaching image {downloadUrl}: {ex.Message}");
-                    
+
                 }
             }
             return success;
@@ -831,13 +831,13 @@ namespace Gnoss.ApiWrapper.Model
                     // With actions
 
                     bool originalImageSaved = false;
-                    Bitmap maxSizeImage = null;
+                    Image maxSizeImage = null;
                     bool imageModificationError = false;
 
                     foreach (ImageAction action in actions)
                     {
                         imageModificationError = false;
-                        Bitmap resizedImage = null;
+                        Image resizedImage = null;
 
                         if (!onlyReference)
                         {
@@ -847,7 +847,8 @@ namespace Gnoss.ApiWrapper.Model
                                 case ImageTransformationType.Crop:
                                     try
                                     {
-                                        resizedImage = ImageHelper.CropImageToSquare(ImageHelper.ByteArrayToBitmap(originalImage), action.Size);
+                                        resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                        ImageHelper.CropImageToSquare(resizedImage, action.Size);
                                     }
                                     catch (GnossAPIException gaex)
                                     {
@@ -858,7 +859,8 @@ namespace Gnoss.ApiWrapper.Model
                                 case ImageTransformationType.ResizeToHeight:
                                     try
                                     {
-                                        resizedImage = ImageHelper.ResizeImageToHeight(ImageHelper.ByteArrayToBitmap(originalImage), action.Height);
+                                        resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                        ImageHelper.ResizeImageToHeight(resizedImage, (int)action.Height);
                                     }
                                     catch (GnossAPIException gaex)
                                     {
@@ -869,7 +871,8 @@ namespace Gnoss.ApiWrapper.Model
                                 case ImageTransformationType.ResizeToWidth:
                                     try
                                     {
-                                        resizedImage = ImageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Width);
+                                        resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                        ImageHelper.ResizeImageToWidth(resizedImage, (int)action.Width);
                                     }
                                     catch (GnossAPIException gaex)
                                     {
@@ -880,7 +883,8 @@ namespace Gnoss.ApiWrapper.Model
                                 case ImageTransformationType.ResizeToHeightAndWidth:
                                     try
                                     {
-                                        resizedImage = ImageHelper.ResizeImageToHeightAndWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Width, action.Height);
+                                        resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                        ImageHelper.ResizeImageToHeightAndWidth(resizedImage, (int)action.Width, (int)action.Height);
                                     }
                                     catch (GnossAPIException gaex)
                                     {
@@ -891,7 +895,8 @@ namespace Gnoss.ApiWrapper.Model
                                 case ImageTransformationType.CropToHeightAndWidth:
                                     try
                                     {
-                                        resizedImage = ImageHelper.CropImageToHeightAndWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Height, action.Width);
+                                        resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                        ImageHelper.CropImageToHeightAndWidth(resizedImage, (int)action.Height, (int)action.Width);
                                     }
                                     catch (GnossAPIException gaex)
                                     {
@@ -919,14 +924,14 @@ namespace Gnoss.ApiWrapper.Model
                                 mainImage = false;
                             }
 
-                            AttachedFilesName.Add($"{imageId}_{action.Size}" + extension);
-                            AttachedFiles.Add(ImageHelper.BitmapToByteArray(resizedImage, action.ImageQualityPercentage));
+                            AttachedFilesName.Add($"{imageId}_{action.Size}{extension}");
+                            AttachedFiles.Add(ImageHelper.ImageToByteArray(resizedImage, (int)action.ImageQualityPercentage));
                             AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
                             attachedImage = true;
 
                             if (action.EmbedsRGB)
                             {
-                                resizedImage = ImageHelper.AssignEXIFPropertyColorSpaceSRGB(resizedImage);
+                                ImageHelper.AssignEXIFPropertyColorSpaceSRGB(resizedImage);
                             }
 
                             // Save original image
@@ -935,7 +940,7 @@ namespace Gnoss.ApiWrapper.Model
                                 if (saveMainImage)
                                 {
                                     AttachedFilesName.Add($"{imageId}" + extension);
-                                    AttachedFiles.Add(ImageHelper.BitmapToByteArray(ImageHelper.ByteArrayToBitmap(originalImage), actions.Max(z => z.ImageQualityPercentage)));
+                                    AttachedFiles.Add(ImageHelper.ImageToByteArray(ImageHelper.ByteArrayToImage(originalImage), (int)actions.Max(z => z.ImageQualityPercentage)));
                                     AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
                                 }
 
@@ -961,12 +966,13 @@ namespace Gnoss.ApiWrapper.Model
                         try
                         {
                             // The quality percentage of the max size image is the highest quality percentage  
-                            if (ImageHelper.ByteArrayToBitmap(originalImage).Width > Constants.MAXIMUM_WIDTH_GNOSS_IMAGE)
+                            if (ImageHelper.ByteArrayToImage(originalImage).Width > Constants.MAXIMUM_WIDTH_GNOSS_IMAGE)
                             {
-                                maxSizeImage = ImageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(originalImage), Constants.MAXIMUM_WIDTH_GNOSS_IMAGE);
+                                maxSizeImage = ImageHelper.ByteArrayToImage(originalImage);
+                                ImageHelper.ResizeImageToWidth(maxSizeImage, Constants.MAXIMUM_WIDTH_GNOSS_IMAGE);
 
                                 AttachedFilesName.Add($"{imageId}_{Constants.MAXIMUM_WIDTH_GNOSS_IMAGE}" + extension);
-                                AttachedFiles.Add(ImageHelper.BitmapToByteArray(maxSizeImage, actions.Max(z => z.ImageQualityPercentage)));
+                                AttachedFiles.Add(ImageHelper.ImageToByteArray(maxSizeImage, (int)actions.Max(z => z.ImageQualityPercentage)));
                                 AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
 
                                 attachedImage = true;
@@ -974,7 +980,7 @@ namespace Gnoss.ApiWrapper.Model
                             else
                             {
                                 AttachedFilesName.Add($"{imageId}_{Constants.MAXIMUM_WIDTH_GNOSS_IMAGE}" + extension);
-                                AttachedFiles.Add(ImageHelper.BitmapToByteArray(ImageHelper.ByteArrayToBitmap(originalImage), actions.Max(z => z.ImageQualityPercentage)));
+                                AttachedFiles.Add(ImageHelper.ImageToByteArray(ImageHelper.ByteArrayToImage(originalImage), (int)actions.Max(z => z.ImageQualityPercentage)));
                                 AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
 
                                 attachedImage = true;
