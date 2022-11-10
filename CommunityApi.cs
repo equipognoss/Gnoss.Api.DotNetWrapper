@@ -249,18 +249,16 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Create a thesaurus for a community
+        /// Get the thesaurus of the current community 
         /// </summary>
-        /// <param name="thesaurusXml">Thesaurus to create</param>
+        /// <returns>Xml of the thesaurus</returns>
         public string GetThesaurus()
         {
             try
             {
                 string url = $"{ApiUrl}/community/get-thesaurus?community_short_name={CommunityShortName}";
 
-                string response = WebRequest("GET", url);
-
-                return JsonConvert.DeserializeObject<string>(response);
+                return WebRequest("GET", url);
             }
             catch (Exception ex)
             {
