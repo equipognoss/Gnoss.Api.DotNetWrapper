@@ -31,12 +31,12 @@ namespace Gnoss.ApiWrapper.Helpers
         {
             try
             {
-                int aspectRatio = image.Height / image.Width;
+                float aspectRatio = image.Height / image.Width;
 
                 if (pResizeAlways || widthInPixels <= image.Height)
                 {
-                    int newHeight = widthInPixels / aspectRatio;
-                    image.Mutate(image => image.Resize(widthInPixels, newHeight));
+                    float newHeight = widthInPixels / aspectRatio;
+                    image.Mutate(image => image.Resize(widthInPixels, (int)newHeight));
                 }
             }
             catch (Exception ex)
@@ -53,18 +53,18 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="heightInPixels">Height to resize</param>
         public static void ResizeImageToHeightAndWidth(Image image, int widthInPixels, int heightInPixels)
         {
-            int aspectRatio = image.Width / image.Height;
+            float aspectRatio = image.Width / image.Height;
             if (widthInPixels <= image.Width)
             {
                 try
                 {
-                    int newHeight = widthInPixels / aspectRatio;
-                    image.Mutate(image => image.Resize(widthInPixels, newHeight));
+                    float newHeight = widthInPixels / aspectRatio;
+                    image.Mutate(image => image.Resize(widthInPixels, (int)newHeight));
                     if (heightInPixels <= image.Height)
                     {
                         aspectRatio = widthInPixels / newHeight;
-                        int nuevoAncho = heightInPixels * aspectRatio;
-                        image.Mutate(image => image.Resize(nuevoAncho, heightInPixels));
+                        float newWidth = heightInPixels * aspectRatio;
+                        image.Mutate(image => image.Resize((int)newWidth, heightInPixels));
                     }
                 }
                 catch (Exception ex)
@@ -78,8 +78,8 @@ namespace Gnoss.ApiWrapper.Helpers
                 {
                     try
                     {
-                        int newWidth = heightInPixels * aspectRatio;
-                        image.Mutate(image => image.Resize(newWidth, heightInPixels));
+                        float newWidth = heightInPixels * aspectRatio;
+                        image.Mutate(image => image.Resize((int)newWidth, heightInPixels));
                     }
                     catch (Exception ex)
                     {
@@ -97,12 +97,12 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="pResizeAlways">Indicate if the image will be resized always</param>
         public static void ResizeImageToHeight(Image image, int heightInPixels, bool pResizeAlways = false)
         {
-            int aspectRatio = image.Width / image.Height;
+            float aspectRatio = image.Width / image.Height;
 
             if (pResizeAlways || heightInPixels <= image.Height)
             {
-                int newWidth = heightInPixels * aspectRatio;
-                image.Mutate(image => image.Resize(newWidth, heightInPixels));
+                float newWidth = heightInPixels * aspectRatio;
+                image.Mutate(image => image.Resize((int)newWidth, heightInPixels));
             }
         }
 
@@ -179,8 +179,8 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="pWidth">Width of the image</param>       
         public static void CropImageToHeightAndWidth(Image pImage, int pHeight, int pWidth)
         {
-            int aspcetRatioDeseado = pHeight / pWidth;
-            int aspcetRatio = pImage.Height / pImage.Width;
+            float aspcetRatioDeseado = pHeight / pWidth;
+            float aspcetRatio = pImage.Height / pImage.Width;
 
             if (aspcetRatio < aspcetRatioDeseado)
             {
