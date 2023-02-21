@@ -198,4 +198,92 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public byte[] rdf_category { get; set; }
     }
+
+    /// <summary>
+    /// Represents a Concept according to the Ontology
+    /// </summary>
+    public class Concept
+    {
+        /// <summary>
+        /// Identifier of the Concept
+        /// </summary>
+        public string Identifier { get; set; }
+
+        /// <summary>
+        /// Source of the Concept
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// Name to represents the Concept
+        /// </summary>
+        public string PrefLabel { get; set; }
+
+        /// <summary>
+        /// Parents of the Concept (Identifiers)
+        /// </summary>
+        public List<Concept> Broader { get; set; }
+
+        /// <summary>
+        /// Children of the Concept (identifiers)
+        /// </summary>
+        public List<Concept> Narrower { get; set; }
+
+        /// <summary> 
+        /// Concepts related with this Concept in the same level (Identifiers)
+        /// </summary>
+        public List<Concept> RelatedTo { get; set; }
+
+        /// <summary>
+        /// Depth of the Concept
+        /// </summary>
+        public string Symbol { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a Collection according to the Ontology
+    /// </summary>
+    public class Collection
+    {
+        /// <summary>
+        /// Source of the Collection
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// Members of the first level of the Thesaurus
+        /// </summary>
+        public List<Concept> Member { get; set; }
+
+        /// <summary>
+        /// Name of the Collection
+        /// </summary>
+        public string ScopeNote { get; set; }
+    }
+
+    /// <summary>
+    /// Represents a Thesaurus according to the Ontology
+    /// </summary>
+    public class Thesaurus
+    {
+        /// <summary>
+        /// List with the Collections of the Thesaurus
+        /// </summary>
+        public List<Collection> Collections { get; set; }
+
+        /// <summary>
+        /// List with the Concepts of the Thesaurus
+        /// </summary>
+        public List<Concept> Concepts { get; set; }
+
+        /// <summary>
+        /// Short name of the community when the thesaurus will be loaded
+        /// </summary>
+        public string CommunityShortName { get; set; }
+
+        /// <summary>
+        /// Name of the ontology
+        /// </summary>
+        public string Ontology { get; set; }
+    }
 }
