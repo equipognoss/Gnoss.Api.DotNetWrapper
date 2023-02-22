@@ -259,19 +259,20 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Create a Thesaurus with the Collections and Concepts in the parameters
         /// </summary>
-        /// <param name="pListCollection">List with the Collections of the Thesaurus</param>
-        /// <param name="pListConcept">List with the Concepts of the Thesaurus</param>
-        /// <param name="pOntology">Name of the ontology</param>
+        /// <param name="pThesaurus">Thesaurus that will be loaded</param>
         /// <exception cref="Exception"></exception>
-        public void CreateThesaurus(List<Collection> pListCollection, List<Concept> pListConcept, string pOntology)
+        public void CreateThesaurus(Thesaurus pThesaurus)
         {
             try
             {
                 string url = $"{ApiUrl}/thesaurus/create-thesaurus";
-                
-                Thesaurus model = new Thesaurus() { Collections = pListCollection, Concepts = pListConcept,  CommunityShortName = CommunityShortName, Ontology = pOntology};
-                
-                WebRequestPostWithJsonObject(url, model);
+
+                if (string.IsNullOrEmpty(pThesaurus.CommunityShortName))
+                { 
+                    pThesaurus.CommunityShortName = CommunityShortName;
+                }
+
+                WebRequestPostWithJsonObject(url, pThesaurus);
             }
             catch(Exception ex)
             {
@@ -282,19 +283,20 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Modify the indicated Thesaurus. Replace current data with the list of Collection and Concept given.
         /// </summary>
-        /// <param name="pListCollection">List with the Collections of the Thesaurus</param>
-        /// <param name="pListConcept">List with the Concepts of the Thesaurus</param>
-        /// <param name="pOntology">Name of the ontology</param>
+        /// <param name="pThesaurus">Thesaurus that will be loaded</param>
         /// <exception cref="Exception"></exception>
-        public void ModifyThesaurus(List<Collection> pListCollection, List<Concept> pListConcept, string pOntology)
+        public void ModifyThesaurus(Thesaurus pThesaurus)
         {
             try
             {
                 string url = $"{ApiUrl}/thesaurus/modify-thesaurus";
 
-                Thesaurus model = new Thesaurus() { Collections = pListCollection, Concepts = pListConcept, CommunityShortName = CommunityShortName, Ontology = pOntology };
+                if (string.IsNullOrEmpty(pThesaurus.CommunityShortName))
+                {
+                    pThesaurus.CommunityShortName = CommunityShortName;
+                }
 
-                WebRequestPostWithJsonObject(url, model);
+                WebRequestPostWithJsonObject(url, pThesaurus);
             }
             catch (Exception ex)
             {
