@@ -4584,6 +4584,29 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Get an attached file from a semantic resource
+        /// </summary>
+        /// <param name="resource_id">Identifier of the resource</param>
+        /// <param name="file_name">Name of the file attached with extension</param>
+        /// <returns>An byte array with the content of the file</returns>
+        public byte[] GetAttachedFileFromSemanticResource(Guid resource_id, string file_name)
+        {
+            byte[] attachedFile = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/get-attached-file-semantic-resource?resource_id={resource_id}&file_name={file_name}&community_short_name={CommunityShortName}";
+                string response = WebRequest("GET", url);
+                attachedFile = JsonConvert.DeserializeObject<byte[]>(response);
+
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"Error getting the file {file_name} from the resource {resource_id} in the community {CommunityShortName}.", ex.Message);
+            }
+            return attachedFile;
+        }
+
+        /// <summary>
         /// Gets the novelties of the resource from a datetime
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>

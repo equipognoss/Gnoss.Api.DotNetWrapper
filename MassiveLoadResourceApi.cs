@@ -47,6 +47,8 @@ namespace Gnoss.ApiWrapper
         public string Uri { get; set; }
         
         public bool IsDebugMode { get; set; }
+        
+        ///<summary>
         /// Max num of resources per packages
         /// </summary>
         private int MaxResourcesPerPackage { get; set; }
