@@ -81,6 +81,25 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Load a complex semantic resources list
+        /// </summary>
+        /// <param name="resourceList">List of resources to load</param>
+        /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
+        /// <param name="numAttemps">Default 5. Number of retries loading of the failed load of a resource</param>
+        public void LoadComplexSemanticResourceList(List<IGnossOCBase> resourceList, bool hierarquicalCategories, int numAttemps = 5)
+        {
+            List<ComplexOntologyResource> gnossResources = new List<ComplexOntologyResource>();
+            foreach (IGnossOCBase resource in resourceList)
+            {
+                if (resource is ComplexOntologyResource)
+                {
+                    gnossResources.Add((ComplexOntologyResource)resource);
+                }
+            }
+            LoadComplexSemanticResourceListInt(gnossResources, hierarquicalCategories, numAttemps);
+        }
+
+        /// <summary>
         /// Load resources of main entities in an otology and a community
         /// </summary>
         /// <param name="resourceList">List of resources to load</param>
@@ -143,7 +162,7 @@ namespace Gnoss.ApiWrapper
             if (gnossResource is ComplexOntologyResource)
             {
                 ComplexOntologyResource complexOntologyResource = (ComplexOntologyResource)gnossResource;
-                return LoadComplexSemanticResourceInt(complexOntologyResource,hierarquicalCategories,isLast,numAttemps);
+                return LoadComplexSemanticResourceInt(complexOntologyResource, hierarquicalCategories, isLast, numAttemps);
             }
             else
             {
@@ -476,6 +495,58 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Modifies the complex ontology resource
+        /// </summary>
+        /// <param name="resource">Resource to load</param>
+        /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
+        /// <param name="isLast">There are not resources left to load</param>
+        public void ModifyComplexOntologyResource(IGnossOCBase resource, bool hierarquicalCategories, bool isLast)
+        {
+            BaseResource gnossResource = resource.ToGnossApiResource(this);
+            if (gnossResource is ComplexOntologyResource)
+            {
+                Log.Trace($"******************** Begin the resource modification: {resource.GetID()}", this.GetType().Name, CommunityShortName);
+
+                ComplexOntologyResource complexResource = (ComplexOntologyResource)gnossResource;
+
+                try
+                {
+                    if (complexResource.TextCategories != null && complexResource.TextCategories.Count > 0)
+                    {
+                        if (hierarquicalCategories)
+                        {
+                            complexResource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(complexResource.TextCategories);
+                        }
+                        else
+                        {
+                            complexResource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(complexResource.TextCategories);
+                        }
+                    }
+
+                    LoadResourceParams model = GetResourceModelOfComplexOntologyResource(complexResource, false, isLast);
+                    complexResource.Modified = ModifyComplexOntologyResource(model);
+
+                    if (complexResource.Modified)
+                    {
+                        Log.Debug($"Successfully modified the resource with id: {complexResource.Id} and Gnoss identifier {complexResource.ShortGnossId} belonging to the ontology '{complexResource.Ontology.OntologyUrl}' with RdfType = '{complexResource.Ontology.RdfType}'", this.GetType().Name);
+                    }
+                    else
+                    {
+                        Log.Error($"The resource with id: {complexResource.ShortGnossId} of the ontology '{complexResource.Ontology.OntologyUrl}' has not been modified.", this.GetType().Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"The resource with id {resource.GetID()} has not been modified,{ex.Message}");
+                }
+            }
+            else
+            {
+                Log.Error($"The resource with ID {resource.GetID()} can't be loaded as secondaty resource");
+            }
+        }
+
+        /// <summary>
         /// Modifies the complex ontology resource with the rdf
         /// </summary>
         /// <param name="resource">Resource to load</param>
@@ -761,6 +832,65 @@ namespace Gnoss.ApiWrapper
                     try
                     {
                         ModifyComplexOntologyResource(rec, hierarquicalCategories, processedNumber == resourceList.Count());
+
+                        resourcesToModify = resourcesToModify - 1;
+                        Log.Debug($"There are {resourcesToModify} resources left to modify.");
+                    }
+                    catch (GnossAPICategoryException gacex)
+                    {
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                    }
+                }
+
+                if (numAttemps > 1)
+                {
+                    Log.Trace($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Modifies the basic ontology resource. It is necessary that the basic ontology resource has assigned the property <see cref="BaseResource.GnossId"/>
+        /// </summary>
+        /// <param name="resourceList">List of resources to load</param>
+        /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
+        /// <param name="numAttemps">Default 1. Number of retries loading of the failed load of a resource</param>
+        public void ModifyComplexSemanticResourceList(List<IGnossOCBase> resourceList, bool hierarquicalCategories, int numAttemps = 2)
+        {
+            List<ComplexOntologyResource> gnossResources = new List<ComplexOntologyResource>();
+            foreach (IGnossOCBase resource in resourceList)
+            {
+                BaseResource gnossResource = resource.ToGnossApiResource(this);
+                if (gnossResource is ComplexOntologyResource)
+                {
+
+                    gnossResources.Add((ComplexOntologyResource)gnossResource);
+                }
+            }
+
+            int resourcesToModify = gnossResources.Where(r => !r.Modified).Count();
+            int processedNumber = 0;
+            int attempNumber = 0;
+
+            while (gnossResources != null && gnossResources.Count > 0 && resourcesToModify > 0 && attempNumber < numAttemps)
+            {
+                attempNumber = attempNumber + 1;
+                if (numAttemps > 1)
+                {
+                    Log.Trace($"******************** Begin lap number: {attempNumber}", this.GetType().Name);
+                }
+
+                foreach (ComplexOntologyResource rec in gnossResources.Where(r => !r.Modified))
+                {
+                    processedNumber = processedNumber + 1;
+
+                    try
+                    {
+                        ModifyComplexOntologyResource(rec, hierarquicalCategories, processedNumber == gnossResources.Count());
 
                         resourcesToModify = resourcesToModify - 1;
                         Log.Debug($"There are {resourcesToModify} resources left to modify.");
