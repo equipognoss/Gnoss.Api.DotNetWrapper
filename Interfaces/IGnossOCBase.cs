@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Gnoss.ApiWrapper.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,5 +37,12 @@ namespace Gnoss.ApiWrapper.Interfaces
         /// <returns>The object´s URI</returns>
         string GetURI(ResourceApi resourceAPI);
         int GetID();
+
+        /// <summary>
+        /// Generate a resource to load/modify in GNOSS
+        /// </summary>
+        /// <param name="resourceAPI">Api Resource</param>
+        /// <returns></returns>
+        BaseResource ToGnossApiResource(ResourceApi resourceAPI);
     }
 }

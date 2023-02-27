@@ -9,7 +9,7 @@ namespace Gnoss.ApiWrapper.Model
     /// <summary>
     /// Represents a secondary resource
     /// </summary>
-    public class SecondaryResource
+    public class SecondaryResource :BaseResource
     {
         #region Members
 

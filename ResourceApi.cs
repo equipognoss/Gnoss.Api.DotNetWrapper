@@ -18,6 +18,7 @@ using System.Xml;
 using System.Text.Json;
 using System.Web;
 using Microsoft.AspNetCore.Http;
+using Gnoss.ApiWrapper.Interfaces;
 
 namespace Gnoss.ApiWrapper
 {
@@ -126,6 +127,28 @@ namespace Gnoss.ApiWrapper
         public string LoadComplexSemanticResource(ComplexOntologyResource resource, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 5)
         {
             return LoadComplexSemanticResourceInt(resource, hierarquicalCategories, isLast, numAttemps);
+        }
+
+        /// <summary>
+        /// Load a principal semantic resource
+        /// </summary>
+        /// <param name="resource">Resource to load</param>
+        /// <param name="hierarquicalCategories">Indicates whether the categories has hierarchy</param>
+        /// <param name="isLast">There are not resources left to load</param>
+        /// <param name="numAttemps">Default 5. Number of retries loading of the failed load of a resource</param>
+        /// <returns>Resource identifier string</returns>
+        public string LoadComplexSemanticResource(IGnossOCBase resource, bool hierarquicalCategories = false, bool isLast = false, int numAttemps = 5)
+        {
+            BaseResource gnossResource = resource.ToGnossApiResource(this);
+            if (gnossResource is ComplexOntologyResource)
+            {
+                ComplexOntologyResource complexOntologyResource = (ComplexOntologyResource)gnossResource;
+                return LoadComplexSemanticResourceInt(complexOntologyResource,hierarquicalCategories,isLast,numAttemps);
+            }
+            else
+            {
+                throw new GnossAPIArgumentException($"The resource with ID {resource.GetID()} can't be loaded as principal resource");
+            }
         }
 
         /// <summary>
@@ -248,6 +271,39 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 Log.Error($"Resource has not been loaded the secondary resource with ID: {resource.Id}. Mensaje: {ex.Message}", this.GetType().Name);
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// Loads a <see cref="SecondaryResource"/>
+        /// </summary>
+        /// <param name="resource">The <see cref="SecondaryResource"/> to load</param>
+        /// <returns>Bool that indicates whether the resource has been correctly loaded</returns>
+        public bool LoadSecondaryResource(IGnossOCBase resource)
+        {
+            bool success = false;
+
+            try
+            {
+                BaseResource gnossResource = resource.ToGnossApiResource(this);
+                if (gnossResource is SecondaryResource)
+                {
+                    SecondaryResource secondaryResource = (SecondaryResource)gnossResource;
+                    CreateSecondaryEntity(secondaryResource.SecondaryOntology.OntologyUrl, CommunityShortName, secondaryResource.RdfFile);
+                    Log.Debug($"Loaded secondary resource with ID: {secondaryResource.SecondaryOntology.Identifier}", this.GetType().Name);
+                    success = true;
+                    secondaryResource.Uploaded = true;
+                    secondaryResource.Id = $"{GraphsUrl}items/{secondaryResource.SecondaryOntology.Identifier}";
+                }
+                else
+                {
+                    throw new GnossAPIArgumentException($"The resource with ID {resource.GetID()} can't be loaded as secondaty resource");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Resource has not been loaded the secondary resource with ID: {resource.GetID()}. Mensaje: {ex.Message}", this.GetType().Name);
             }
             return success;
         }
