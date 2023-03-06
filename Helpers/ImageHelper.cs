@@ -31,7 +31,7 @@ namespace Gnoss.ApiWrapper.Helpers
         {
             try
             {
-                float aspectRatio = image.Height / image.Width;
+                float aspectRatio = (float)image.Height / image.Width;
 
                 if (pResizeAlways || widthInPixels <= image.Height)
                 {
