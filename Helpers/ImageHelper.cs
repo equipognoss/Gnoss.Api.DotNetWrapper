@@ -321,7 +321,15 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <returns>Image with color space</returns>
         public static void AssignEXIFPropertyColorSpaceSRGB(Image image)
         {
-            image.Metadata.ExifProfile.SetValue<ushort>(ExifTag.ColorSpace, 1);
+            if(image.Metadata != null)
+            {
+                if(image.Metadata.ExifProfile == null)
+                {
+                    image.Metadata.ExifProfile = new ExifProfile();
+                    
+                }
+                image.Metadata.ExifProfile.SetValue<ushort>(ExifTag.ColorSpace, 1);
+            }            
         }
 
         #endregion
