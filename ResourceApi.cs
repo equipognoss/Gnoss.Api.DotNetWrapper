@@ -4611,7 +4611,6 @@ namespace Gnoss.ApiWrapper
         /// Gets the novelties of the resource from a datetime
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>ResourceNoveltiesModel with the novelties of the resource from the search date</returns>
         public ResourceNoveltiesModel GetResourceNoveltiesFromDate(Guid resourceId, string searchDate)
@@ -4668,7 +4667,8 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Check if a load identifier is already registered
         /// </summary>
-        /// <param name="loadIdentifier">identifier to check</param>
+        /// <param name="communityID">Identifier of the community</param>
+        /// <param name="organizationID">Identifier of the organization</param>
         /// <returns>True if the load identifier is already registered</returns>
         public bool RefreshHeavyCache(Guid communityID, Guid organizationID)
         {

@@ -745,7 +745,10 @@ namespace Gnoss.ApiWrapper.Model
                 }
             }
 
-            _rdfFile = Ontology.GenerateRDF();
+            if(Ontology != null)
+            {
+                _rdfFile = Ontology.GenerateRDF();
+            }
         }
 
         /// <summary>
