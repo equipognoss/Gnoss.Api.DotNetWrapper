@@ -4588,13 +4588,14 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="resource_id">Identifier of the resource</param>
         /// <param name="file_name">Name of the file attached with extension</param>
+        /// <param name="language">Only if the property is multilanguage. The language which we want the file. es, en, de, ca, eu, fr, gl, it, pt</param>
         /// <returns>An byte array with the content of the file</returns>
-        public byte[] GetAttachedFileFromSemanticResource(Guid resource_id, string file_name)
+        public byte[] GetAttachedFileFromSemanticResource(Guid resource_id, string file_name, string language = "")
         {
             byte[] attachedFile = null;
             try
             {
-                string url = $"{ApiUrl}/resource/get-attached-file-semantic-resource?resource_id={resource_id}&file_name={file_name}&community_short_name={CommunityShortName}";
+                string url = $"{ApiUrl}/resource/get-attached-file-semantic-resource?resource_id={resource_id}&file_name={file_name}&community_short_name={CommunityShortName}&language={language}";
                 string response = WebRequest("GET", url);
                 attachedFile = JsonConvert.DeserializeObject<byte[]>(response);
 
