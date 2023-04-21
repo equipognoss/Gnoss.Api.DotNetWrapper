@@ -2036,9 +2036,9 @@ namespace Gnoss.ApiWrapper
             {
                 if (resource.CategoriesIds == null)
                 {
-                    if (resource.TextCategories != null)
+                    if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                     {
-                        if (hierarquicalCategories && resource.TextCategories.Count > 0)
+                        if (hierarquicalCategories)
                         {
                             resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
                         }

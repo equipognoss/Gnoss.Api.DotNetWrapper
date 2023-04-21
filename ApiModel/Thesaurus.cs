@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -281,4 +282,30 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string Source { get; set; }
     }
+
+	/// <summary>
+	/// Model with the parameters to add a new Concept to a Thesaurus
+	/// </summary>
+	public class ConceptToAddModel
+	{
+		/// <summary>
+		/// Represents a Concept according to the Ontology
+		/// </summary>
+		public Concept Concept { get; set; }
+
+		/// <summary>
+		/// Source of the Thesaurus to load
+		/// </summary>
+		public string Source { get; set; }
+
+		/// <summary>
+		/// Name of the ontology
+		/// </summary>
+		public string Ontology { get; set; }
+
+		/// <summary>
+		/// Subject parent of the category to load
+		/// </summary>
+		public string ParentCategorySubject { get; set; }
+	}
 }
