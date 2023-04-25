@@ -307,5 +307,10 @@ namespace Gnoss.ApiWrapper.ApiModel
 		/// Subject parent of the category to load
 		/// </summary>
 		public string ParentCategorySubject { get; set; }
+
+		/// <summary>
+		/// Short name of the community
+		/// </summary>
+		public string CommunityShortName { get; set; }
 	}
 }

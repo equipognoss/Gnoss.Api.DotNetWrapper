@@ -316,9 +316,9 @@ namespace Gnoss.ApiWrapper
 		{
 			try
 			{
-				ConceptToAddModel conceptToAddModel = new ConceptToAddModel() { Concept = pConcept, Source = pSource, Ontology = pOntology, ParentCategorySubject = pParentCategorySubject };
+				ConceptToAddModel conceptToAddModel = new ConceptToAddModel() { Concept = pConcept, Source = pSource, Ontology = pOntology, ParentCategorySubject = pParentCategorySubject, CommunityShortName = CommunityShortName };
 
-				string url = $"{ApiUrl}/thesaurus/modify-thesaurus";
+				string url = $"{ApiUrl}/thesaurus/add-thesaurus-category";
 
 				WebRequestPostWithJsonObject(url, conceptToAddModel);
 			}
