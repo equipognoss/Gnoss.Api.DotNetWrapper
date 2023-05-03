@@ -239,6 +239,7 @@ namespace Gnoss.ApiWrapper
 		/// </summary>
 		/// <param name="pUrlOntologiaTesauro">URL of the semantic thesaurus ontology</param>
 		/// <param name="pRdfCategoria">Inserted category Rdf</param>
+		[Obsolete("")]
 		public void InsertSemanticThesaurusNode(string pUrlOntologiaTesauro, byte[] pRdfCategoria)
 		{
 			try
@@ -321,6 +322,71 @@ namespace Gnoss.ApiWrapper
 				string url = $"{ApiUrl}/thesaurus/add-thesaurus-category";
 
 				WebRequestPostWithJsonObject(url, conceptToAddModel);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception(ex.Message, ex);
+			}
+		}
+
+		/// <summary>
+		/// Modify the concept given by parameter and its narrowers if you indicated it
+		/// </summary>
+		/// <param name="pConcept">Concept to add</param>
+		/// <param name="pSource">Source of the thesaurus</param>
+		/// <param name="pOntology">Ontology of the thesaurus</param>
+		/// <param name="pModifyNarrower">Indicates if the method has to modify the narrowers</param>
+		public void ModifyCategory(Concept pConcept, string pSource, string pOntology, bool pModifyNarrower)
+		{
+			try
+			{
+				ConceptToModifyModel conceptToModify = new ConceptToModifyModel() { Concept = pConcept, Source = pSource, Ontology = pOntology, CommunityShortName = CommunityShortName, ModifyNarrower = pModifyNarrower };
+
+				string url = $"{ApiUrl}/thesaurus/modify-thesaurus-category";
+
+				WebRequestPostWithJsonObject(url, conceptToModify);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception(ex.Message, ex);
+			}
+		}
+
+		/// <summary>
+		/// Delete the thesaurus indicated by the source given by parameter
+		/// </summary>
+		/// <param name="pSource">Source of the thesaurus to delete</param>
+		/// <param name="pOntology">Ontology of the thesaurus to delete</param>
+		public void DeleteThesaurus(string pSource, string pOntology)
+		{
+			try
+			{
+				ThesaurusToDeleteModel thesaurusToDelete = new ThesaurusToDeleteModel() { Source = pSource, Ontology = pOntology, CommunityShortName = CommunityShortName };
+
+				string url = $"{ApiUrl}/thesaurus/delete-thesaurus";
+
+				WebRequestPostWithJsonObject(url, thesaurusToDelete);
+			}
+			catch (Exception ex)
+			{
+				throw new Exception(ex.Message, ex);
+			}
+		}
+
+		/// <summary>
+		/// Delete the concept indicated and they childrens
+		/// </summary>
+		/// <param name="pConceptSubject">Subject of the Concept to delete</param>
+		/// <param name="pOntology">Ontology of the thesaurus to delete</param>
+		public void DeleteCategory(string pConceptSubject, string pOntology)
+		{
+			try
+			{
+				ConceptToDeleteModel thesaurusToDelete = new ConceptToDeleteModel() { ConceptSubject = pConceptSubject, Ontology = pOntology, CommunityShortName = CommunityShortName };
+
+				string url = $"{ApiUrl}/thesaurus/delete-thesaurus-category";
+
+				WebRequestPostWithJsonObject(url, thesaurusToDelete);
 			}
 			catch (Exception ex)
 			{
