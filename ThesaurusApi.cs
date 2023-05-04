@@ -73,6 +73,7 @@ namespace Gnoss.ApiWrapper
 		/// <param name="pUrlOntologiaRecursos">URL of the ontology of the resources that are linked to the semantic thesaurus</param>
 		/// <param name="pCategoriaAMoverId">URI of the category to move</param>
 		/// <param name="pPath">Path from the root to the last new father of the category</param>
+		[Obsolete("MoveSemanticThesaurusNode is deprecated, please use ModifyCategory instead")]
 		public void MoveSemanticThesaurusNode(string pUrlOntologiaTesauro, string pUrlOntologiaRecursos, string pCategoriaAMoverId, string[] pPath)
 		{
 			try
@@ -97,7 +98,8 @@ namespace Gnoss.ApiWrapper
 		/// <param name="pUrlOntologiaTesauro">URL of the semantic thesaurus ontology</param>
 		/// <param name="pUrlOntologiaRecursos">URL of the ontology of the resources that are linked to the semantic thesaurus</param>
 		/// <param name="pCategoriaAEliminarId">URI of the category to remove</param>
-		/// <param name="pPath">Path from the root father to its last child where resources of the removed category are going to be moved to</param>
+		/// <param name="pPath">Path from the root father to its last child where resources of the removed category are going to be moved to</param
+		[Obsolete("RemoveSemanticThesaurusNode is deprecated, please use ModifyCategory instead")]
 		public void RemoveSemanticThesaurusNode(string pUrlOntologiaTesauro, string pUrlOntologiaRecursos, string pCategoriaAEliminarId, string[] pPath)
 		{
 			try
@@ -120,7 +122,8 @@ namespace Gnoss.ApiWrapper
 		/// Modify the category name
 		/// </summary>
 		/// <param name="newCategoryName"></param>
-		/// <param name="category_id"></param>
+		/// <param name="categoryId"></param>
+		[Obsolete("ChangeCategoryName is deprecated, please use DeleteCategory instead")]
 		public void ChangeCategoryName(string newCategoryName, Guid categoryId)
 		{
 			try
@@ -142,8 +145,8 @@ namespace Gnoss.ApiWrapper
 		/// <summary>
 		/// Create a new category
 		/// </summary>
-		/// <param name="newCategoryName"></param>
-		/// <param name="category_id"></param>
+		/// <param name="categoryName"></param>
+		/// <param name="parentCategoryId"></param>
 		[Obsolete("CreateCategory is deprecated, please use AddCategory instead")]
 		public void CreateCategory(string categoryName, Guid? parentCategoryId)
 		{
@@ -168,6 +171,7 @@ namespace Gnoss.ApiWrapper
 		/// </summary>
 		/// <param name="newCategoryName"></param>
 		/// <param name="category_id"></param>
+		[Obsolete("This method is deprecated, please use the other method DeleteCategory instead")]
 		public void DeleteCategory(string categoryName, Guid categoryId)
 		{
 			try
@@ -192,6 +196,7 @@ namespace Gnoss.ApiWrapper
 		/// <param name="pUrlOntologiaTesauro">URL of the semantic thesaurus ontology</param>
 		/// <param name="pCategoriaPadreId">URI of the parent category</param>
 		/// <param name="pCategoriaHijoId">URI of the child category</param>
+		[Obsolete("AddFatherToSemanticThesaurusNode is deprecated, please use AddCategory or ModifyCategory instead")]
 		public void AddFatherToSemanticThesaurusNode(string pUrlOntologiaTesauro, string pCategoriaPadreId, string pCategoriaHijoId)
 		{
 			try
@@ -216,6 +221,7 @@ namespace Gnoss.ApiWrapper
 		/// <param name="pUrlOntologiaTesauro">URL of the semantic thesaurus ontology</param>
 		/// <param name="pCategoriaId">URI of the category</param>
 		/// <param name="pNombre">Category name, supports multi language with the format: nombre@es|||name@en|||</param>
+		[Obsolete("ChangeNameToSemanticThesaurusNode is deprecated, please use ModifyCategory instead")]
 		public void ChangeNameToSemanticThesaurusNode(string pUrlOntologiaTesauro, string pCategoriaId, string pNombre)
 		{
 			try
@@ -239,7 +245,7 @@ namespace Gnoss.ApiWrapper
 		/// </summary>
 		/// <param name="pUrlOntologiaTesauro">URL of the semantic thesaurus ontology</param>
 		/// <param name="pRdfCategoria">Inserted category Rdf</param>
-		[Obsolete("")]
+		[Obsolete("InsertSemanticThesaurusNode is deprecated, please use AddCategory instead")]
 		public void InsertSemanticThesaurusNode(string pUrlOntologiaTesauro, byte[] pRdfCategoria)
 		{
 			try
@@ -336,11 +342,12 @@ namespace Gnoss.ApiWrapper
 		/// <param name="pSource">Source of the thesaurus</param>
 		/// <param name="pOntology">Ontology of the thesaurus</param>
 		/// <param name="pModifyNarrower">Indicates if the method has to modify the narrowers</param>
-		public void ModifyCategory(Concept pConcept, string pSource, string pOntology, bool pModifyNarrower)
+		/// <param name="pParentCategorySubject">Subject of the parent</param>
+		public void ModifyCategory(Concept pConcept, string pSource, string pOntology, string pParentCategorySubject, bool pModifyNarrower)
 		{
 			try
 			{
-				ConceptToModifyModel conceptToModify = new ConceptToModifyModel() { Concept = pConcept, Source = pSource, Ontology = pOntology, CommunityShortName = CommunityShortName, ModifyNarrower = pModifyNarrower };
+				ConceptToModifyModel conceptToModify = new ConceptToModifyModel() { Concept = pConcept, Source = pSource, Ontology = pOntology, CommunityShortName = CommunityShortName, ModifyNarrower = pModifyNarrower, ParentCategorySubject = pParentCategorySubject };
 
 				string url = $"{ApiUrl}/thesaurus/modify-thesaurus-category";
 

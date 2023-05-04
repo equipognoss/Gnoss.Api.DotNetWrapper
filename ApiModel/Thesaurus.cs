@@ -319,6 +319,9 @@ namespace Gnoss.ApiWrapper.ApiModel
 	/// </summary>
 	public class ConceptToDeleteModel
 	{
+        /// <summary>
+        /// Subject of the Concept to delete
+        /// </summary>
 		public string ConceptSubject { get; set; }
 
 		/// <summary>
@@ -365,6 +368,11 @@ namespace Gnoss.ApiWrapper.ApiModel
 		/// Indicates if the method has to modify the narrowers
 		/// </summary>
 		public bool ModifyNarrower { get; set; }
+
+		/// <summary>
+		/// Subject parent of the category to load
+		/// </summary>
+		public string ParentCategorySubject { get; set; }
 	}
 
 	/// <summary>
