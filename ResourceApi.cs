@@ -2848,8 +2848,8 @@ namespace Gnoss.ApiWrapper
             }
             catch (WebException wex)
             {
-                string resultado = wex.Response.Headers["ErrorDescription"].Replace("<br>", "\n");
-                throw new GnossAPIException($"Could not make the query to Virtuoso.\n{resultado}");
+                string resultado = wex.Response?.Headers["ErrorDescription"]?.Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query {selectPart} {wherePart} to the graph {graph}.\nError: {resultado}");
             }
 
             Log.Trace("Leaving the method", this.GetType().Name);
@@ -2881,8 +2881,8 @@ namespace Gnoss.ApiWrapper
             }
             catch (WebException wex)
             {
-                string resultado = wex.Response.Headers["ErrorDescription"].Replace("<br>", "\n");
-                throw new GnossAPIException($"Could not make the query to Virtuoso.\n{resultado}");
+                string resultado = wex.Response?.Headers["ErrorDescription"]?.Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query {selectPart} {wherePart} to the graphs {string.Join(',', graph_list)}.\nError: {resultado}");
             }
 
             Log.Trace("Leaving the method", GetType().Name);
