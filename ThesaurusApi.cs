@@ -342,8 +342,8 @@ namespace Gnoss.ApiWrapper
 		/// <param name="pSource">Source of the thesaurus</param>
 		/// <param name="pOntology">Ontology of the thesaurus</param>
 		/// <param name="pModifyNarrower">Indicates if the method has to modify the narrowers</param>
-		/// <param name="pParentCategorySubject">Subject of the parent</param>
-		public void ModifyCategory(Concept pConcept, string pSource, string pOntology, string pParentCategorySubject, bool pModifyNarrower)
+		/// <param name="pParentCategorySubject">Subject of the parent, isn't obligatory, if is empty the concept will have no parent and will be a first level concept</param>
+		public void ModifyCategory(Concept pConcept, string pSource, string pOntology, bool pModifyNarrower, string pParentCategorySubject = "")
 		{
 			try
 			{
