@@ -60,6 +60,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Logo for the community
         /// </summary>
         public byte[] logo { get; set; }
+
+        /// <summary>
+        /// Community domain
+        /// </summary>
+        public string domain { get; set; }
     }
 
     /// <summary>
