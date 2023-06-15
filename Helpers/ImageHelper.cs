@@ -52,7 +52,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="heightInPixels">Height to resize</param>
         public static void ResizeImageToHeightAndWidth(Image image, int widthInPixels, int heightInPixels)
         {
-            float aspectRatio = image.Width / image.Height;
+            float aspectRatio = (float)image.Width / (float)image.Height;
             if (widthInPixels <= image.Width)
             {
                 try
@@ -96,7 +96,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="pResizeAlways">Indicate if the image will be resized always</param>
         public static void ResizeImageToHeight(Image image, int heightInPixels, bool pResizeAlways = false)
         {
-            float aspectRatio = image.Width / image.Height;
+            float aspectRatio = (float)image.Width / (float)image.Height;
 
             if (pResizeAlways || heightInPixels <= image.Height)
             {
