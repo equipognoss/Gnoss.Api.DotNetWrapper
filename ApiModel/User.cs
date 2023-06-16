@@ -312,6 +312,16 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Photo of personal profile
         /// </summary>
         public string photo { get; set; }
+
+        /// <summary>
+        /// Number of access user
+        /// </summary>
+        public int num_access { get; set; }
+
+        /// <summary>
+        /// Date of last login
+        /// </summary>
+        public DateTime? last_login { get; set; }
     }
 
     /// <summary>
