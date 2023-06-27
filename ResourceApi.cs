@@ -18,6 +18,8 @@ using System.Xml;
 using System.Text.Json;
 using System.Web;
 using Microsoft.AspNetCore.Http;
+using System.Formats.Asn1;
+using CsvReader;
 
 namespace Gnoss.ApiWrapper
 {
@@ -1483,6 +1485,33 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the graph name
+        /// </summary>
+        /// <param name="selectPart">The 'SELECT' query part</param>
+        /// <param name="wherePart">The 'WHERE' query part</param>
+        /// <param name="ontologiaName">Graph name where the query runs (without extension '.owl')</param>
+        /// <param name="userMasterServer">Use Master Virtuoso</param>
+        /// <returns>DataSet with the query result</returns>
+        public DataSet VirtuosoQueryDataSet(string selectPart, string wherePart, string ontologiaName, bool userMasterServer = true)
+        {
+            Log.Trace("Entering the method", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+            return VirtuosoQueryIntDataSet(selectPart, wherePart, ontologiaName, userMasterServer);
+        }
+
+        /// <summary>
+        /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the community identifier
+        /// </summary>
+        /// <param name="selectPart">The 'SELECT' query part</param>
+        /// <param name="wherePart">The 'WHERE' query part</param>
+        /// <param name="communityId">Community identifier</param>
+        /// <returns>DataSet with the query result</returns>
+        public DataSet VirtuosoQueryDataSet(string selectPart, string wherePart, Guid communityId, bool userMasterServer = true)
+        {
+            Log.Trace("Entering the method", this.GetType().Name);
+            return VirtuosoQueryIntDataSet(selectPart, wherePart, communityId.ToString(), userMasterServer);
+        }
+
+        /// <summary>
         /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the community identifier
         /// </summary>
         /// <param name="selectPart">The 'SELECT' query part</param>
@@ -2854,6 +2883,85 @@ namespace Gnoss.ApiWrapper
 
             Log.Trace("Leaving the method", this.GetType().Name);
             return SO;
+        }
+
+        private DataSet VirtuosoQueryIntDataSet(string selectPart, string wherePart, string graph, bool userMasterServer)
+        {
+            Log.Trace("Entering in the method", this.GetType().Name);
+            Log.Trace($"SELECT: {selectPart}", this.GetType().Name);
+            Log.Trace($"Grafo name: {graph}", this.GetType().Name);
+            Log.Trace($"WHERE: {wherePart}", this.GetType().Name);
+
+            DataSet dataSet = new DataSet();
+
+            try
+            {
+                Log.Trace("Query start", this.GetType().Name);
+
+                string url = $"{ApiUrl}/sparql-endpoint/querycsv";
+
+                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+                lock (dataSet)
+                {
+                    LeerResultadosCSV(response, "resultados", dataSet);
+                }
+                Log.Trace("Query end", this.GetType().Name);
+            }
+            catch (WebException wex)
+            {
+                string resultado = wex.Response?.Headers["ErrorDescription"]?.Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query {selectPart} {wherePart} to the graph {graph}.\nError: {resultado}");
+            }
+
+            Log.Trace("Leaving the method", this.GetType().Name);
+            return dataSet;
+        }
+
+        private void LeerResultadosCSV(string pResultados, string pNombreTabla, DataSet pFacetadoDS)
+        {
+            if (pFacetadoDS != null && pFacetadoDS.Tables.Contains(pNombreTabla))
+            {
+                pFacetadoDS.Tables[pNombreTabla].Clear();
+            }
+            else if (pFacetadoDS != null && !pFacetadoDS.Tables.Contains(pNombreTabla))
+            {
+                pFacetadoDS.Tables.Add(new DataTable(pNombreTabla));
+            }
+
+            string[] lineas = pResultados.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (pFacetadoDS != null && !string.IsNullOrEmpty(pResultados) && lineas.Length > 1)
+            {
+                byte[] byteArray = Encoding.UTF8.GetBytes(pResultados);
+                MemoryStream stream = new MemoryStream(byteArray);
+                DataTable csvTable = pFacetadoDS.Tables[pNombreTabla];
+                using (CsvReader.CsvReader csvReader = new CsvReader.CsvReader(new StreamReader(stream), true))
+                {
+                    char delimiter = csvReader.Delimiter;
+                    csvTable.Load(csvReader);
+                    foreach (System.Data.DataColumn col in csvTable.Columns)
+                    {
+                        col.ReadOnly = false;
+                    }
+                }
+            }
+            else if (lineas.Length == 1)
+            {
+                // Creo las columnas en la tabla porque si no hay métodos que fallan
+                string[] columnas = lineas[0].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (string columna in columnas)
+                {
+                    string nombreCol = columna.Trim('\"');
+
+                    if (pFacetadoDS != null && !pFacetadoDS.Tables[pNombreTabla].Columns.Contains(nombreCol))
+                    {
+                        pFacetadoDS.Tables[pNombreTabla].Columns.Add(nombreCol);
+                    }
+                }
+            }
         }
 
         private SparqlObject VirtuosoQueryMultipleGraphInt(string selectPart, string wherePart, List<string> graph_list)
