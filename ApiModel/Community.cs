@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -382,7 +383,22 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Group name
         /// </summary>
         public string group_name { get; set; }
-    }
+
+        /// <summary>
+        /// Group tags
+        /// </summary>
+		public string tags { get; set; }
+
+        /// <summary>
+        /// Group description
+        /// </summary>
+		public string description { get; set; }
+
+        /// <summary>
+        /// Group members
+        /// </summary>
+		public List<Guid> members { get; set; }
+	}
 
     /// <summary>
     /// Represents an organization group
