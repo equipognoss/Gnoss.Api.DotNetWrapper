@@ -4759,7 +4759,25 @@ namespace Gnoss.ApiWrapper
         /// Changes the current ontology by the indicated ontology.
         /// </summary>
         /// <param name="newOntology">New ontology name</param>
+        [Obsolete("Se recomienda usar el nuevo metodo ChangeOntology")]
         public void ChangeOntoly(string newOntology)
+        {
+            string ontologia = newOntology.ToLower().Replace(".owl", "");
+
+            OntologyUrl = null;
+
+            if (!string.IsNullOrEmpty(ontologia))
+            {
+                OntologyUrl = $"{GraphsUrl}Ontologia/{ontologia}.owl";
+            }
+
+        }
+
+        /// <summary>
+        /// Changes the current ontology by the indicated ontology.
+        /// </summary>
+        /// <param name="newOntology">New ontology name</param>
+        public void ChangeOntology(string newOntology)
         {
             string ontologia = newOntology.ToLower().Replace(".owl", "");
 
