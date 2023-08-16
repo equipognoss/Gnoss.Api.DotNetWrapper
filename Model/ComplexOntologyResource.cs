@@ -1089,7 +1089,11 @@ namespace Gnoss.ApiWrapper.Model
                     throw new GnossAPIException($"The image: {imageId} doesn't exist or is inaccessible", ex);
                 }
 
-                _rdfFile = Ontology.GenerateRDF();
+                if(Ontology != null)
+                {
+                    _rdfFile = Ontology.GenerateRDF();
+                }                
+
             }
             else
             {
