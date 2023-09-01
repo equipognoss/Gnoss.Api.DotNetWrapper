@@ -87,7 +87,6 @@ namespace Gnoss.ApiWrapper
         /// <param name="resourceList">List of resources to load</param>
         /// <param name="hierarchycalCategories">Indicates whether the categories has hierarchy</param>
         /// <param name="ontology">Ontology where resource will be loaded</param>
-        /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         public void LoadComplexSemanticResourceListWithOntologyAndCommunity(List<ComplexOntologyResource> resourceList, bool hierarchycalCategories, string ontology)
         {
             LoadComplexSemanticResourceListWithOntologyAndCommunityInt(resourceList, hierarchycalCategories, ontology);
@@ -4573,6 +4572,26 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 Log.Error($"Error modifying multiple resource triples list. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// FlushDb of resource cache
+        /// </summary>
+        /// /// <param name="pProyectoID">Proyect ID</param>
+        public void DeleteCacheResources(Guid pProyectoID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/resource/delete-cache-resources?project_id={pProyectoID}";
+
+                string response = WebRequest($"GET", url, acceptHeader: "application/json");
+                bool pendingActions = bool.Parse(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error deleting cache of resources");
                 throw;
             }
         }
