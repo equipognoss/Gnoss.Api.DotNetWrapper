@@ -2904,7 +2904,7 @@ namespace Gnoss.ApiWrapper
                 string response = WebRequestPostWithJsonObject(url, model);
                 lock (dataSet)
                 {
-                    LeerResultadosCSV(response, "resultados", dataSet);
+                    LeerResultadosCSV(response, graph, dataSet);
                 }
                 Log.Trace("Query end", this.GetType().Name);
             }
