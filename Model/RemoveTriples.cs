@@ -76,14 +76,7 @@ namespace Gnoss.ApiWrapper.Model
             get { return _predicate; }
             set
             {
-                if (value.Contains("http:"))
-                {
-                    _predicate = value;
-                }
-                else
-                {
-                    throw new GnossAPIException("the predicate must be a complete uri, not a property with namespace");
-                }
+                _predicate = value;
             }
         }
 
