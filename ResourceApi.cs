@@ -12,14 +12,10 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Web;
-using Gnoss.ApiWrapper.EtiquetadoAutomaticoSOAP;
 using Gnoss.ApiWrapper.ApiModel;
 using System.Xml;
-using System.Text.Json;
 using System.Web;
 using Microsoft.AspNetCore.Http;
-using System.Formats.Asn1;
-using CsvReader;
 
 namespace Gnoss.ApiWrapper
 {
@@ -1669,9 +1665,14 @@ namespace Gnoss.ApiWrapper
             }
             else
             {
-                EtiquetadoAutomaticoSoapClient servicioEtiquetado = new EtiquetadoAutomaticoSoapClient();
-                tagList = servicioEtiquetado.SeleccionarEtiquetasDesdeServicio(title, description.Replace($"\0", ""), null).Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            }
+
+                string url = $"{ApiUrl}/resource/get-automatic-labeling";
+                TagsFromServiceModel model = new TagsFromServiceModel{ title = title, description = description, community_short_name = CommunityShortName };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+
+                tagList = response.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(item => item.Trim()).ToList();
+            }            
 
             return tagList;
         }
