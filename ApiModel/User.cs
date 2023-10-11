@@ -348,6 +348,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Extra data value
         /// </summary>
         public string value { get; set; }
+
+        /// <summary>
+        /// Extra data short_name identifier
+        /// </summary>
+        public string short_name { get; set; }
     }
 
     /// <summary>
