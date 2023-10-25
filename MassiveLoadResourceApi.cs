@@ -51,28 +51,26 @@ namespace Gnoss.ApiWrapper
         ///<summary>
         /// Max num of resources per packages
         /// </summary>
-        private int MaxResourcesPerPackage { get; set; }
+        public int MaxResourcesPerPackage { get; set; }
 
         private StreamWriter streamData;
         private StreamWriter streamOntology;
         private StreamWriter streamSearch;
 
         private static readonly int DEBUG_PACKAGE_SIZE = 10;
+        private static readonly int MAX_RESOURCE_PER_PACKAGE_STANDAR_SIZE = 50;
         private bool onlyPrepareMassiveLoad;
 
         /// <summary>
         /// Constructor of <see cref="MassiveLoadResourceApi"/>
         /// </summary>
-        /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param> 
-        /// <param name="isDebugMode">Only for debugging</param>
-        /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
-        /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
-        /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
+        /// <param name="logHelper">Log Helper</param>
         public MassiveLoadResourceApi(OAuthInfo oauth, ILogHelper logHelper = null)
             : base(oauth, logHelper)
         {
             this.IsDebugMode = IsDebugMode;
+            MaxResourcesPerPackage = MAX_RESOURCE_PER_PACKAGE_STANDAR_SIZE;
         }
 
         /// <summary>
@@ -106,10 +104,10 @@ namespace Gnoss.ApiWrapper
                 LoadName = pName;
                 MassiveLoadIdentifier = Guid.NewGuid();
 
-                if (!IsDebugMode && !onlyPrepareMassiveLoad)
-                {
-                    TestConnection();
-                }
+                //if (!IsDebugMode && !onlyPrepareMassiveLoad)
+                //{
+                //    TestConnection();
+                //}
 
                 CreateMassiveDataLoad();
 
@@ -242,7 +240,7 @@ namespace Gnoss.ApiWrapper
                 }
                 streamData.WriteLine($"{acidData.Key}|||{acidData.Value}");
 
-                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
+                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage && !IsDebugMode || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
                 {
                     if (IsDebugMode)
                     {
