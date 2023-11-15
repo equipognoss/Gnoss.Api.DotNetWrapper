@@ -240,7 +240,7 @@ namespace Gnoss.ApiWrapper
                 }
                 streamData.WriteLine($"{acidData.Key}|||{acidData.Value}");
 
-                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage && !IsDebugMode || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
+                if ((counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage && !IsDebugMode) || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
                 {
                     if (IsDebugMode)
                     {
