@@ -133,8 +133,8 @@ namespace Gnoss.ApiWrapper
                     Directory.CreateDirectory(FilesDirectory);
                 }
 
-                string testFilePath = $"{FilesDirectory}/test.nq";
-                string downloadedTestFilePath = $"{FilesDirectory}/downloadedtest.nq";
+                string testFilePath = Path.Combine(FilesDirectory, "/test.nq");
+                string downloadedTestFilePath = Path.Combine(FilesDirectory,"/downloadedtest.nq");
 
                 //nq file creation
                 File.WriteAllText(testFilePath, $"Testing file... {DateTime.Now.Ticks}");
@@ -219,9 +219,9 @@ namespace Gnoss.ApiWrapper
                 List<string> searchTriples = resource.ToSearchGraphTriples(this);
                 KeyValuePair<Guid, string> acidData = resource.ToAcidData(this);
 
-                string pathOntology = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string pathSearch = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string pathAcid = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
+                string pathOntology = Path.Combine(FilesDirectory,$"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
+                string pathSearch = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
+                string pathAcid = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
 
                 if (streamData == null || streamOntology == null || streamSearch == null)
                 {
@@ -363,9 +363,9 @@ namespace Gnoss.ApiWrapper
                 //Si es modo debug queremos los bytes de los ficheros directamente 
                 if (IsDebugMode)
                 {
-                    model.ontology_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
-                    model.search_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
-                    model.sql_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
+                    model.ontology_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
+                    model.search_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
+                    model.sql_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt"));
                 }
 
                 model.ontology_rute = uriOntology;
