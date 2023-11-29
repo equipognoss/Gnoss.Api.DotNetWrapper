@@ -300,14 +300,38 @@ namespace Gnoss.ApiWrapper
                 Log.Error($"Error validation user {loginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
-
         }
 
-        /// <summary>
-        /// Gets the userID by login or email
-        /// </summary>
-        /// <param name="pLogin">Login o email of the user</param>
-        public Guid GetUserIdByLogin(string pLogin)
+		/// <summary>
+		/// Delete the user given from a organization group
+		/// </summary>
+		/// <param name="user_id">Identifier of the user to delete</param>
+		/// <param name="organizationShortName">Short name of the organization which the user will be deleted</param>
+		/// <param name="groupShortName">Short name of the group which the user will be deleted</param>
+		public void DeleteUserFromOrganizationGroup(Guid user_id, string organizationShortName, string groupShortName)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/delete-user-from-organization-group";
+
+				ParamsDeleteUserOrgGroup model = new ParamsDeleteUserOrgGroup() { group_short_name = groupShortName, organization_short_name = organizationShortName, user_id = user_id };
+
+				WebRequestPostWithJsonObject(url, model);
+
+				Log.Debug($"The user {user_id} has been deleted from the group {groupShortName} of the organization {organizationShortName}");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error deleting the user {user_id} from the grup {groupShortName} of the organization {organizationShortName}: \n {ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Gets the userID by login or email
+		/// </summary>
+		/// <param name="pLogin">Login o email of the user</param>
+		public Guid GetUserIdByLogin(string pLogin)
         {
             try
             {

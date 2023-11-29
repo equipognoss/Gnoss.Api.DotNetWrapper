@@ -427,27 +427,6 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
 	/// <summary>
-	/// Parameters for delete a user from a organization group
-	/// </summary>
-	public class ParamsDeleteUserOrgGroup
-	{
-		/// <summary>
-		/// User identificator
-		/// </summary>	
-		public Guid user_id { get; set; }
-
-		/// <summary>
-		/// Organization short name
-		/// </summary>
-		public string organization_short_name { get; set; }
-
-		/// <summary>
-		/// Group where the user is going to be added
-		/// </summary>
-		public string group_short_name { get; set; }
-	}
-
-	/// <summary>
 	/// Parameters to create a community group
 	/// </summary>
 	public class CreateGroupCommunityModel
