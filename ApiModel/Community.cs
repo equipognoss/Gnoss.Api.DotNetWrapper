@@ -566,4 +566,25 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public Dictionary<Guid, string> options { get; set; }
     }
+
+    /// <summary>
+    /// Parameters to obtein a text in other language
+    /// </summary>
+    public class GetTextByLanguageModel
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Language of the text
+        /// </summary>
+        public string language { get; set; }
+
+        /// <summary>
+        /// ID of the text
+        /// </summary>
+        public string texto_id { get; set; }
+    }
 }

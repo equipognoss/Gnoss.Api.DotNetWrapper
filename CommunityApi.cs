@@ -1135,6 +1135,28 @@ namespace Gnoss.ApiWrapper
             }
         }
 
+        /// <summary>
+        /// Get a text in other language
+        /// </summary>
+        /// <param name="language">Language of the text</param>
+        /// <param name="textoID">ID of the text</param>
+        public void GetTextByLanguage(string language, string textoID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/get-text-by-language";
+
+                GetTextByLanguageModel model = new GetTextByLanguageModel() { community_short_name = CommunityShortName, language = language, texto_id = textoID };
+
+                WebRequestPostWithJsonObject(url, model);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting the text by the data given: {ex.Message}");
+                throw;
+            }
+        }
+
         #endregion
 
         #endregion
