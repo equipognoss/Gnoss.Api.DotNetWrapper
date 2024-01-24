@@ -4587,12 +4587,11 @@ namespace Gnoss.ApiWrapper
             {
                 string url = $"{ApiUrl}/resource/delete-cache-resources?project_id={pProyectoID}";
 
-                string response = WebRequest($"GET", url, acceptHeader: "application/json");
-                bool pendingActions = bool.Parse(response);
+                WebRequest("POST", url, acceptHeader: "application/json");
             }
             catch (Exception ex)
             {
-                Log.Error($"Error deleting cache of resources");
+                Log.Error($"Error deleting cache of resources", ex.Message);
                 throw;
             }
         }
