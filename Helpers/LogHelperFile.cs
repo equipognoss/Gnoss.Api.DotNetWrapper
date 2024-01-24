@@ -194,7 +194,7 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <summary>
         /// Write a message in the log file
         /// </summary>
-        private void Write(LogLevels logLevel, string className, string memberName, string message, int numberWriteErrors = 3)
+        private void Write(LogLevels logLevel, string className, string memberName, string message)
         {
             if (_isActivated)
             {
