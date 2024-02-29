@@ -768,7 +768,7 @@ namespace Gnoss.ApiWrapper
         {
             string OSVersion = Environment.OSVersion.ToString();
             Version assemblyVersion = Assembly.GetEntryAssembly().GetName().Version;
-            return $"Mozilla/5.0 {OSVersion} +https://www.gnoss.com GNOSSApiWrapper.NetCore/{assemblyVersion}";
+            return $"Mozilla/5.0 ({OSVersion}) +https://www.gnoss.com GNOSSApiWrapper.NetCore/{assemblyVersion}";
         }
 
         /// <summary>
