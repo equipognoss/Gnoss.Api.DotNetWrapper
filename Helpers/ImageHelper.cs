@@ -260,6 +260,7 @@ namespace Gnoss.ApiWrapper.Helpers
         {
             using (HttpClient httpClient = new HttpClient())
             {
+                httpClient.DefaultRequestHeaders.Add("UserAgent", GnossApiWrapper.GenerarUserAgent());
                 byte[] imageContent = httpClient.GetByteArrayAsync(imageUrl).Result;
                 return Image.Load(imageContent);
             }

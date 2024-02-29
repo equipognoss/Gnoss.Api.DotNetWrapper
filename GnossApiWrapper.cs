@@ -10,6 +10,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Web;
@@ -324,6 +325,7 @@ namespace Gnoss.ApiWrapper
             webRequest.Method = httpMethod;
             webRequest.ServicePoint.Expect100Continue = false;
             webRequest.Timeout = 3600000;
+            webRequest.UserAgent = GenerarUserAgent();
 
             SetHeaders(webRequest, contentType, acceptHeader, otherHeaders);
 
@@ -756,6 +758,17 @@ namespace Gnoss.ApiWrapper
             {
                 throw new Exception("The specified environment variable doesn't exist: logLocation");
             }
+        }
+
+        /// <summary>
+        /// Generate the UserAgent
+        /// </summary>
+        /// <returns>The custom UserAgent</returns>
+        public static string GenerarUserAgent()
+        {
+            string OSVersion = Environment.OSVersion.ToString();
+            Version assemblyVersion = Assembly.GetEntryAssembly().GetName().Version;
+            return $"Mozilla/5.0 {OSVersion} +https://www.gnoss.com GNOSSApiWrapper.NetCore/{assemblyVersion}";
         }
 
         /// <summary>
