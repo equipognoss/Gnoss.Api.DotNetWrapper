@@ -17,6 +17,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Results of the sparql query
         /// </summary>
         public Results results { get; set; }
+        /// <summary>
+        /// Results of the ASK query
+        /// </summary>
+        public bool boolean { get; set; }
         public class Head
         {
             public List<object> link { get; set; }
