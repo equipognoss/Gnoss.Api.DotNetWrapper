@@ -971,6 +971,23 @@ namespace Gnoss.ApiWrapper
                 throw;
             }
         }
+        /// <summary>
+        /// Clear caches of a person
+        /// </summary>
+        /// <param name="personId"></param>
+        public void ClearPersonCache(Guid personId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/cache/invalidar-caches-locales?pPersonaID={personId}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                Log.Error($"Error while trying to clean cache of person: '{personId}'");
+                throw;
+            }
+        }
 
         #endregion
     }
