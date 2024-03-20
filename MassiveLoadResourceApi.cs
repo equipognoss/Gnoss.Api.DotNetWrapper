@@ -81,6 +81,8 @@ namespace Gnoss.ApiWrapper
         {
         }
 
+        public MassiveLoadResourceApi() : base() { }
+
         /// <summary>
         /// Create a new massive data load
         /// </summary>

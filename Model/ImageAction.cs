@@ -59,7 +59,7 @@ namespace Gnoss.ApiWrapper.Model
             Width = width;
             Size = (int)width;
             ImageTransformationType = imageTransformationType;
-            ImageQualityPercentage = long.MinValue;
+            ImageQualityPercentage = 100;
             EmbedsRGB = embedsRGB;
         }
 

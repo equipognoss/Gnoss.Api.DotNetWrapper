@@ -96,9 +96,9 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Consturtor of <see cref="GnossApiWrapper"/>
         /// </summary>
-        /// <param name="communityShortName">Community short name which you want to use the API</param>
+        /// <param name="logHelper">Log helper for ApiWrapper</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public GnossApiWrapper(OAuthInfo oauth,  ILogHelper logHelper = null)
+        protected GnossApiWrapper(OAuthInfo oauth,  ILogHelper logHelper = null)
         {
             _oauth = oauth;
             this.mLog = logHelper;
@@ -108,10 +108,16 @@ namespace Gnoss.ApiWrapper
         /// Consturtor of <see cref="GnossApiWrapper"/>
         /// </summary>
         /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
-        public GnossApiWrapper(string configFilePath)
+        protected GnossApiWrapper(string configFilePath)
         {
             LoadConfigFile(configFilePath);
         }
+
+        /// <summary>
+        /// This constructor only work if you use enviroment variables
+        /// </summary>
+        protected GnossApiWrapper()
+        { }
 
         #endregion
 

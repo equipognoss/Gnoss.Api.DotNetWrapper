@@ -46,6 +46,11 @@ namespace Gnoss.ApiWrapper
         {
         }
 
+        /// <summary>
+        /// Consturtor of <see cref="CommunityApi"/>
+        /// </summary>        
+        public CommunityApi() : base() { }
+
         #endregion
 
         #region Methods

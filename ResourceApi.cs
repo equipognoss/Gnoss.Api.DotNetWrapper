@@ -58,6 +58,14 @@ namespace Gnoss.ApiWrapper
         {
         }
 
+        /// <summary>
+        /// Consturtor of <see cref="ResourceApi"/>
+        /// </summary>
+        /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
+        public ResourceApi() : base()
+        {
+        }
+
         #endregion
 
         #region Public methods
@@ -4037,7 +4045,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>
         /// <param name="deleteAttached">indicates if the attached resources must be deleted</param>
-        /// <param name="endOfCharge">marks the end of the charge</param>
+        /// <param name="endOfCharge">Indicates the end of the load. If its false, cache will not be deleted</param>
         public bool PersistentDelete(Guid resourceId, bool deleteAttached = false, bool endOfCharge = false)
         {
             bool deleted = false;
