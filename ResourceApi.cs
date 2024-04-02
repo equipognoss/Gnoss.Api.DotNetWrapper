@@ -219,10 +219,10 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
+                Log.Trace($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
                 if (resource.ShortGnossId != Guid.Empty && documentId != resource.GnossId)
                 {
-                    Log.Info($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
+                    Log.Trace($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
                 }
 
                 if (!string.IsNullOrEmpty(rdfsPath) && !string.IsNullOrWhiteSpace(rdfsPath))
@@ -2153,7 +2153,7 @@ namespace Gnoss.ApiWrapper
                 string documentId = CreateBasicOntologyResource(model);
                 resource.Uploaded = true;
                 resource.ShortGnossId = new Guid(documentId.Trim('"'));
-                Log.Debug($"Loaded: {resource.GnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
+                Log.Trace($"Loaded: {resource.GnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
                 if (documentId != resource.GnossId)
                 {
                     throw new GnossAPIException($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API");
@@ -2161,14 +2161,14 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPIException ex)
             {
-                Log.Info($"Resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
                 Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
-            Log.Debug("******************** End Load", this.GetType().Name);
+            Log.Trace("******************** End Load", this.GetType().Name);
         }
 
         private void LoadBasicOntologyResourceIntVideo(BasicOntologyResource resource, bool hierarquicalCategories, TiposDocumentacion resourceType, bool isLast = false)
@@ -4831,7 +4831,7 @@ namespace Gnoss.ApiWrapper
 
                 WebRequestPostWithJsonObject(url, "");
 
-                Log.Info($"community {communityID}. Organization: {organizationID}");
+                Log.Trace($"community {communityID}. Organization: {organizationID}");
 
                 return true;
             }
@@ -4850,11 +4850,11 @@ namespace Gnoss.ApiWrapper
 
                 GraphsUrl = WebRequest($"GET", url, acceptHeader: "application/json")?.Trim('"');
 
-                Log.Debug($"The url of the graphs is: {GraphsUrl}");
+                Log.Trace($"The url of the graphs is: {GraphsUrl}");
             }
             catch (Exception ex)
             {
-                Log.Debug($"Error obtaining the intragnoss URL: {ex.Message}");
+                Log.Error($"Error obtaining the intragnoss URL: {ex.Message}");
                 throw;
             }
         }
