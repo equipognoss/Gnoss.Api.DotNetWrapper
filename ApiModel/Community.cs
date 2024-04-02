@@ -127,7 +127,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         public string type { get; set; }
 
         /// <summary>
-        /// Community's access type
+        /// Community's access type, Public = 0, Private = 1, Restricted = 2, Reserved = 3
         /// </summary>
         public short access_type { get; set; }
 
@@ -140,6 +140,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Community's users
         /// </summary>
         public List<Guid> users { get; set; }
+        /// <summary>
+        /// Community's sate, Close = 0, Temporaly close = 1, Definition = 2, Open = 3, Closing = 4
+        /// </summary>
+        public short state { get; set; }
     }
 
     /// <summary>
