@@ -1381,7 +1381,7 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Method for adding one or more properties of a loaded resource. In RemoveTriples can indicate whether title or description. By default false two fields. It influences the value of the resource searches.
+        /// Method for delete one or more properties of a loaded resource. In RemoveTriples can indicate whether title or description. By default false two fields. It influences the value of the resource searches.
         /// </summary>
         /// <param name="resourceTriples">Contains as a key the resource guid identifier to modify and as a value a RemoveTriples list of the resource properties that will be deleted.</param>
         /// <param name="publishHome">Indicates whether the home must be updated</param>
