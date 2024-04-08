@@ -3517,7 +3517,7 @@ namespace Gnoss.ApiWrapper
                 string response = WebRequestPostWithJsonObject(url, resourceId_list);
                 editorsList = JsonConvert.DeserializeObject<List<KeyEditors>>(response);
 
-                if (editorsList != null && editorsList.Count == 0)
+                if (editorsList != null && editorsList.Count > 0)
                 {
                     Log.Debug($"Editors of the resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
