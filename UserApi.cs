@@ -350,6 +350,47 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Get a person by accreditation document
+        /// </summary>
+        /// <param name="pValorDocumentoAcreditativo">Person accreditation document</param>
+        public User GetUserByAccreditationDocument(string pValorDocumentoAcreditativo)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-by-accreditation-document?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pNombreCorto={CommunityShortName}";
+                string response = WebRequest("GET", url);
+                
+                return JsonConvert.DeserializeObject<User>(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting person by accreditation document {pValorDocumentoAcreditativo}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Set accreditation document of a person
+        /// </summary>
+        /// <param name="pValorDocumentoAcreditativo">Person accreditation document</param>
+        /// <param name="pUserID">Person ID</param>
+        public bool SetAccreditationDocumentByUser(string pValorDocumentoAcreditativo, Guid pUserID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/set-accreditation-document-by-user?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pUserID={pUserID}";
+                string response = WebRequest("POST", url);
+
+                return JsonConvert.DeserializeObject<bool>(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error seting accreditaion document {pValorDocumentoAcreditativo} to person with id person {pUserID}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Gets the URL to recover the password of a user
         /// </summary>
         /// <param name="loginOrEmail">Login o email of the user</param>
