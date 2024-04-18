@@ -267,7 +267,7 @@ namespace Gnoss.ApiWrapper.Model
 
             sb.AppendLine("-------------------------------------------------------------");
             sb.AppendLine("Resource: ");
-            sb.AppendLine($"\t\tId: {Id}");
+            sb.AppendLine($"\t\tId: {ShortGnossId}");
             sb.AppendLine($"\t\tGnossId: {GnossId}");
             sb.AppendLine($"\t\tDescription: {Description}");
             sb.AppendLine($"\t\tTags: {Tags.ToString()}");

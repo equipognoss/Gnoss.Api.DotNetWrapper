@@ -219,7 +219,7 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                Log.Trace($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
+                Log.Trace($"Loaded: \tID: {resource.ShortGnossId}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
                 if (resource.ShortGnossId != Guid.Empty && documentId != resource.GnossId)
                 {
                     Log.Trace($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
@@ -232,7 +232,7 @@ namespace Gnoss.ApiWrapper
                         Directory.CreateDirectory($"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}");
                     }
 
-                    string ficheroRDF = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.Id}.rdf";
+                    string ficheroRDF = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.ShortGnossId}.rdf";
                     if (!File.Exists(ficheroRDF))
                     {
                         File.WriteAllText(ficheroRDF, resource.StringRdfFile);
@@ -243,11 +243,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -594,11 +594,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
                 if (numAttemps > 1)
@@ -643,11 +643,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
                 if (numAttemps > 1)
@@ -691,7 +691,7 @@ namespace Gnoss.ApiWrapper
 
                 if (resource.Modified)
                 {
-                    Log.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{ontologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with id: {resource.ShortGnossId} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{ontologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
                 }
                 else
                 {
@@ -737,11 +737,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -848,7 +848,7 @@ namespace Gnoss.ApiWrapper
                     LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, true);
                     resource.Modified = ModifyComplexOntologyResource(model);
 
-                    Log.Debug($"Successfully modified the resource with ID: {resource.Id} and Gnoss identifier {resource.ShortGnossId}", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with ID: {resource.ShortGnossId} and Gnoss identifier {resource.GnossId}", this.GetType().Name);
                     if (resource.Modified)
                     {
                         try
@@ -884,7 +884,7 @@ namespace Gnoss.ApiWrapper
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"ERROR replacing the image of the resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                            Log.Error($"ERROR replacing the image of the resource: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
                         }
                     }
                     else
@@ -894,11 +894,11 @@ namespace Gnoss.ApiWrapper
                 }
                 catch (GnossAPICategoryException gacex)
                 {
-                    Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                    Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                    Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
                 }
 
                 Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
@@ -1954,11 +1954,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -2007,11 +2007,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -2058,11 +2058,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -2091,7 +2091,7 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
+                Log.Debug($"Loaded: \tID: {resource.ShortGnossId}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
 
                 if (!string.IsNullOrEmpty(rdfsPath) && !string.IsNullOrWhiteSpace(rdfsPath))
                 {
@@ -2100,7 +2100,7 @@ namespace Gnoss.ApiWrapper
                         Directory.CreateDirectory($"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}");
                     }
 
-                    string rdfFile = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.Id}.rdf";
+                    string rdfFile = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.ShortGnossId}.rdf";
                     if (!File.Exists(rdfFile))
                     {
                         File.WriteAllText(rdfFile, resource.StringRdfFile);
@@ -2111,11 +2111,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -2161,11 +2161,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPIException ex)
             {
-                Log.Error($"Resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Resource: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
             Log.Trace("******************** End Load", this.GetType().Name);
@@ -2197,11 +2197,11 @@ namespace Gnoss.ApiWrapper
                 {
                 }
                 resource.ShortGnossId = new Guid(documentId);
-                Log.Debug($"Loaded: {resource.Id}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
+                Log.Debug($"Loaded: {resource.ShortGnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
             Log.Debug("******************** End Load", this.GetType().Name);
@@ -2227,13 +2227,13 @@ namespace Gnoss.ApiWrapper
                         LoadBasicOntologyResourceInt(rec, hierarquicalCategories, resourceType, processedNumber == resourceList.Count());
                         if (rec.Uploaded)
                         {
-                            Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
+                            Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId}\tTitle: {rec.Title}");
                         }
                         resourcesToLoad.Remove(rec);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -2257,12 +2257,12 @@ namespace Gnoss.ApiWrapper
                     try
                     {
                         LoadBasicOntologyResourceIntVideo(rec, hierarquicalCategories, resourceType, processedNumber == resourceList.Count());
-                        Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
+                        Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId}\tTitle: {rec.Title}");
                         resourcesToLoad.Remove(rec);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Mensaje: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Mensaje: {ex.Message}", this.GetType().Name);
                     }
                 }
                 Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
