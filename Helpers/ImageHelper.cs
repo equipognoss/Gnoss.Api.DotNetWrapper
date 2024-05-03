@@ -235,8 +235,10 @@ namespace Gnoss.ApiWrapper.Helpers
             }
             else
             {
-                JpegEncoder encoder = new JpegEncoder();
-                encoder.Quality = pQuality;
+                JpegEncoder encoder = new JpegEncoder()
+                {
+                    Quality = pQuality
+                };
 
                 try
                 {
