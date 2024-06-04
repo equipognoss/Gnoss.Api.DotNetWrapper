@@ -24,7 +24,7 @@ namespace Gnoss.ApiWrapper.Model
         #region Constructors
 
         /// <summary>
-        /// Empry constructor
+        /// Empty constructor
         /// </summary>
         public TriplesToInclude()
         {
