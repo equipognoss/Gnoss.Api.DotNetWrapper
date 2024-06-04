@@ -300,7 +300,94 @@ namespace Gnoss.ApiWrapper
                 Log.Error($"Error validation user {loginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
                 throw;
             }
+        }
 
+		/// <summary>
+		/// Delete the user given from a organization group
+		/// </summary>
+		/// <param name="user_id">Identifier of the user to delete</param>
+		/// <param name="organizationShortName">Short name of the organization which the user will be deleted</param>
+		/// <param name="groupShortName">Short name of the group which the user will be deleted</param>
+		public void DeleteUserFromOrganizationGroup(Guid user_id, string organizationShortName, string groupShortName)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/delete-user-from-organization-group";
+
+				ParamsDeleteUserOrgGroup model = new ParamsDeleteUserOrgGroup() { group_short_name = groupShortName, organization_short_name = organizationShortName, user_id = user_id };
+
+				WebRequestPostWithJsonObject(url, model);
+
+				Log.Debug($"The user {user_id} has been deleted from the group {groupShortName} of the organization {organizationShortName}");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error deleting the user {user_id} from the grup {groupShortName} of the organization {organizationShortName}: \n {ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Gets the userID by login or email
+		/// </summary>
+		/// <param name="pLogin">Login o email of the user</param>
+		public Guid GetUserIdByLogin(string pLogin)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-id-by-login?pLogin={pLogin}";
+                string response = WebRequest("GET", url);
+                Guid usuarioID = JsonConvert.DeserializeObject<Guid>(response);
+
+                return usuarioID;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting user's ID for user {pLogin} from the community {CommunityShortName}: \r\n{ex.Message}");
+                throw;
+            }
+
+        }
+
+        /// <summary>
+        /// Get a person by accreditation document
+        /// </summary>
+        /// <param name="pValorDocumentoAcreditativo">Person accreditation document</param>
+        public User GetUserByAccreditationDocument(string pValorDocumentoAcreditativo)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-by-accreditation-document?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pNombreCorto={CommunityShortName}";
+                string response = WebRequest("GET", url);
+                
+                return JsonConvert.DeserializeObject<User>(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting person by accreditation document {pValorDocumentoAcreditativo}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Set accreditation document of a person
+        /// </summary>
+        /// <param name="pValorDocumentoAcreditativo">Person accreditation document</param>
+        /// <param name="pUserID">Person ID</param>
+        public bool SetAccreditationDocumentByUser(string pValorDocumentoAcreditativo, Guid pUserID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/set-accreditation-document-by-user?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pUserID={pUserID}";
+                string response = WebRequest("POST", url);
+
+                return JsonConvert.DeserializeObject<bool>(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error seting accreditaion document {pValorDocumentoAcreditativo} to person with id person {pUserID}: \r\n{ex.Message}");
+                throw;
+            }
         }
 
         /// <summary>
@@ -571,7 +658,6 @@ namespace Gnoss.ApiWrapper
         /// Gets the novelties of the user from a datetime
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
         public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string searchDate)
@@ -605,6 +691,29 @@ namespace Gnoss.ApiWrapper
             }
             return user;
         }
+
+        /// <summary>
+        /// Gets the UserID form Cookie
+        /// </summary>
+        /// <param name="pCookie">cookie</params>
+        /// <returns>UserID from cookie</returns>
+        public Guid GetUserIDFromCookie(string pCookie)
+        {
+            Guid userID = Guid.Empty;
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-cookie?pCookie={pCookie}";
+                string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+                userID = JsonConvert.DeserializeObject<Guid>(response);
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting the user from the cookie", ex.Message);
+                throw;
+            }
+            return userID;
+        }
+
 
         /// <summary>
         /// Gets a single use token or a long live token to use it in a login action. 
@@ -781,10 +890,11 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Adds the Community CMS Admin rol to a user
+        /// Checks if the emails already exists in the database
         /// </summary>
-        /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
+        /// <param name="emails">Email list that you want to check</param>
+        /// <returns>Email list that already exists in the database</returns>
+        /// <example>POST user/exists-email-in-database</example>
         public List<string> ExistsEmails(List<string> emails)
         {
             try
@@ -802,10 +912,29 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Return short path of the personal profile of the user
+        /// </summary>
+        /// <param name="user_id">Identifier of the user</param>
+        /// <returns>True or false if the user has or not photo</returns>
+        /// <example>POST user/get-user-photo</example>
+        public string GetUserPhoto(Guid user_id)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/user/get-user-photo";
+                return WebRequestPostWithJsonObject(url, user_id);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Gets the user's groups in a community
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <returns></returns>
         public List<string> GetGroupsPerCommunity(Guid userId)
         {
@@ -852,7 +981,6 @@ namespace Gnoss.ApiWrapper
         /// Adds the Community CMS Admin rol to a user
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         public void AddCmsAdminRolToUser(Guid userId)
         {
             try
@@ -871,7 +999,6 @@ namespace Gnoss.ApiWrapper
         /// Removes the Community CMS Admin rol to a user
         /// </summary>
         /// <param name="userId">User identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         public void RemoveCmsAdminRolToUser(Guid userId)
         {
             try
@@ -885,8 +1012,24 @@ namespace Gnoss.ApiWrapper
                 throw;
             }
         }
+        /// <summary>
+        /// Clear caches of a person
+        /// </summary>
+        /// <param name="personId"></param>
+        public void ClearPersonCache(Guid personId)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/cache/invalidar-caches-locales?pPersonaID={personId}";
+                WebRequest($"POST", url);
+            }
+            catch (System.Exception)
+            {
+                Log.Error($"Error while trying to clean cache of person: '{personId}'");
+                throw;
+            }
+        }
 
         #endregion
-
     }
 }

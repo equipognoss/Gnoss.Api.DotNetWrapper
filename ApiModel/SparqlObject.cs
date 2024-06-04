@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Gnoss.ApiWrapper.ApiModel
 {
-    /// <summary>
-    /// Class that represents a SparqlObject
-    /// </summary>
     public class SparqlObject
     {
-
         /// <summary>
         /// Head of the sparql query
         /// </summary>
@@ -20,25 +17,16 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Results of the sparql query
         /// </summary>
         public Results results { get; set; }
-
         /// <summary>
-        /// Head of the query
+        /// Results of the ASK query
         /// </summary>
+        public bool boolean { get; set; }
         public class Head
         {
-            /// <summary>
-            /// Links of the query
-            /// </summary>
             public List<object> link { get; set; }
-            /// <summary>
-            /// Vars used in the query
-            /// </summary>
             public List<string> vars { get; set; }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
         public class Data
         {
             public string type { get; set; }
@@ -46,24 +34,42 @@ namespace Gnoss.ApiWrapper.ApiModel
             public string datatype { get; set; }
         }
 
-        /// <summary>
-        /// Results of the query
-        /// </summary>
         public class Results
         {
-            /// <summary>
-            /// If the distinct param is applied or no
-            /// </summary>
             public bool distinct { get; set; }
-            /// <summary>
-            /// If the results will be ordered
-            /// </summary>
             public bool ordered { get; set; }
-            /// <summary>
-            /// Results of the query
-            /// </summary>
             public List<Dictionary<string, Data>> bindings { get; set; }
         }
 
+    }
+
+    /// <summary>
+    /// Represents a sparql query
+    /// </summary>
+    public partial class SparqlQueryMultipleGraph
+    {
+        /// <summary>
+        /// Ontology name or community identificator to query. It will be used in the form clause
+        /// </summary>
+        [Required]
+        public List<string> ontology_list { get; set; }
+
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        [Required]
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Select clause of the sparql query
+        /// </summary>
+        [Required]
+        public string query_select { get; set; }
+
+        /// <summary>
+        /// Where clause of the sparql query
+        /// </summary>
+        [Required]
+        public string query_where { get; set; }
     }
 }

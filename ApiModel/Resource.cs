@@ -834,6 +834,35 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to upload images of a resource
+    /// </summary>
+    public class UploadImagesParams
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        [Required]
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Resource attached files
+        /// </summary>
+        [Required]
+        public List<SemanticAttachedResource> resource_attached_files { get; set; }
+
+        /// <summary>
+        /// Identifier of the resource
+        /// </summary>
+        [Required]
+        public Guid resource_id { get; set; }
+
+        /// <summary>
+        /// Main image of the resource
+        /// </summary>
+        public string main_image { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to upload a resource
     /// </summary>
     public class LoadResourceParams
@@ -1260,6 +1289,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Object for increased reading
         /// </summary>
         public AumentedReading lecturaAumentada { get; set; }
+
+        /// <summary>
+        /// Resource link
+        /// </summary>
+        public string link { get; set; }
 
     }
 
@@ -1775,4 +1809,25 @@ namespace Gnoss.ApiWrapper.ApiModel
         public DateTime saved_date { get; set; }
     }
 
+
+    /// <summary>
+    /// Model that generate labels from title and description
+    /// </summary>
+    public class TagsFromServiceModel
+    {
+        /// <summary>
+        /// Title for generate the labels
+        /// </summary>
+        public string title { get; set; }
+
+        /// <summary>
+        /// Description for generate the labels
+        /// </summary>
+        public string description { get; set; }
+
+        /// <summary>
+        /// Short name of the project
+        /// </summary>
+        public string community_short_name { get; set; }
+    }
 }

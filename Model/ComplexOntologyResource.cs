@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using System.Drawing;
 using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.ApiModel;
+using SixLabors.ImageSharp;
 
 namespace Gnoss.ApiWrapper.Model
 {
@@ -185,7 +185,7 @@ namespace Gnoss.ApiWrapper.Model
         /// Empty constructor
         /// </summary>
         public ComplexOntologyResource()
-        {            
+        {
             Initialize();
         }
 
@@ -252,7 +252,7 @@ namespace Gnoss.ApiWrapper.Model
 
             sb.AppendLine("-------------------------------------------------------------");
             sb.AppendLine("Resource: ");
-            sb.AppendLine($"\t\tId: {Id}");
+            sb.AppendLine($"\t\tId: {ShortGnossId}");
             sb.AppendLine($"\t\tGnossId: {GnossId}");
             sb.AppendLine($"\t\tDescription: {Description}");
             sb.AppendLine($"\t\tTags: {Tags.ToString()}");
@@ -542,11 +542,11 @@ namespace Gnoss.ApiWrapper.Model
         /// <returns>True if the image has been attached successfully</returns>
         public bool AttachImage(string downloadUrl, List<ImageAction> actions, string predicate, bool mainImage, string extension, OntologyEntity entity = null, bool saveOriginalImage = true, bool saveMaxSizedImage = false)
         {
-            Bitmap imagenOriginal = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
+            Image imagenOriginal = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
             bool imagenAdjuntada = false;
             if (imagenOriginal != null)
             {
-                imagenAdjuntada = AttachImageInternal(ImageHelper.BitmapToByteArray(imagenOriginal), actions, predicate, mainImage, Guid.Empty, false, entity, extension, saveOriginalImage, saveMaxSizedImage);
+                imagenAdjuntada = AttachImageInternal(ImageHelper.ImageToByteArray(imagenOriginal), actions, predicate, mainImage, Guid.Empty, false, entity, extension, saveOriginalImage, saveMaxSizedImage);
             }
             return imagenAdjuntada;
         }
@@ -581,20 +581,20 @@ namespace Gnoss.ApiWrapper.Model
         /// <returns>True if the image has been uploaded successfully</returns>
         public bool AttachImageWithoutReference(string downloadUrl, List<ImageAction> actions, bool mainImage, Guid imageId, string extension, bool saveOriginalImage = true, bool saveMaxSizedImage = false, bool saveMainImage = true)
         {
-            Bitmap originalImage = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
+            Image originalImage = ImageHelper.ReadImageFromUrlOrLocalPath(downloadUrl);
 
             bool success = false;
             if (originalImage != null)
             {
                 try
                 {
-                    success = AttachImageInternal(ImageHelper.BitmapToByteArray(originalImage), actions, string.Empty, mainImage, imageId, false, null, extension, saveOriginalImage, saveMaxSizedImage, saveMainImage);
+                    success = AttachImageInternal(ImageHelper.ImageToByteArray(originalImage), actions, string.Empty, mainImage, imageId, false, null, extension, saveOriginalImage, saveMaxSizedImage, saveMainImage);
                     originalImage.Dispose();
                 }
                 catch (Exception ex)
                 {
                     throw new GnossAPIException($"Error attaching image {downloadUrl}: {ex.Message}");
-                    
+
                 }
             }
             return success;
@@ -730,7 +730,10 @@ namespace Gnoss.ApiWrapper.Model
                 }
             }
 
-            _rdfFile = Ontology.GenerateRDF();
+            if(Ontology != null)
+            {
+                _rdfFile = Ontology.GenerateRDF();
+            }
         }
 
         /// <summary>
@@ -750,319 +753,338 @@ namespace Gnoss.ApiWrapper.Model
         /// <returns>True if the image reference has been attached successfully</returns>
         private bool AttachImageInternal(byte[] originalImage, List<ImageAction> actions, string predicate, bool mainImage, Guid imageId, bool onlyReference, OntologyEntity entity, string extension, bool saveOriginalImage = true, bool saveMaxSizedImage = false, bool saveMainImage = true)
         {
-            if (string.IsNullOrEmpty(extension))
-            {
-                extension = ".jpg";
-            }
-            else
-            {
-                if (!extension.StartsWith("."))
-                {
-                    extension = "." + extension;
-                }
-            }
-
-            if (imageId.Equals(Guid.Empty))
-            {
-                imageId = Guid.NewGuid();
-            }
-
             bool attachedImage = false;
-
-            try
+            if (extension.ToLower().Equals(".png") || extension.ToLower().Equals(".jpg") || extension.ToLower().Equals(".jpeg") || extension.ToLower().Equals(".gif"))
             {
-                List<string> errorList = new List<string>();
-
-                if (actions == null)
+                if (string.IsNullOrEmpty(extension))
                 {
-                    // Without actions
-                    if (mainImage && saveOriginalImage)
-                    {
-                        // The image to upload has lower size than 240 pixels. The image quality would be 100%
-                        MainImage = string.Format("[IMGPrincipal][240,]{0}" + extension, imageId);
-
-                        AttachedFilesName.Add($"{imageId}" + extension);
-                        AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
-
-                        AttachedFilesName.Add($"{imageId}_240" + extension);
-                        AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
-
-                        if (!onlyReference)
-                        {
-                            AttachedFiles.Add(originalImage);
-                            AttachedFiles.Add(originalImage);
-                            AttachedFiles.Add(originalImage);
-                        }
-                        attachedImage = true;
-                    }
-                    else if (saveOriginalImage)
-                    {
-                        AttachedFilesName.Add($"{imageId}" + extension);
-                        AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
-
-                        if (!onlyReference)
-                        {
-                            AttachedFiles.Add(originalImage);
-                        }
-                        attachedImage = true;
-                    }
-                    else
-                    {
-                        throw new GnossAPIException("Actions can be null only when the image is a main image and the original image is set to be saved");
-                    }
+                    extension = ".jpg";
                 }
                 else
                 {
-                    // With actions
-
-                    bool originalImageSaved = false;
-                    Bitmap maxSizeImage = null;
-                    bool imageModificationError = false;
-
-                    foreach (ImageAction action in actions)
+                    if (!extension.StartsWith("."))
                     {
-                        imageModificationError = false;
-                        Bitmap resizedImage = null;
+                        extension = "." + extension;
+                    }
+                }
 
-                        if (!onlyReference)
+                if (imageId.Equals(Guid.Empty))
+                {
+                    imageId = Guid.NewGuid();
+                }
+
+                
+
+                try
+                {
+                    List<string> errorList = new List<string>();
+
+                    if (actions == null && actions.Count == 0)
+                    {
+                        // Without actions
+                        if (mainImage && saveOriginalImage)
                         {
-                            // Modify the image
-                            switch (action.ImageTransformationType)
-                            {
-                                case ImageTransformationType.Crop:
-                                    try
-                                    {
-                                        resizedImage = ImageHelper.CropImageToSquare(ImageHelper.ByteArrayToBitmap(originalImage), action.Size);
-                                    }
-                                    catch (GnossAPIException gaex)
-                                    {
-                                        imageModificationError = true;
-                                        errorList.Add(gaex.Message);
-                                    }
-                                    break;
-                                case ImageTransformationType.ResizeToHeight:
-                                    try
-                                    {
-                                        resizedImage = ImageHelper.ResizeImageToHeight(ImageHelper.ByteArrayToBitmap(originalImage), action.Height);
-                                    }
-                                    catch (GnossAPIException gaex)
-                                    {
-                                        imageModificationError = true;
-                                        errorList.Add(gaex.Message);
-                                    }
-                                    break;
-                                case ImageTransformationType.ResizeToWidth:
-                                    try
-                                    {
-                                        resizedImage = ImageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Width);
-                                    }
-                                    catch (GnossAPIException gaex)
-                                    {
-                                        imageModificationError = true;
-                                        errorList.Add(gaex.Message);
-                                    }
-                                    break;
-                                case ImageTransformationType.ResizeToHeightAndWidth:
-                                    try
-                                    {
-                                        resizedImage = ImageHelper.ResizeImageToHeightAndWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Width, action.Height);
-                                    }
-                                    catch (GnossAPIException gaex)
-                                    {
-                                        imageModificationError = true;
-                                        errorList.Add(gaex.Message);
-                                    }
-                                    break;
-                                case ImageTransformationType.CropToHeightAndWidth:
-                                    try
-                                    {
-                                        resizedImage = ImageHelper.CropImageToHeightAndWidth(ImageHelper.ByteArrayToBitmap(originalImage), action.Height, action.Width);
-                                    }
-                                    catch (GnossAPIException gaex)
-                                    {
-                                        imageModificationError = true;
-                                        errorList.Add(gaex.Message);
-                                    }
-                                    break;
+                            // The image to upload has lower size than 240 pixels. The image quality would be 100%
+                            MainImage = string.Format("[IMGPrincipal][240,]{0}" + extension, imageId);
 
-                                default:
-                                    throw new GnossAPIException("The ImageTransformationType is not valid");
-
-                            }
-                        }
-
-                        if (mainImage && imageModificationError)
-                        {
-                            mainImage = false;
-                        }
-
-                        if (!imageModificationError && !onlyReference)
-                        {
-                            if (mainImage)
-                            {
-                                MainImage = string.Format("[IMGPrincipal][{0},]{1}" + extension, action.Size, imageId);
-                                mainImage = false;
-                            }
-
-                            AttachedFilesName.Add($"{imageId}_{action.Size}" + extension);
-                            AttachedFiles.Add(ImageHelper.BitmapToByteArray(resizedImage, action.ImageQualityPercentage));
+                            AttachedFilesName.Add($"{imageId}" + extension);
                             AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+
+                            AttachedFilesName.Add($"{imageId}_240" + extension);
+                            AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+
+                            if (!onlyReference)
+                            {
+                                AttachedFiles.Add(originalImage);
+                                AttachedFiles.Add(originalImage);
+                                AttachedFiles.Add(originalImage);
+                            }
                             attachedImage = true;
+                        }
+                        else if (saveOriginalImage)
+                        {
+                            AttachedFilesName.Add($"{imageId}" + extension);
+                            AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
 
-                            if (action.EmbedsRGB)
+                            if (!onlyReference)
                             {
-                                resizedImage = ImageHelper.AssignEXIFPropertyColorSpaceSRGB(resizedImage);
+                                AttachedFiles.Add(originalImage);
                             }
-
-                            // Save original image
-                            if (saveOriginalImage && !originalImageSaved)
-                            {
-                                if (saveMainImage)
-                                {
-                                    AttachedFilesName.Add($"{imageId}" + extension);
-                                    AttachedFiles.Add(ImageHelper.BitmapToByteArray(ImageHelper.ByteArrayToBitmap(originalImage), actions.Max(z => z.ImageQualityPercentage)));
-                                    AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
-                                }
-
-                                originalImageSaved = true;
-                                attachedImage = true;
-                            }
+                            attachedImage = true;
                         }
                         else
                         {
-                            if (mainImage)
-                            {
-                                MainImage = string.Format("[IMGPrincipal][{0},]{1}" + extension, action.Size, imageId);
-                                mainImage = false;
-                            }
-                            attachedImage = true;
-
-                        }
-                    }
-
-                    // Save the image at the max size allowed
-                    if (saveMaxSizedImage)
-                    {
-                        try
-                        {
-                            // The quality percentage of the max size image is the highest quality percentage  
-                            if (ImageHelper.ByteArrayToBitmap(originalImage).Width > Constants.MAXIMUM_WIDTH_GNOSS_IMAGE)
-                            {
-                                maxSizeImage = ImageHelper.ResizeImageToWidth(ImageHelper.ByteArrayToBitmap(originalImage), Constants.MAXIMUM_WIDTH_GNOSS_IMAGE);
-
-                                AttachedFilesName.Add($"{imageId}_{Constants.MAXIMUM_WIDTH_GNOSS_IMAGE}" + extension);
-                                AttachedFiles.Add(ImageHelper.BitmapToByteArray(maxSizeImage, actions.Max(z => z.ImageQualityPercentage)));
-                                AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
-
-                                attachedImage = true;
-                            }
-                            else
-                            {
-                                AttachedFilesName.Add($"{imageId}_{Constants.MAXIMUM_WIDTH_GNOSS_IMAGE}" + extension);
-                                AttachedFiles.Add(ImageHelper.BitmapToByteArray(ImageHelper.ByteArrayToBitmap(originalImage), actions.Max(z => z.ImageQualityPercentage)));
-                                AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
-
-                                attachedImage = true;
-                            }
-                        }
-                        catch (GnossAPIException gaex)
-                        {
-                            imageModificationError = true;
-                            errorList.Add(gaex.Message);
-                        }
-                    }
-                }
-
-                if (entity != null && !string.IsNullOrWhiteSpace(predicate) && !string.IsNullOrEmpty(predicate))
-                {
-                    // The image is from an auxiliary entity
-                    if (Ontology.Entities == null)
-                    {
-                        Ontology.Entities = new List<OntologyEntity>();
-                        Ontology.Entities.Add(entity);
-                    }
-
-                    if (!onlyReference)
-                    {
-                        if (AttachedFiles.Count > 0 && AttachedFilesType.Count > 0)
-                        {
-                            if (entity.Properties == null)
-                            {
-                                entity.Properties = new List<OntologyProperty>();
-                            }
-                            entity.Properties.Add(new ImageOntologyProperty(predicate, $"{imageId}" + extension));
-
+                            throw new GnossAPIException("Actions can be null only when the image is a main image and the original image is set to be saved");
                         }
                     }
                     else
                     {
-                        if (attachedImage)
-                        {
-                            if (entity.Properties == null)
-                            {
-                                entity.Properties = new List<OntologyProperty>();
-                            }
-                            entity.Properties.Add(new ImageOntologyProperty(predicate, $"{imageId}" + extension));
+                        // With actions
 
+                        bool originalImageSaved = false;
+                        Image maxSizeImage = null;
+                        bool imageModificationError = false;
+
+                        foreach (ImageAction action in actions)
+                        {
+                            imageModificationError = false;
+                            Image resizedImage = null;
+
+                            if (!onlyReference)
+                            {
+                                // Modify the image
+                                switch (action.ImageTransformationType)
+                                {
+                                    case ImageTransformationType.Crop:
+                                        try
+                                        {
+                                            resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                            ImageHelper.CropImageToSquare(resizedImage, action.Size);
+                                        }
+                                        catch (GnossAPIException gaex)
+                                        {
+                                            imageModificationError = true;
+                                            errorList.Add(gaex.Message);
+                                        }
+                                        break;
+                                    case ImageTransformationType.ResizeToHeight:
+                                        try
+                                        {
+                                            resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                            ImageHelper.ResizeImageToHeight(resizedImage, (int)action.Height);
+                                        }
+                                        catch (GnossAPIException gaex)
+                                        {
+                                            imageModificationError = true;
+                                            errorList.Add(gaex.Message);
+                                        }
+                                        break;
+                                    case ImageTransformationType.ResizeToWidth:
+                                        try
+                                        {
+                                            resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                            ImageHelper.ResizeImageToWidth(resizedImage, (int)action.Width);
+                                        }
+                                        catch (GnossAPIException gaex)
+                                        {
+                                            imageModificationError = true;
+                                            errorList.Add(gaex.Message);
+                                        }
+                                        break;
+                                    case ImageTransformationType.ResizeToHeightAndWidth:
+                                        try
+                                        {
+                                            resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                            ImageHelper.ResizeImageToHeightAndWidth(resizedImage, (int)action.Width, (int)action.Height);
+                                        }
+                                        catch (GnossAPIException gaex)
+                                        {
+                                            imageModificationError = true;
+                                            errorList.Add(gaex.Message);
+                                        }
+                                        break;
+                                    case ImageTransformationType.CropToHeightAndWidth:
+                                        try
+                                        {
+                                            resizedImage = ImageHelper.ByteArrayToImage(originalImage);
+                                            ImageHelper.CropImageToHeightAndWidth(resizedImage, (int)action.Height, (int)action.Width);
+                                        }
+                                        catch (GnossAPIException gaex)
+                                        {
+                                            imageModificationError = true;
+                                            errorList.Add(gaex.Message);
+                                        }
+                                        break;
+
+                                    default:
+                                        throw new GnossAPIException("The ImageTransformationType is not valid");
+
+                                }
+                            }
+
+                            if (mainImage && imageModificationError)
+                            {
+                                mainImage = false;
+                            }
+
+                            if (!imageModificationError && !onlyReference)
+                            {
+                                if (mainImage)
+                                {
+                                    MainImage = string.Format("[IMGPrincipal][{0},]{1}" + extension, action.Size, imageId);
+                                    mainImage = false;
+                                }
+
+                                AttachedFilesName.Add($"{imageId}_{action.Size}{extension}");
+                                AttachedFiles.Add(ImageHelper.ImageToByteArray(resizedImage, (int)action.ImageQualityPercentage));
+                                AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+                                attachedImage = true;
+
+                                if (action.EmbedsRGB)
+                                {
+                                    ImageHelper.AssignEXIFPropertyColorSpaceSRGB(resizedImage);
+                                }
+
+                                // Save original image
+                                if (saveOriginalImage && !originalImageSaved)
+                                {
+                                    if (saveMainImage)
+                                    {
+                                        AttachedFilesName.Add($"{imageId}" + extension);
+                                        AttachedFiles.Add(ImageHelper.ImageToByteArray(ImageHelper.ByteArrayToImage(originalImage), (int)actions.Max(z => z.ImageQualityPercentage)));
+                                        AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+                                    }
+
+                                    originalImageSaved = true;
+                                    attachedImage = true;
+                                }
+                            }
+                            else
+                            {
+                                if (mainImage)
+                                {
+                                    MainImage = string.Format("[IMGPrincipal][{0},]{1}" + extension, action.Size, imageId);
+                                    mainImage = false;
+                                }
+                                attachedImage = true;
+
+                            }
+                        }
+
+                        // Save the image at the max size allowed
+                        if (saveMaxSizedImage)
+                        {
+                            try
+                            {
+                                // The quality percentage of the max size image is the highest quality percentage  
+                                if (ImageHelper.ByteArrayToImage(originalImage).Width > Constants.MAXIMUM_WIDTH_GNOSS_IMAGE)
+                                {
+                                    maxSizeImage = ImageHelper.ByteArrayToImage(originalImage);
+                                    ImageHelper.ResizeImageToWidth(maxSizeImage, Constants.MAXIMUM_WIDTH_GNOSS_IMAGE);
+
+                                    AttachedFilesName.Add($"{imageId}_{Constants.MAXIMUM_WIDTH_GNOSS_IMAGE}" + extension);
+                                    AttachedFiles.Add(ImageHelper.ImageToByteArray(maxSizeImage, (int)actions.Max(z => z.ImageQualityPercentage)));
+                                    AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+
+                                    attachedImage = true;
+                                }
+                                else
+                                {
+                                    AttachedFilesName.Add($"{imageId}_{Constants.MAXIMUM_WIDTH_GNOSS_IMAGE}" + extension);
+                                    AttachedFiles.Add(ImageHelper.ImageToByteArray(ImageHelper.ByteArrayToImage(originalImage), (int)actions.Max(z => z.ImageQualityPercentage)));
+                                    AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+
+                                    attachedImage = true;
+                                }
+                            }
+                            catch (GnossAPIException gaex)
+                            {
+                                imageModificationError = true;
+                                errorList.Add(gaex.Message);
+                            }
                         }
                     }
-                }
-                else
-                {
-                    // The image is an ontology property
-                    if (!string.IsNullOrWhiteSpace(predicate) && !string.IsNullOrEmpty(predicate))
+
+                    if (entity != null && !string.IsNullOrWhiteSpace(predicate) && !string.IsNullOrEmpty(predicate))
                     {
-                        if (Ontology.Properties == null)
+                        // The image is from an auxiliary entity
+                        if (Ontology.Entities == null)
                         {
-                            Ontology.Properties = new List<OntologyProperty>();
+                            Ontology.Entities = new List<OntologyEntity>();
+                            Ontology.Entities.Add(entity);
                         }
 
                         if (!onlyReference)
                         {
-                            if (AttachedFilesType.Count > 0 && AttachedFiles.Count > 0)
+                            if (AttachedFiles.Count > 0 && AttachedFilesType.Count > 0)
                             {
-                                ImageOntologyProperty pOntImg = new ImageOntologyProperty(predicate, $"{imageId}" + extension);
-                                Ontology.Properties.Add(pOntImg);
+                                if (entity.Properties == null)
+                                {
+                                    entity.Properties = new List<OntologyProperty>();
+                                }
+                                entity.Properties.Add(new ImageOntologyProperty(predicate, $"{imageId}" + extension));
+
                             }
                         }
                         else
                         {
                             if (attachedImage)
                             {
-                                Ontology.Properties.Add(new ImageOntologyProperty(predicate, $"{imageId}" + extension));
+                                if (entity.Properties == null)
+                                {
+                                    entity.Properties = new List<OntologyProperty>();
+                                }
+                                entity.Properties.Add(new ImageOntologyProperty(predicate, $"{imageId}" + extension));
+
                             }
                         }
-
                     }
-                }
-
-                if (errorList != null && errorList.Count > 0)
-                {
-                    string message = null;
-                    foreach (string error in errorList)
+                    else
                     {
-                        if (message == null)
+                        // The image is an ontology property
+                        if (!string.IsNullOrWhiteSpace(predicate) && !string.IsNullOrEmpty(predicate))
                         {
-                            message = error;
-                        }
-                        else
-                        {
-                            message = $"{message}\n{error}";
+                            if (Ontology.Properties == null)
+                            {
+                                Ontology.Properties = new List<OntologyProperty>();
+                            }
+
+                            if (!onlyReference)
+                            {
+                                if (AttachedFilesType.Count > 0 && AttachedFiles.Count > 0)
+                                {
+                                    ImageOntologyProperty pOntImg = new ImageOntologyProperty(predicate, $"{imageId}" + extension);
+                                    Ontology.Properties.Add(pOntImg);
+                                }
+                            }
+                            else
+                            {
+                                if (attachedImage)
+                                {
+                                    Ontology.Properties.Add(new ImageOntologyProperty(predicate, $"{imageId}" + extension));
+                                }
+                            }
+
                         }
                     }
-                    throw new GnossAPIException(message);
-                }
-            }
-            catch (GnossAPIException)
-            {
-                throw;
-            }
-            catch (FileNotFoundException ex)
-            {
-                throw new GnossAPIException($"The image: {imageId} doesn't exist or is inaccessible", ex);
-            }
 
-            _rdfFile = Ontology.GenerateRDF();
+                    if (errorList != null && errorList.Count > 0)
+                    {
+                        string message = null;
+                        foreach (string error in errorList)
+                        {
+                            if (message == null)
+                            {
+                                message = error;
+                            }
+                            else
+                            {
+                                message = $"{message}\n{error}";
+                            }
+                        }
+                        throw new GnossAPIException(message);
+                    }
+                }
+                catch (GnossAPIException)
+                {
+                    throw;
+                }
+                catch (FileNotFoundException ex)
+                {
+                    throw new GnossAPIException($"The image: {imageId} doesn't exist or is inaccessible", ex);
+                }
+
+                if(Ontology != null)
+                {
+                    _rdfFile = Ontology.GenerateRDF();
+                }                
+
+            }
+            else
+            {
+                throw new Exception($"Los formatos permitidos son png, jpg, jpeg y gif. La extensión recibida es {extension}.");
+            }
+            
             return attachedImage;
         }
 

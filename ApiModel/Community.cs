@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
 
@@ -60,6 +61,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Logo for the community
         /// </summary>
         public byte[] logo { get; set; }
+
+        /// <summary>
+        /// Community domain
+        /// </summary>
+        public string domain { get; set; }
     }
 
     /// <summary>
@@ -133,7 +139,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         public string type { get; set; }
 
         /// <summary>
-        /// Community's access type
+        /// Community's access type, Public = 0, Private = 1, Restricted = 2, Reserved = 3
         /// </summary>
         public short access_type { get; set; }
 
@@ -146,6 +152,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Community's users
         /// </summary>
         public List<Guid> users { get; set; }
+        /// <summary>
+        /// Community's sate, Close = 0, Temporaly close = 1, Definition = 2, Open = 3, Closing = 4
+        /// </summary>
+        public short state { get; set; }
     }
 
     /// <summary>
@@ -407,7 +417,22 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Group name
         /// </summary>
         public string group_name { get; set; }
-    }
+
+        /// <summary>
+        /// Group tags
+        /// </summary>
+		public string tags { get; set; }
+
+        /// <summary>
+        /// Group description
+        /// </summary>
+		public string description { get; set; }
+
+        /// <summary>
+        /// Group members
+        /// </summary>
+		public List<Guid> members { get; set; }
+	}
 
     /// <summary>
     /// Represents an organization group
@@ -435,10 +460,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         public short identity_type { get; set; }
     }
 
-    /// <summary>
-    /// Parameters to create a community group
-    /// </summary>
-    public class CreateGroupCommunityModel
+	/// <summary>
+	/// Parameters to create a community group
+	/// </summary>
+	public class CreateGroupCommunityModel
     {
         /// <summary>
         /// Community short name
@@ -574,5 +599,26 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Options of the extra register data
         /// </summary>
         public Dictionary<Guid, string> options { get; set; }
+    }
+
+    /// <summary>
+    /// Parameters to obtein a text in other language
+    /// </summary>
+    public class GetTextByLanguageModel
+    {
+        /// <summary>
+        /// Community short name
+        /// </summary>
+        public string community_short_name { get; set; }
+
+        /// <summary>
+        /// Language of the text
+        /// </summary>
+        public string language { get; set; }
+
+        /// <summary>
+        /// ID of the text
+        /// </summary>
+        public string texto_id { get; set; }
     }
 }

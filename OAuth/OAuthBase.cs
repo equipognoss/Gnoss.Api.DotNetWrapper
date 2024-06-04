@@ -522,7 +522,7 @@ namespace Gnoss.ApiWrapper.OAuth
         public virtual string GenerateTimeStamp()
         {
             // Default implementation of UNIX time of the current UTC time
-            TimeSpan ts = DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan ts = DateTime.UtcNow - DateTime.UnixEpoch;
             return Convert.ToInt64(ts.TotalSeconds).ToString();
         }
 

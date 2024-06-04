@@ -64,10 +64,31 @@ namespace Gnoss.ApiWrapper.ApiModel
         public List<string> communities_short_names { get; set; }
     }
 
-    /// <summary>
-    /// Parameters for add a user in a organization
-    /// </summary>
-    public class ParamsChangeVisibility
+	/// <summary>
+	/// Parameters for delete a user from a organization group
+	/// </summary>
+	public class ParamsDeleteUserOrgGroup
+	{
+		/// <summary>
+		/// User identificator
+		/// </summary>	
+		public Guid user_id { get; set; }
+
+		/// <summary>
+		/// Organization short name
+		/// </summary>
+		public string organization_short_name { get; set; }
+
+		/// <summary>
+		/// Group where the user is going to be added
+		/// </summary>
+		public string group_short_name { get; set; }
+	}
+
+	/// <summary>
+	/// Parameters for add a user in a organization
+	/// </summary>
+	public class ParamsChangeVisibility
     {
         /// <summary>
         /// User identifier
@@ -307,6 +328,21 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// User prefered language
         /// </summary>
         public string languaje { get; set; }
+        
+        /// <summary>
+        /// Photo of personal profile
+        /// </summary>
+        public string photo { get; set; }
+
+        /// <summary>
+        /// Number of access user
+        /// </summary>
+        public int num_access { get; set; }
+
+        /// <summary>
+        /// Date of last login
+        /// </summary>
+        public DateTime? last_login { get; set; }
     }
 
     /// <summary>
@@ -333,6 +369,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Extra data value
         /// </summary>
         public string value { get; set; }
+
+        /// <summary>
+        /// Extra data short_name identifier
+        /// </summary>
+        public string short_name { get; set; }
     }
 
     /// <summary>

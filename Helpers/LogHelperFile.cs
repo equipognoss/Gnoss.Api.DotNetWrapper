@@ -8,8 +8,7 @@ using System.Reflection;
 using Gnoss.ApiWrapper.Exceptions;
 using System.Threading;
 using System.Runtime.CompilerServices;
-using static Es.Riam.Util.UtilTelemetry;
-using Es.Riam.Util;
+using static Utils.UtilTelemetry;
 
 namespace Gnoss.ApiWrapper.Helpers
 {    /// <summary>
@@ -195,34 +194,31 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <summary>
         /// Write a message in the log file
         /// </summary>
-        private void Write(LogLevels logLevel, string className, string memberName, string message, int numberWriteErrors = 3)
+        private void Write(LogLevels logLevel, string className, string memberName, string message)
         {
             if (_isActivated)
             {
                 StreamWriter sw = null;
+                string absolutePath = "";
                 try
                 {
                     string fileNameWithDate = $"{DateTime.Now.ToString("yyyy_MM_dd")}_{LogFileName}";
-                    string absolutePath = $"{LogDirectory}/{fileNameWithDate}";
+                    absolutePath = $"{LogDirectory}/{fileNameWithDate}";
                     string currentDate = DateTime.Now.ToString("dd/MM/yyyy");
                     string currentTime = DateTime.Now.ToString("HH:mm:ss");
                     string completeMessage = $"{currentDate}\t{currentTime}\t{Thread.CurrentThread.ManagedThreadId}\t{logLevel.ToString()}\t{className}\t{memberName}\t{message}";
 
-                    sw = new StreamWriter(absolutePath, true);
                     Console.WriteLine(completeMessage);
+
+                    sw = new StreamWriter(absolutePath, true);
                     sw.WriteLine(completeMessage);
                     sw.Flush();
                     sw.Dispose();
                     sw.Close();
                 }
-                catch
+                catch(Exception ex)
                 {
-                    Thread.Sleep(500);
-                    if (numberWriteErrors > 0)
-                    {
-                        numberWriteErrors--;
-                        Write(logLevel, className, memberName, message, numberWriteErrors);
-                    }
+                    Console.WriteLine($"Error al escribir el log en {absolutePath}: {ex.Message}");
                 }                
             }
         }

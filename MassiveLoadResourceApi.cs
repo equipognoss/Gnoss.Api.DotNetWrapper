@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace Gnoss.ApiWrapper
 {
@@ -46,30 +47,30 @@ namespace Gnoss.ApiWrapper
         public string Uri { get; set; }
         
         public bool IsDebugMode { get; set; }
+        
+        ///<summary>
         /// Max num of resources per packages
         /// </summary>
-        private int MaxResourcesPerPackage { get; set; }
+        public int MaxResourcesPerPackage { get; set; }
 
         private StreamWriter streamData;
         private StreamWriter streamOntology;
         private StreamWriter streamSearch;
 
         private static readonly int DEBUG_PACKAGE_SIZE = 10;
+        private static readonly int MAX_RESOURCE_PER_PACKAGE_STANDAR_SIZE = 50;
         private bool onlyPrepareMassiveLoad;
 
         /// <summary>
         /// Constructor of <see cref="MassiveLoadResourceApi"/>
         /// </summary>
-        /// <param name="communityShortName">Community short name which you want to use the API</param>
         /// <param name="oauth">OAuth information to sign the Api requests</param> 
-        /// <param name="isDebugMode">Only for debugging</param>
-        /// <param name="maxResourcesPerPackage">Num max of resources per package</param>
-        /// <param name="developerEmail">(Optional) If you want to be informed of any incident that may happends during a large load of resources, an email will be sent to this email address</param>
-        /// <param name="ontologyName">(Optional) Ontology name of the resources that you are going to query, upload or modify</param>
+        /// <param name="logHelper">Log Helper</param>
         public MassiveLoadResourceApi(OAuthInfo oauth, ILogHelper logHelper = null)
             : base(oauth, logHelper)
         {
             this.IsDebugMode = IsDebugMode;
+            MaxResourcesPerPackage = MAX_RESOURCE_PER_PACKAGE_STANDAR_SIZE;
         }
 
         /// <summary>
@@ -79,6 +80,8 @@ namespace Gnoss.ApiWrapper
         public MassiveLoadResourceApi(string configFilePath) : base(configFilePath)
         {
         }
+
+        public MassiveLoadResourceApi() : base() { }
 
         /// <summary>
         /// Create a new massive data load
@@ -103,10 +106,10 @@ namespace Gnoss.ApiWrapper
                 LoadName = pName;
                 MassiveLoadIdentifier = Guid.NewGuid();
 
-                if (!IsDebugMode && !onlyPrepareMassiveLoad)
-                {
-                    TestConnection();
-                }
+                //if (!IsDebugMode && !onlyPrepareMassiveLoad)
+                //{
+                //    TestConnection();
+                //}
 
                 CreateMassiveDataLoad();
 
@@ -132,8 +135,8 @@ namespace Gnoss.ApiWrapper
                     Directory.CreateDirectory(FilesDirectory);
                 }
 
-                string testFilePath = $"{FilesDirectory}/test.nq";
-                string downloadedTestFilePath = $"{FilesDirectory}/downloadedtest.nq";
+                string testFilePath = Path.Combine(FilesDirectory, "/test.nq");
+                string downloadedTestFilePath = Path.Combine(FilesDirectory,"/downloadedtest.nq");
 
                 //nq file creation
                 File.WriteAllText(testFilePath, $"Testing file... {DateTime.Now.Ticks}");
@@ -219,18 +222,15 @@ namespace Gnoss.ApiWrapper
                 List<string> searchTriples = resource.ToSearchGraphTriples(this);
                 KeyValuePair<Guid, string> acidData = resource.ToAcidData(this);
 
-                //string uri = resource.GetURI(this);
-                //string pathArchivoURI = $@"C:\Users\fortiz\Desktop\relacionArtista.txt";
-                //string lineaURI = $"{resource.GetID()}|||{uri} \r\n";
-                string pathOntology = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string pathSearch = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
-                string pathAcid = $"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
+                string pathOntology = Path.Combine(FilesDirectory,$"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
+                string pathSearch = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
+                string pathAcid = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
 
                 if (streamData == null || streamOntology == null || streamSearch == null)
                 {
-                    streamData = new StreamWriter(pathAcid);
-                    streamOntology = new StreamWriter(pathOntology);
-                    streamSearch = new StreamWriter(pathSearch);
+                    streamData = new StreamWriter(new FileStream(pathAcid, FileMode.OpenOrCreate), Encoding.UTF8);
+                    streamOntology = new StreamWriter(new FileStream(pathOntology, FileMode.OpenOrCreate), Encoding.UTF8);
+                    streamSearch = new StreamWriter(new FileStream(pathSearch, FileMode.OpenOrCreate), Encoding.UTF8);
                 }
 
                 foreach (string triple in ontologyTriples)
@@ -243,11 +243,7 @@ namespace Gnoss.ApiWrapper
                 }
                 streamData.WriteLine($"{acidData.Key}|||{acidData.Value}");
 
-                //File.AppendAllLines(pathOntology, ontologyTriples);
-                //File.AppendAllLines(pathSearch, searchTriples);
-                //File.AppendAllLines(pathAcid, new List<string>() { acidData.Key + "|||" + acidData.Value });
-
-                if (counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
+                if ((counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage && !IsDebugMode) || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
                 {
                     if (IsDebugMode)
                     {
@@ -266,7 +262,6 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 Log.Error($"Error creating the package of massive data load {ex.Message} {ex.StackTrace}");
-                //throw new GnossAPIException($"Error creating the package of massive data load {identifier}{ex.Message}");
             }
         }
 
@@ -371,9 +366,9 @@ namespace Gnoss.ApiWrapper
                 //Si es modo debug queremos los bytes de los ficheros directamente 
                 if (IsDebugMode)
                 {
-                    model.ontology_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
-                    model.search_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
-                    model.sql_bytes = File.ReadAllBytes($"{FilesDirectory}\\{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
+                    model.ontology_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
+                    model.search_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
+                    model.sql_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt"));
                 }
 
                 model.ontology_rute = uriOntology;
