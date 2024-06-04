@@ -12,10 +12,8 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Web;
-using Gnoss.ApiWrapper.EtiquetadoAutomaticoSOAP;
 using Gnoss.ApiWrapper.ApiModel;
 using System.Xml;
-using System.Text.Json;
 using System.Web;
 using Microsoft.AspNetCore.Http;
 
@@ -60,6 +58,14 @@ namespace Gnoss.ApiWrapper
         {
         }
 
+        /// <summary>
+        /// Consturtor of <see cref="ResourceApi"/>
+        /// </summary>
+        /// <param name="configFilePath">Configuration file path, with a structure like http://api.gnoss.com/v3/exampleConfig.txt </param>
+        public ResourceApi() : base()
+        {
+        }
+
         #endregion
 
         #region Public methods
@@ -85,7 +91,6 @@ namespace Gnoss.ApiWrapper
         /// <param name="resourceList">List of resources to load</param>
         /// <param name="hierarchycalCategories">Indicates whether the categories has hierarchy</param>
         /// <param name="ontology">Ontology where resource will be loaded</param>
-        /// <param name="communityShortName">Community short name where the resources will be loaded</param>
         public void LoadComplexSemanticResourceListWithOntologyAndCommunity(List<ComplexOntologyResource> resourceList, bool hierarchycalCategories, string ontology)
         {
             LoadComplexSemanticResourceListWithOntologyAndCommunityInt(resourceList, hierarchycalCategories, ontology);
@@ -195,10 +200,10 @@ namespace Gnoss.ApiWrapper
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
+                Log.Trace($"Loaded: \tID: {resource.ShortGnossId}\tTitle: {resource.Title}\tResourceID: {resource.GnossId}");
                 if (resource.ShortGnossId != Guid.Empty && documentId != resource.GnossId)
                 {
-                    Log.Info($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
+                    Log.Trace($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API", this.GetType().Name);
                 }
 
                 if (!string.IsNullOrEmpty(rdfsPath) && !string.IsNullOrWhiteSpace(rdfsPath))
@@ -208,7 +213,7 @@ namespace Gnoss.ApiWrapper
                         Directory.CreateDirectory($"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}");
                     }
 
-                    string ficheroRDF = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.Id}.rdf";
+                    string ficheroRDF = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.ShortGnossId}.rdf";
                     if (!File.Exists(ficheroRDF))
                     {
                         File.WriteAllText(ficheroRDF, resource.StringRdfFile);
@@ -219,11 +224,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -278,6 +283,7 @@ namespace Gnoss.ApiWrapper
         ///     rdf_attached_files = image to load byte[]
         /// main_image = main image string
         /// </param>
+        [Obsolete("MassiveUploadFiles is deprecated, please use UploadImages instead.")]
         public void MassiveUploadFiles(LoadResourceParams resource)
         {
             try
@@ -312,6 +318,7 @@ namespace Gnoss.ApiWrapper
         ///     rdf_attached_files = image to load byte[]
         /// main_image = main image string
         /// </param>
+        [Obsolete("MassiveUploadImages is deprecated, please use UploadImages instead.")]
         public void MassiveUploadImages(LoadResourceParams resource)
         {
             try
@@ -568,11 +575,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
                 if (numAttemps > 1)
@@ -617,11 +624,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
                 if (numAttemps > 1)
@@ -665,7 +672,7 @@ namespace Gnoss.ApiWrapper
 
                 if (resource.Modified)
                 {
-                    Log.Debug($"Successfully modified the resource with id: {resource.Id} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{ontologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with id: {resource.ShortGnossId} and Gnoss identifier {resource.ShortGnossId} belonging to the ontology '{ontologyUrl}' and RdfType = '{resource.Ontology.RdfType}'", this.GetType().Name);
                 }
                 else
                 {
@@ -711,11 +718,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.Id}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId}. Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -818,7 +825,7 @@ namespace Gnoss.ApiWrapper
                     LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, true);
                     resource.Modified = ModifyComplexOntologyResource(model);
 
-                    Log.Debug($"Successfully modified the resource with ID: {resource.Id} and Gnoss identifier {resource.ShortGnossId}", this.GetType().Name);
+                    Log.Debug($"Successfully modified the resource with ID: {resource.ShortGnossId} and Gnoss identifier {resource.GnossId}", this.GetType().Name);
                     if (resource.Modified)
                     {
                         try
@@ -854,7 +861,7 @@ namespace Gnoss.ApiWrapper
                         }
                         catch (Exception ex)
                         {
-                            Log.Error($"ERROR replacing the image of the resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                            Log.Error($"ERROR replacing the image of the resource: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
                         }
                     }
                     else
@@ -864,11 +871,11 @@ namespace Gnoss.ApiWrapper
                 }
                 catch (GnossAPICategoryException gacex)
                 {
-                    Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                    Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                    Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
                 }
 
                 Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
@@ -1346,7 +1353,7 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Method for adding one or more properties of a loaded resource. In RemoveTriples can indicate whether title or description. By default false two fields. It influences the value of the resource searches.
+        /// Method for delete one or more properties of a loaded resource. In RemoveTriples can indicate whether title or description. By default false two fields. It influences the value of the resource searches.
         /// </summary>
         /// <param name="resourceTriples">Contains as a key the resource guid identifier to modify and as a value a RemoveTriples list of the resource properties that will be deleted.</param>
         /// <param name="publishHome">Indicates whether the home must be updated</param>
@@ -1450,6 +1457,46 @@ namespace Gnoss.ApiWrapper
         {
             Log.Trace("Entering the method", this.GetType().Name);
             return VirtuosoQueryInt(selectPart, wherePart, communityId.ToString(), userMasterServer);
+        }
+
+        /// <summary>
+        /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the graph name
+        /// </summary>
+        /// <param name="selectPart">The 'SELECT' query part</param>
+        /// <param name="wherePart">The 'WHERE' query part</param>
+        /// <param name="ontologiaName">Graph name where the query runs (without extension '.owl')</param>
+        /// <param name="userMasterServer">Use Master Virtuoso</param>
+        /// <returns>DataSet with the query result</returns>
+        public DataSet VirtuosoQueryDataSet(string selectPart, string wherePart, string ontologiaName, bool userMasterServer = true)
+        {
+            Log.Trace("Entering the method", this.GetType().Name, MethodBase.GetCurrentMethod().Name);
+            return VirtuosoQueryIntDataSet(selectPart, wherePart, ontologiaName, userMasterServer);
+        }
+
+        /// <summary>
+        /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the community identifier
+        /// </summary>
+        /// <param name="selectPart">The 'SELECT' query part</param>
+        /// <param name="wherePart">The 'WHERE' query part</param>
+        /// <param name="communityId">Community identifier</param>
+        /// <returns>DataSet with the query result</returns>
+        public DataSet VirtuosoQueryDataSet(string selectPart, string wherePart, Guid communityId, bool userMasterServer = true)
+        {
+            Log.Trace("Entering the method", this.GetType().Name);
+            return VirtuosoQueryIntDataSet(selectPart, wherePart, communityId.ToString(), userMasterServer);
+        }
+
+        /// <summary>
+        /// Allows a virtuoso query, setting the 'SELECT' and 'WHERE' parts of the query and the community identifier
+        /// </summary>
+        /// <param name="selectPart">The 'SELECT' query part</param>
+        /// <param name="wherePart">The 'WHERE' query part</param>
+        /// <param name="graphs">List of the graphs in which you want search</param>
+        /// <returns>DataSet with the query result</returns>
+        public SparqlObject VirtuosoQueryMultipleGraph(string selectPart, string wherePart, List<string> graphs)
+        {
+            Log.Trace("Entering the method", this.GetType().Name);
+            return VirtuosoQueryMultipleGraphInt(selectPart, wherePart, graphs);
         }
 
         #endregion
@@ -1598,9 +1645,14 @@ namespace Gnoss.ApiWrapper
             }
             else
             {
-                EtiquetadoAutomaticoSoapClient servicioEtiquetado = new EtiquetadoAutomaticoSoapClient();
-                tagList = servicioEtiquetado.SeleccionarEtiquetasDesdeServicio(title, description.Replace($"\0", ""), null).Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries).ToList();
-            }
+
+                string url = $"{ApiUrl}/resource/get-automatic-labeling";
+                TagsFromServiceModel model = new TagsFromServiceModel{ title = title, description = description, community_short_name = CommunityShortName };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+
+                tagList = response.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(item => item.Trim()).ToList();
+            }            
 
             return tagList;
         }
@@ -1874,11 +1926,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -1927,11 +1979,11 @@ namespace Gnoss.ApiWrapper
                     }
                     catch (GnossAPICategoryException gacex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {gacex.Message}", this.GetType().Name);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR at: {processedNumber} of {originalResourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -1978,11 +2030,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -1991,25 +2043,27 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                if (resource.TextCategories != null)
+                if (resource.CategoriesIds == null)
                 {
-                    if (hierarquicalCategories && resource.TextCategories.Count > 0)
+                    if (resource.TextCategories != null && resource.TextCategories.Count > 0)
                     {
-                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                    }
-                    else
-                    {
-                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        if (hierarquicalCategories)
+                        {
+                            resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        }
+                        else
+                        {
+                            resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                        }
                     }
                 }
-
                 string documentId = string.Empty;
 
                 LoadResourceParams model = GetResourceModelOfComplexOntologyResource(resource, false, isLast);
                 documentId = CreateComplexOntologyResource(model);
                 resource.Uploaded = true;
 
-                Log.Debug($"Loaded: \tID: {resource.Id}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
+                Log.Debug($"Loaded: \tID: {resource.ShortGnossId}\tTitle: {resource.Title}\tResourceID: {resource.Ontology.ResourceId}");
 
                 if (!string.IsNullOrEmpty(rdfsPath) && !string.IsNullOrWhiteSpace(rdfsPath))
                 {
@@ -2018,7 +2072,7 @@ namespace Gnoss.ApiWrapper
                         Directory.CreateDirectory($"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}");
                     }
 
-                    string rdfFile = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.Id}.rdf";
+                    string rdfFile = $"{rdfsPath}/{GetOntologyNameWithOutExtensionFromUrlOntology(resource.Ontology.OntologyUrl)}/{resource.ShortGnossId}.rdf";
                     if (!File.Exists(rdfFile))
                     {
                         File.WriteAllText(rdfFile, resource.StringRdfFile);
@@ -2029,11 +2083,11 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPICategoryException gacex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {gacex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error loading the resource: \tID: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Error loading the resource: \tID: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             return resource.GnossId;
         }
@@ -2071,7 +2125,7 @@ namespace Gnoss.ApiWrapper
                 string documentId = CreateBasicOntologyResource(model);
                 resource.Uploaded = true;
                 resource.ShortGnossId = new Guid(documentId.Trim('"'));
-                Log.Debug($"Loaded: {resource.GnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
+                Log.Trace($"Loaded: {resource.GnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
                 if (documentId != resource.GnossId)
                 {
                     throw new GnossAPIException($"Resource loaded with the id: {documentId}\nThe IDGnoss provided to the method is different from the returned by the API");
@@ -2079,14 +2133,14 @@ namespace Gnoss.ApiWrapper
             }
             catch (GnossAPIException ex)
             {
-                Log.Info($"Resource: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"Resource: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
-            Log.Debug("******************** End Load", this.GetType().Name);
+            Log.Trace("******************** End Load", this.GetType().Name);
         }
 
         private void LoadBasicOntologyResourceIntVideo(BasicOntologyResource resource, bool hierarquicalCategories, TiposDocumentacion resourceType, bool isLast = false)
@@ -2115,11 +2169,11 @@ namespace Gnoss.ApiWrapper
                 {
                 }
                 resource.ShortGnossId = new Guid(documentId);
-                Log.Debug($"Loaded: {resource.Id}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
+                Log.Debug($"Loaded: {resource.ShortGnossId}\tTitle: {resource.Title}\tResourceID: {documentId}", this.GetType().Name);
             }
             catch (Exception ex)
             {
-                Log.Error($"ERROR at: {resource.Id} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
+                Log.Error($"ERROR at: {resource.ShortGnossId} . Title: {resource.Title}. Message: {ex.Message}", this.GetType().Name);
             }
 
             Log.Debug("******************** End Load", this.GetType().Name);
@@ -2145,13 +2199,13 @@ namespace Gnoss.ApiWrapper
                         LoadBasicOntologyResourceInt(rec, hierarquicalCategories, resourceType, processedNumber == resourceList.Count());
                         if (rec.Uploaded)
                         {
-                            Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
+                            Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId}\tTitle: {rec.Title}");
                         }
                         resourcesToLoad.Remove(rec);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Message: {ex.Message}", this.GetType().Name);
                     }
                 }
 
@@ -2175,12 +2229,12 @@ namespace Gnoss.ApiWrapper
                     try
                     {
                         LoadBasicOntologyResourceIntVideo(rec, hierarquicalCategories, resourceType, processedNumber == resourceList.Count());
-                        Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.Id}\tTitle: {rec.Title}");
+                        Log.Debug($"Loaded: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId}\tTitle: {rec.Title}");
                         resourcesToLoad.Remove(rec);
                     }
                     catch (Exception ex)
                     {
-                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.Id} . Title: {rec.Title}. Mensaje: {ex.Message}", this.GetType().Name);
+                        Log.Error($"ERROR in: {processedNumber} of {resourceList.Count}\tID: {rec.ShortGnossId} . Title: {rec.Title}. Mensaje: {ex.Message}", this.GetType().Name);
                     }
                 }
                 Log.Debug($"******************** Finished lap number: {attempNumber}", this.GetType().Name);
@@ -2803,12 +2857,124 @@ namespace Gnoss.ApiWrapper
             }
             catch (WebException wex)
             {
-                string resultado = wex.Response.Headers["ErrorDescription"].Replace("<br>", "\n");
-                throw new GnossAPIException($"Could not make the query to Virtuoso.\n{resultado}");
+                string resultado = wex.Response?.Headers["ErrorDescription"]?.Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query {selectPart} {wherePart} to the graph {graph}.\nError: {resultado}");
             }
 
             Log.Trace("Leaving the method", this.GetType().Name);
             return SO;
+        }
+
+        private DataSet VirtuosoQueryIntDataSet(string selectPart, string wherePart, string graph, bool userMasterServer)
+        {
+            Log.Trace("Entering in the method", this.GetType().Name);
+            Log.Trace($"SELECT: {selectPart}", this.GetType().Name);
+            Log.Trace($"Grafo name: {graph}", this.GetType().Name);
+            Log.Trace($"WHERE: {wherePart}", this.GetType().Name);
+
+            DataSet dataSet = new DataSet();
+
+            try
+            {
+                Log.Trace("Query start", this.GetType().Name);
+
+                string url = $"{ApiUrl}/sparql-endpoint/querycsv";
+
+                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+                lock (dataSet)
+                {
+                    LeerResultadosCSV(response, graph, dataSet);
+                }
+                Log.Trace("Query end", this.GetType().Name);
+            }
+            catch (WebException wex)
+            {
+                string resultado = wex.Response?.Headers["ErrorDescription"]?.Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query {selectPart} {wherePart} to the graph {graph}.\nError: {resultado}");
+            }
+
+            Log.Trace("Leaving the method", this.GetType().Name);
+            return dataSet;
+        }
+
+        private void LeerResultadosCSV(string pResultados, string pNombreTabla, DataSet pFacetadoDS)
+        {
+            if (pFacetadoDS != null && pFacetadoDS.Tables.Contains(pNombreTabla))
+            {
+                pFacetadoDS.Tables[pNombreTabla].Clear();
+            }
+            else if (pFacetadoDS != null && !pFacetadoDS.Tables.Contains(pNombreTabla))
+            {
+                pFacetadoDS.Tables.Add(new DataTable(pNombreTabla));
+            }
+
+            string[] lineas = pResultados.Split(new string[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (pFacetadoDS != null && !string.IsNullOrEmpty(pResultados) && lineas.Length > 1)
+            {
+                byte[] byteArray = Encoding.UTF8.GetBytes(pResultados);
+                MemoryStream stream = new MemoryStream(byteArray);
+                DataTable csvTable = pFacetadoDS.Tables[pNombreTabla];
+                using (CsvReader.CsvReader csvReader = new CsvReader.CsvReader(new StreamReader(stream), true))
+                {
+                    char delimiter = csvReader.Delimiter;
+                    csvTable.Load(csvReader);
+                    foreach (System.Data.DataColumn col in csvTable.Columns)
+                    {
+                        col.ReadOnly = false;
+                    }
+                }
+            }
+            else if (lineas.Length == 1)
+            {
+                // Creo las columnas en la tabla porque si no hay métodos que fallan
+                string[] columnas = lineas[0].Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (string columna in columnas)
+                {
+                    string nombreCol = columna.Trim('\"');
+
+                    if (pFacetadoDS != null && !pFacetadoDS.Tables[pNombreTabla].Columns.Contains(nombreCol))
+                    {
+                        pFacetadoDS.Tables[pNombreTabla].Columns.Add(nombreCol);
+                    }
+                }
+            }
+        }
+
+        private SparqlObject VirtuosoQueryMultipleGraphInt(string selectPart, string wherePart, List<string> graph_list)
+        {
+            Log.Trace("Entering in the method", this.GetType().Name);
+            Log.Trace($"SELECT: {selectPart}", this.GetType().Name);
+            Log.Trace($"Grafo name: {graph_list}", this.GetType().Name);
+            Log.Trace($"WHERE: {wherePart}", this.GetType().Name);
+
+            SparqlObject sparqlObject = new SparqlObject();
+
+            try
+            {
+                Log.Trace("Query start", this.GetType().Name);
+
+                string url = $"{ApiUrl}/sparql-endpoint/query-multiple-graph";
+
+                SparqlQueryMultipleGraph model = new SparqlQueryMultipleGraph() { ontology_list = graph_list, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+
+                sparqlObject = JsonConvert.DeserializeObject<SparqlObject>(response);
+
+                Log.Trace("Query end", this.GetType().Name);
+            }
+            catch (WebException wex)
+            {
+                string resultado = wex.Response?.Headers["ErrorDescription"]?.Replace("<br>", "\n");
+                throw new GnossAPIException($"Could not make the query {selectPart} {wherePart} to the graphs {string.Join(',', graph_list)}.\nError: {resultado}");
+            }
+
+            Log.Trace("Leaving the method", GetType().Name);
+            return sparqlObject;
         }
 
         private void PrepareAttachedToLog(List<SemanticAttachedResource> resourceAttachedFiles)
@@ -3323,7 +3489,7 @@ namespace Gnoss.ApiWrapper
                 string response = WebRequestPostWithJsonObject(url, resourceId_list);
                 editorsList = JsonConvert.DeserializeObject<List<KeyEditors>>(response);
 
-                if (editorsList != null && editorsList.Count == 0)
+                if (editorsList != null && editorsList.Count > 0)
                 {
                     Log.Debug($"Editors of the resources {JsonConvert.SerializeObject(resourceId_list)}: {response}");
                 }
@@ -3851,7 +4017,7 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>
         /// <param name="deleteAttached">indicates if the attached resources must be deleted</param>
-        /// <param name="endOfCharge">marks the end of the charge</param>
+        /// <param name="endOfCharge">Indicates the end of the load. If its false, cache will not be deleted</param>
         public bool PersistentDelete(Guid resourceId, bool deleteAttached = false, bool endOfCharge = false)
         {
             bool deleted = false;
@@ -3912,11 +4078,11 @@ namespace Gnoss.ApiWrapper
         public bool UploadImages(Guid resourceId, List<SemanticAttachedResource> imageList, string mainImage)
         {
             bool loaded = false;
-            LoadResourceParams model = null;
+            UploadImagesParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/upload-images";
-                model = new LoadResourceParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, main_image = mainImage };
+                model = new UploadImagesParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, main_image = mainImage };
                 WebRequestPostWithJsonObject(url, model);
                 loaded = true;
                 Log.Debug("Ended images upload");
@@ -4392,6 +4558,25 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// FlushDb of resource cache
+        /// </summary>
+        /// /// <param name="pProyectoID">Proyect ID</param>
+        public void DeleteCacheResources(Guid pProyectoID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/resource/delete-cache-resources?project_id={pProyectoID}";
+
+                WebRequest("POST", url, acceptHeader: "application/json");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error deleting cache of resources", ex.Message);
+                throw;
+            }
+        }
+
+        /// <summary>
         /// Modify a big list of triples
         /// </summary>
         /// <param name="parameters">Parameters for the modification</param>
@@ -4506,10 +4691,33 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Get an attached file from a semantic resource
+        /// </summary>
+        /// <param name="resource_id">Identifier of the resource</param>
+        /// <param name="file_name">Name of the file attached with extension</param>
+        /// <param name="language">Only if the property is multilanguage. The language which we want the file. es, en, de, ca, eu, fr, gl, it, pt</param>
+        /// <returns>An byte array with the content of the file</returns>
+        public byte[] GetAttachedFileFromSemanticResource(Guid resource_id, string file_name, string language = "")
+        {
+            byte[] attachedFile = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/get-attached-file-semantic-resource?resource_id={resource_id}&file_name={file_name}&community_short_name={CommunityShortName}&language={language}";
+                string response = WebRequest("GET", url);
+                attachedFile = JsonConvert.DeserializeObject<byte[]>(response);
+
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"Error getting the file {file_name} from the resource {resource_id} in the community {CommunityShortName}.", ex.Message);
+            }
+            return attachedFile;
+        }
+
+        /// <summary>
         /// Gets the novelties of the resource from a datetime
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>
-        /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>ResourceNoveltiesModel with the novelties of the resource from the search date</returns>
         public ResourceNoveltiesModel GetResourceNoveltiesFromDate(Guid resourceId, string searchDate)
@@ -4550,6 +4758,7 @@ namespace Gnoss.ApiWrapper
         /// Changes the current ontology by the indicated ontology.
         /// </summary>
         /// <param name="newOntology">New ontology name</param>
+        [Obsolete("Se recomienda usar el nuevo metodo ChangeOntology")]
         public void ChangeOntoly(string newOntology)
         {
             string ontologia = newOntology.ToLower().Replace(".owl", "");
@@ -4563,6 +4772,48 @@ namespace Gnoss.ApiWrapper
 
         }
 
+        /// <summary>
+        /// Changes the current ontology by the indicated ontology.
+        /// </summary>
+        /// <param name="newOntology">New ontology name</param>
+        public void ChangeOntology(string newOntology)
+        {
+            string ontologia = newOntology.ToLower().Replace(".owl", "");
+
+            OntologyUrl = null;
+
+            if (!string.IsNullOrEmpty(ontologia))
+            {
+                OntologyUrl = $"{GraphsUrl}Ontologia/{ontologia}.owl";
+            }
+
+        }
+
+        /// <summary>
+        /// Check if a load identifier is already registered
+        /// </summary>
+        /// <param name="communityID">Identifier of the community</param>
+        /// <param name="organizationID">Identifier of the organization</param>
+        /// <returns>True if the load identifier is already registered</returns>
+        public bool RefreshHeavyCache(Guid communityID, Guid organizationID)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/refresh-heavy-cache?community_id={communityID}&organization_id={organizationID}";
+
+                WebRequestPostWithJsonObject(url, "");
+
+                Log.Trace($"community {communityID}. Organization: {organizationID}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex.Message);
+                return false;
+            }
+        }
+
         private void GetGraphsUrl()
         {
             try
@@ -4571,11 +4822,12 @@ namespace Gnoss.ApiWrapper
 
                 GraphsUrl = WebRequest($"GET", url, acceptHeader: "application/json")?.Trim('"');
 
-                Log.Debug($"The url of the graphs is: {GraphsUrl}");
+                Log.Trace($"The url of the graphs is: {GraphsUrl}");
             }
             catch (Exception ex)
             {
-                Log.Debug($"Error obtaining the intragnoss URL: {ex.Message}");
+                Log.Error($"Error obtaining the intragnoss URL: {ex.Message}");
+                throw;
             }
         }
 

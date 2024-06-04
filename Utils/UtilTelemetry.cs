@@ -7,7 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Es.Riam.Util
+namespace Utils
 {
 
     #region Enumerations
@@ -52,7 +52,7 @@ namespace Es.Riam.Util
                 {
                     telemetryClient = new TelemetryClient();
                     //TODO: la versión deberíamos obtenerla de otro ensamblado (algún AD pej.)
-                    telemetryClient.Context.Component.Version = typeof(Es.Riam.Util.UtilTelemetry).Assembly.GetName().Version.ToString();
+                    telemetryClient.Context.Component.Version = typeof(Utils.UtilTelemetry).Assembly.GetName().Version.ToString();
                 }
                 return telemetryClient;
             }

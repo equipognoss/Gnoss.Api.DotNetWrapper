@@ -48,7 +48,7 @@ namespace Gnoss.ApiWrapper.Model
         /// </summary>
         /// <param name="value">Current value of the property to delete</param>
         /// <param name="predicate">Predicate of the property to delete. If it's a property of an auxiliary entity, the correct syntax is firstLevelPredicate|secondLevelPredicate</param>
-        /// <param name="objectType">Objet type. It can be image or attached file</param>
+        /// <param name="objectType">Objet type. It can be image or attached file, (file = 0, image = 1, linkFile = 2)</param>
         public RemoveTriples(string value, string predicate, short objectType)
         {
             Predicate = predicate;
@@ -76,14 +76,7 @@ namespace Gnoss.ApiWrapper.Model
             get { return _predicate; }
             set
             {
-                if (value.Contains("http:"))
-                {
-                    _predicate = value;
-                }
-                else
-                {
-                    throw new GnossAPIException("the predicate must be a complete uri, not a property with namespace");
-                }
+                _predicate = value;
             }
         }
 

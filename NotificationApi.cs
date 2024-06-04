@@ -52,8 +52,8 @@ namespace Gnoss.ApiWrapper
 
                 NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask, community_short_name = CommunityShortName };
                 string result = WebRequestPostWithJsonObject(url, model);
-                int mailID = Int32.Parse(result);
-
+                int mailID;
+                Int32.TryParse(result, out mailID);
                 Log.Debug($"Email {subject} sended to {string.Join(",", receivers)}");
                 return mailID;
             }
@@ -81,7 +81,8 @@ namespace Gnoss.ApiWrapper
 
                 NotificationModel model = new NotificationModel() { subject = subject, message = message, receivers = receivers, is_html = isHTML, sender_mask = senderMask, community_short_name = CommunityShortName, transmitter_mail_configuration = pTransmitterMailConfiguration };
                 string result = WebRequestPostWithJsonObject(url, model);
-                int mailID = Int32.Parse(result);
+                int mailID;
+                Int32.TryParse(result, out mailID);
 
                 Log.Debug($"Email {subject} sended to {string.Join(",", receivers)}");
                 return mailID;

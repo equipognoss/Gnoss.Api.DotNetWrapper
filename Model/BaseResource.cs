@@ -308,7 +308,7 @@ namespace Gnoss.ApiWrapper.Model
 
         /// <summary>
         /// Gets or sets the resource editors groups. 
-        /// The value of this property must be tha short names of the groups, separated by commas. 
+        /// The value of this property must be a list of ReaderEditor object. 
         /// The readers and readers groups are set by his short name. If there is any organization group, the way to set this group is setting the organization_short_name and group_short_name.  
         /// </summary>
         public List<ReaderEditor> EditorsGroups
