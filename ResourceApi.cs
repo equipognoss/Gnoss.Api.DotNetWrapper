@@ -2880,7 +2880,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/querycsv";
 
-                sparqlQuery model = new sparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
+                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
                 lock (dataSet)
