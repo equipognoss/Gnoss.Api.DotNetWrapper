@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -67,12 +68,15 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string domain { get; set; }
     }
-
-    /// <summary>
-    /// Link parent community
-    /// </summary>
-    public class LinkParentCommunityModel
+    public class EditCommunityImageModel
     {
+        public byte[] logo { get; set; }
+        public string communityName { get; set; }
+    }
+        /// <summary>
+        /// Link parent community
+        public class LinkParentCommunityModel
+        {
         /// <summary>
         /// Short name
         /// </summary>
@@ -87,7 +91,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// User identificator of the administrator of the community
         /// </summary>
         public Guid admin_id { get; set; }
-    }
+        }
 
     /// <summary>
     /// Represents a category of a community
