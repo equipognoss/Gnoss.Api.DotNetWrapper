@@ -123,6 +123,28 @@ namespace Gnoss.ApiWrapper
 
             CreateCommunity(community);
         }
+        /// <summary>
+        /// Modify Logo
+        /// </summary>
+        /// <param name="logo"> Logo of the community</param>
+        /// <param name="communityName">Community name</param>
+        public void ModifyLogo(EditCommunityImageModel pEditCommunityImageModel)
+        {
+            string json = null;
+            try
+            {
+                string url = $"{ApiUrl}/community/modify-community-image";
+
+                WebRequestPostWithJsonObject(url, pEditCommunityImageModel);
+                
+                Log.Debug($"Modify Logo {json}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error Modify Logo {json}: \r\n{ex.Message}");
+                throw;
+            }
+        }
 
         /// <summary>
         /// Create a community
