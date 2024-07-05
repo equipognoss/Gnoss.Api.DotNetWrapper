@@ -57,7 +57,7 @@ namespace Gnoss.ApiWrapper.Helpers
                 {
                     if (!Path.IsPathRooted(_logDirectory))
                     {
-                        _logDirectory = System.AppDomain.CurrentDomain.SetupInformation.ApplicationBase + _logDirectory;
+                        _logDirectory = AppDomain.CurrentDomain.SetupInformation.ApplicationBase + _logDirectory;
                     }
 
                     if (!Directory.Exists(_logDirectory))
@@ -94,6 +94,10 @@ namespace Gnoss.ApiWrapper.Helpers
                 if (string.IsNullOrEmpty(logFileName))
                 {
                     LogFileName = "gnoss_api.log";
+                }
+                else
+                {
+                    LogFileName = logFileName;
                 }
                 _isActivated = true;
             }
