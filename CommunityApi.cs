@@ -165,17 +165,18 @@ namespace Gnoss.ApiWrapper
         /// <param name="categoryName">Category name</param>
         /// <param name="communityShortName">Community short name</param>
         /// <param name="parentCategoryID">Parent category ID</param>
-        public Guid CreateCategory(string categoryName, Guid? parentCategoryID)
+        /// <param name="categoryImage">Category image</param>
+        public Guid CreateCategory(string categoryName, Guid? parentCategoryID, byte[] categoryImage = null)
         {
             try
             {
-                CommunityCategoryModel communityModel = new CommunityCategoryModel() { category_name = categoryName, community_short_name = CommunityShortName, parent_category_id = parentCategoryID };
+                CommunityCategoryModel communityModel = new CommunityCategoryModel() { category_name = categoryName, community_short_name = CommunityShortName, parent_category_id = parentCategoryID, category_image = categoryImage };
 
-                string url = $"{ApiUrl}/community/create-category?category_name={communityModel.category_name}&community_short_name={communityModel.community_short_name}&parent_category={communityModel.parent_category_id}";
+                string url = $"{ApiUrl}/community/create-category";
 
                 Log.Fatal($"Inicio llamada 1.{communityModel.category_name} | 2.{communityModel.community_short_name} | 3.{communityModel.parent_category_id}");
-                
-                string response = WebRequest("GET", url);
+
+                string response = WebRequestPostWithJsonObject(url, communityModel);
 
                 return JsonConvert.DeserializeObject<Guid>(response);
             }

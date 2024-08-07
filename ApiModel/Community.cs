@@ -110,6 +110,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Identifier of the parent category
         /// </summary>
         public Guid? parent_category_id { get; set; }
+        /// <summary>
+        /// Image of the category
+        /// </summary>
+        public byte[] category_image { get; set; }
     }
 
     /// <summary>
@@ -234,6 +238,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Parent category identifier
         /// </summary>
         public Guid parent_category_id { get; set; }
+
+        /// <summary>
+        /// List of category image in different sizes 120px, 240px, 420px, 2400px 
+        /// </summary>
+        public Dictionary<int, string> category_images { get; set; }
 
         /// <summary>
         /// ThesaurusCategory constructor
