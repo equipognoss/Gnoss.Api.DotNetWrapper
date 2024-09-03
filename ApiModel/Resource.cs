@@ -1090,6 +1090,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Short name of the community
         /// </summary>
         public string community_name { get; set; }
+        /// <summary>
+        /// Ontology name 
+        /// </summary>
+        public string ontology { get; set; }
     }
 
     /// <summary>
@@ -1162,10 +1166,6 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Date when the package is processed.
         /// </summary>
         public DateTime? date_processing { get; set; }
-        /// <summary>
-        /// Ontology name 
-        /// </summary>
-        public string ontology { get; set; }
         /// <summary>
         /// The data is compress
         /// </summary>

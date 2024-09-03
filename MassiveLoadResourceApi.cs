@@ -106,11 +106,6 @@ namespace Gnoss.ApiWrapper
                 LoadName = pName;
                 MassiveLoadIdentifier = Guid.NewGuid();
 
-                //if (!IsDebugMode && !onlyPrepareMassiveLoad)
-                //{
-                //    TestConnection();
-                //}
-
                 CreateMassiveDataLoad();
 
                 Log.Debug($"Massive data load create with the identifier {MassiveLoadIdentifier}");
@@ -306,8 +301,7 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Create the massive data load
-        /// <param name="organizationID">OPTIONAL: Organization identifier. If is not write, is '11111111-1111-1111-1111-111111111111'</param>
+        /// Create the massive data load       
         /// <returns>True if the load is correctly created</returns>
         /// </summary>
         private bool CreateMassiveDataLoad()
@@ -323,7 +317,8 @@ namespace Gnoss.ApiWrapper
                 {
                     load_id = MassiveLoadIdentifier,
                     name = LoadName,
-                    community_name = CommunityShortName
+                    community_name = CommunityShortName,
+                    ontology = OntologyUrl
                 };
                 WebRequestPostWithJsonObject(url, model);
                 created = true;
@@ -374,7 +369,6 @@ namespace Gnoss.ApiWrapper
                 model.ontology_rute = uriOntology;
                 model.search_rute = uriSearch;
                 model.sql_rute = uriAcid;
-                model.ontology = OntologyUrl;
                 model.isLast = false;
 
                 CreatePackageMassiveDataLoad(model);
