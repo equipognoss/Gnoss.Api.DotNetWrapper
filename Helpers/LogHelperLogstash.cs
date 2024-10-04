@@ -183,7 +183,7 @@ namespace Gnoss.ApiWrapper.Helpers
 
 
                 LOG = new LoggerConfiguration()
-                    .WriteTo.Http(EndPoint)
+                    .WriteTo.Http(EndPoint,null)
                     .CreateLogger();
 
                 switch (logLevel)
@@ -191,7 +191,7 @@ namespace Gnoss.ApiWrapper.Helpers
                     case LogLevels.TRACE:
                         LOG = new LoggerConfiguration()
                             .MinimumLevel.Verbose()
-                            .WriteTo.Http(EndPoint)
+                            .WriteTo.Http(EndPoint, null)
                             .CreateLogger();
 
                         LOG.Verbose("{@data}, {@request}", data, request);
@@ -199,7 +199,7 @@ namespace Gnoss.ApiWrapper.Helpers
                     case LogLevels.DEBUG:
                         LOG = new LoggerConfiguration()
                             .MinimumLevel.Debug()
-                            .WriteTo.Http(EndPoint)
+                            .WriteTo.Http(EndPoint, null)
                             .CreateLogger();
 
                         LOG.Debug("{@data}, {@request}", data, request);

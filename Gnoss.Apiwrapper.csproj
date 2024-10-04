@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -14,16 +14,16 @@
   </ItemGroup>
 
   <ItemGroup>
-	 <PackageReference Include="LumenWorksCsvReader2" Version="4.3.0" />
+	 <PackageReference Include="LumenWorksCsvReader2" Version="4.4.0" />
 	 <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0" />
-	 <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-	 <PackageReference Include="Serilog.AspNetCore" Version="3.4.0" />
-	 <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
-	 <PackageReference Include="Serilog.Sinks.Http" Version="7.2.0" />
-	 <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="2.3.0" />
-	 <PackageReference Include="SixLabors.ImageSharp" Version="3.1.4" />
-	 <PackageReference Include="System.Security.Cryptography.Pkcs" Version="6.0.4" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="6.0.0" />
+	 <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	 <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+	 <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+	 <PackageReference Include="Serilog.Sinks.Http" Version="9.0.0" />
+	 <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
+	 <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+	 <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

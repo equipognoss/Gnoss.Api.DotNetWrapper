@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<discovery xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/disco/">
-  <contractRef ref="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx?wsdl" docRef="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx" xmlns="http://schemas.xmlsoap.org/disco/scl/" />
-  <soap address="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx" xmlns:q1="http://gnoss.com" binding="q1:EtiquetadoAutomaticoSoap" xmlns="http://schemas.xmlsoap.org/disco/soap/" />
-  <soap address="http://etiquetado.gnoss.com/etiquetadoautomatico.asmx" xmlns:q2="http://gnoss.com" binding="q2:EtiquetadoAutomaticoSoap12" xmlns="http://schemas.xmlsoap.org/disco/soap/" />
-</discovery>
