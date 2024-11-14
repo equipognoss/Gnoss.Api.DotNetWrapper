@@ -71,5 +71,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         [Required]
         public string query_where { get; set; }
+
+        /// <summary>
+        /// Use virtuoso master connection if true and the afinity connection if false
+        /// </summary>
+        public bool use_master_server { get; set; } = true;
     }
 }
