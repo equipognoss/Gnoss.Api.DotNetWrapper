@@ -2850,7 +2850,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/query";
 
-                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_master_server = userMasterServer };
+                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_virtuoso_balancer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
@@ -2883,7 +2883,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/querycsv";
 
-                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_master_server = userMasterServer };
+                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_virtuoso_balancer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
                 lock (dataSet)
@@ -2962,7 +2962,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/query-multiple-graph";
 
-                SparqlQueryMultipleGraph model = new SparqlQueryMultipleGraph() { ontology_list = graph_list, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_master_server = useMasterServer };
+                SparqlQueryMultipleGraph model = new SparqlQueryMultipleGraph() { ontology_list = graph_list, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_virtuoso_balancer = useMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
