@@ -3026,7 +3026,7 @@ namespace Gnoss.ApiWrapper
             model.auto_tags_description_text = rec.AutomaticTagsTextFromDescription;
             model.create_screenshot = rec.GenerateSnapshot;
             model.url_screenshot = rec.DownloadUrl;
-            model.screenshot_sizes = rec.SnapshotSizes.ToList();
+            
             if (rec.SnapshotSizes != null)
             {
                 model.screenshot_sizes = rec.SnapshotSizes.ToList();
