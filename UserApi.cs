@@ -21,14 +21,14 @@ namespace Gnoss.ApiWrapper
     public class UserApi : GnossApiWrapper
     {
 
-        #region Constructors
+		#region Constructors
 
-        /// <summary>
-        /// Constructor of <see cref="UserApi"/>
-        /// </summary>
-        /// <param name="communityShortName">Community short name which you want to use the API</param>
-        /// <param name="oauth">OAuth information to sign the Api requests</param>
-        public UserApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
+		/// <summary>
+		/// Constructor of <see cref="UserApi"/>
+		/// </summary>
+		/// <param name="oauth">OAuth information to sign the Api requests</param>
+		/// <param name="logHelper">Log helper</param>
+		public UserApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
         }
 
@@ -513,28 +513,28 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Change visibility of a user in a communities
-        /// </summary>
-        /// <param name="pUsuarioID">User's ID</param>
-        /// <param name="pComunidadesID">Id´s of communities</param>
-        /// <param name="pvisibilidad">Visibility of user</param>
-        public void ChangeVisibilityUserCommunities(Guid userId, List<Guid> pComunidadesID, bool pvisibilidad = false)
+		/// <summary>
+		/// Change visibility of a user in a communities
+		/// </summary>
+		/// <param name="pUserId">User's ID</param>
+		/// <param name="pComunidadesID">Id´s of communities</param>
+		/// <param name="pVisibilidad">Visibility of user</param>
+		public void ChangeVisibilityUserCommunities(Guid pUserId, List<Guid> pComunidadesID, bool pVisibilidad = false)
         {
             try
             {
                 string url = $"{ApiUrl}/user/change-user-visibility";
 
-                ParamsChangeVisibility model = new ParamsChangeVisibility() { user_id = userId, communities_Id = pComunidadesID, visibility = pvisibilidad };
+                ParamsChangeVisibility model = new ParamsChangeVisibility() { user_id = pUserId, communities_Id = pComunidadesID, visibility = pVisibilidad };
                 string postData = JsonConvert.SerializeObject(model);
 
                 WebRequest("POST", url, postData, "application/json");
 
-                Log.Debug($"User {userId} change visibility in the communities: {string.Join(",", pComunidadesID)}");
+                Log.Debug($"User {pUserId} change visibility in the communities: {string.Join(",", pComunidadesID)}");
             }
             catch (Exception ex)
             {
-                Log.Error($"Error adding user {userId} change visibility in the communities: {string.Join(",", pComunidadesID)}: \r\n{ex.Message}");
+                Log.Error($"Error adding user {pUserId} change visibility in the communities: {string.Join(",", pComunidadesID)}: \r\n{ex.Message}");
                 throw;
             }
         }
@@ -596,7 +596,6 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Gets the modified users from a datetime in a community
         /// </summary>
-        /// <param name="communityShortName">Community short name</param>
         /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
         /// <returns>List with the modified users identifiers</returns>
         public List<Guid> GetModifiedUsersFromDate(string searchDate)
@@ -695,7 +694,7 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Gets the UserID form Cookie
         /// </summary>
-        /// <param name="pCookie">cookie</params>
+        /// <param name="pCookie">cookie</param>
         /// <returns>UserID from cookie</returns>
         public Guid GetUserIDFromCookie(string pCookie)
         {
