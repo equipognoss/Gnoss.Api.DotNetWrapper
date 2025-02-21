@@ -235,9 +235,9 @@ namespace Gnoss.ApiWrapper.Helpers
             }
             else
             {
-                JpegEncoder encoder = new JpegEncoder()
+                PngEncoder encoder = new PngEncoder()
                 {
-                    Quality = pQuality
+                    ColorType = PngColorType.RgbWithAlpha
                 };
 
                 try

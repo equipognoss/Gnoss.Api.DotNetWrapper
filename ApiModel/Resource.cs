@@ -280,11 +280,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Where clause of the sparql query
         /// </summary>
         public string query_where { get; set; }
-        
+
         /// <summary>
-        /// Use Master service
+        /// Use virtuoso master connection if true and the afinity connection if false
         /// </summary>
-        public bool userMasterServer { get; set; } = true;
+        public bool use_virtuoso_balancer { get; set; } = true;
     }
 
     /// <summary>

@@ -1429,7 +1429,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="ontologiaName">Graph name where the query runs (without extension '.owl')</param>
-        /// <param name="userMasterServer">Use Master Virtuoso</param>
+        /// <param name="userMasterServer">Use virtuoso master connection if true and the afinity connection if false</param>
         /// <returns>DataSet with the query result</returns>
         public SparqlObject VirtuosoQuery(string selectPart, string wherePart, string ontologiaName, bool userMasterServer = true)
         {
@@ -1443,7 +1443,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="communityId">Community identifier</param>
-        /// <param name="userMasterServer"></param>
+        /// <param name="userMasterServer">Use virtuoso master connection if true and the afinity connection if false</param>
         /// <returns>DataSet with the query result</returns>
         public SparqlObject VirtuosoQuery(string selectPart, string wherePart, Guid communityId, bool userMasterServer = true)
         {
@@ -1457,7 +1457,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="ontologiaName">Graph name where the query runs (without extension '.owl')</param>
-        /// <param name="userMasterServer">Use Master Virtuoso</param>
+        /// <param name="userMasterServer">Use virtuoso master connection if true and the afinity connection if false</param>
         /// <returns>DataSet with the query result</returns>
         public DataSet VirtuosoQueryDataSet(string selectPart, string wherePart, string ontologiaName, bool userMasterServer = true)
         {
@@ -1471,7 +1471,7 @@ namespace Gnoss.ApiWrapper
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="communityId">Community identifier</param>
-        /// <param name="userMasterServer"></param>
+        /// <param name="userMasterServer">Use virtuoso master connection if true and the afinity connection if false</param>
         /// <returns>DataSet with the query result</returns>
         public DataSet VirtuosoQueryDataSet(string selectPart, string wherePart, Guid communityId, bool userMasterServer = true)
         {
@@ -1485,11 +1485,12 @@ namespace Gnoss.ApiWrapper
         /// <param name="selectPart">The 'SELECT' query part</param>
         /// <param name="wherePart">The 'WHERE' query part</param>
         /// <param name="graphs">List of the graphs in which you want search</param>
+        /// <param name="useMasterServer">Use virtuoso master connection if true and the afinity connection if false</param>
         /// <returns>DataSet with the query result</returns>
-        public SparqlObject VirtuosoQueryMultipleGraph(string selectPart, string wherePart, List<string> graphs)
+        public SparqlObject VirtuosoQueryMultipleGraph(string selectPart, string wherePart, List<string> graphs, bool useMasterServer = true)
         {
             Log.Trace("Entering the method", this.GetType().Name);
-            return VirtuosoQueryMultipleGraphInt(selectPart, wherePart, graphs);
+            return VirtuosoQueryMultipleGraphInt(selectPart, wherePart, graphs, useMasterServer);
         }
 
         #endregion
@@ -2838,7 +2839,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/query";
 
-                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
+                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_virtuoso_balancer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
@@ -2871,7 +2872,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/querycsv";
 
-                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, userMasterServer = userMasterServer };
+                SparqlQuery model = new SparqlQuery() { ontology = graph, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_virtuoso_balancer = userMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
                 lock (dataSet)
@@ -2935,7 +2936,7 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        private SparqlObject VirtuosoQueryMultipleGraphInt(string selectPart, string wherePart, List<string> graph_list)
+        private SparqlObject VirtuosoQueryMultipleGraphInt(string selectPart, string wherePart, List<string> graph_list, bool useMasterServer)
         {
             Log.Trace("Entering in the method", this.GetType().Name);
             Log.Trace($"SELECT: {selectPart}", this.GetType().Name);
@@ -2950,7 +2951,7 @@ namespace Gnoss.ApiWrapper
 
                 string url = $"{ApiUrl}/sparql-endpoint/query-multiple-graph";
 
-                SparqlQueryMultipleGraph model = new SparqlQueryMultipleGraph() { ontology_list = graph_list, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart };
+                SparqlQueryMultipleGraph model = new SparqlQueryMultipleGraph() { ontology_list = graph_list, community_short_name = CommunityShortName, query_select = selectPart, query_where = wherePart, use_virtuoso_balancer = useMasterServer };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
@@ -3014,7 +3015,7 @@ namespace Gnoss.ApiWrapper
             model.auto_tags_description_text = rec.AutomaticTagsTextFromDescription;
             model.create_screenshot = rec.GenerateSnapshot;
             model.url_screenshot = rec.DownloadUrl;
-            model.screenshot_sizes = rec.SnapshotSizes.ToList();
+            
             if (rec.SnapshotSizes != null)
             {
                 model.screenshot_sizes = rec.SnapshotSizes.ToList();
