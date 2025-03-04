@@ -343,6 +343,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Date of last login
         /// </summary>
         public DateTime? last_login { get; set; }
+        public bool ValidarEmail { get;set; }
     }
 
     /// <summary>
