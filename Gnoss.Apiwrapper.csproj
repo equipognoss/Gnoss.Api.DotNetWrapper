@@ -21,7 +21,7 @@
 	 <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
 	 <PackageReference Include="Serilog.Sinks.Http" Version="9.0.0" />
 	 <PackageReference Include="Serilog.Sinks.PeriodicBatching" Version="5.0.0" />
-	 <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+	 <PackageReference Include="SixLabors.ImageSharp" Version="3.1.7" />
 	 <PackageReference Include="System.Security.Cryptography.Pkcs" Version="8.0.0" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.0.0" />
   </ItemGroup>
