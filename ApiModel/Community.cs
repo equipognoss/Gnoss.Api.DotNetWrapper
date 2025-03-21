@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
@@ -633,5 +634,13 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// ID of the text
         /// </summary>
         public string texto_id { get; set; }
+    }
+
+    public class TextosTraducidosIdiomas
+    {      
+        public string TextoID { get; set; }
+
+        public string Texto { get; set; }
+
     }
 }
