@@ -4130,14 +4130,15 @@ namespace Gnoss.ApiWrapper
         /// <param name="categories">categories guid list where the document is going to be shared to</param>
         /// <param name="resourceId">resource identifier Guid</param>
         /// <param name="publisher_email"></param>
-        public bool Share(string targetCommunity, Guid resourceId, List<Guid> categories, string publisher_email)
+        public bool Share(string targetCommunity, Guid resourceId, List<Guid> categories, Guid user_id) // string publisher_email
         {
             bool shared = false;
             ShareParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/share";
-                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, publisher_email = publisher_email };
+                //model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, publisher_email = publisher_email };
+                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, user_id = user_id};
                 WebRequestPostWithJsonObject(url, model);
 
                 Log.Debug("Ended resource sharing");
@@ -4216,16 +4217,17 @@ namespace Gnoss.ApiWrapper
         /// <param name="publishHome">indicates whether the home must be updated</param>
         /// <param name="userShortName">publisher user short name</param>
         /// <returns>Comment identifier</returns>
-        public Guid Comment(Guid resourceId, string userShortName, string description, Guid parentCommentId, DateTime commentDate, bool publishHome)
+        public Guid Comment(Guid resourceId, Guid user_id, string description, Guid parentCommentId, DateTime commentDate, bool publishHome)//string userShortName
         {
             Guid commentId = Guid.Empty;
             CommentParams model = null;
             try
             {
                 string url = $"{ApiUrl}/resource/comment";
-                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome };
+                //model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome };
+                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_id = user_id, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome };
                 string response = WebRequestPostWithJsonObject(url, model);
-
+                response = JsonConvert.DeserializeObject<string>(response);
                 if (Guid.TryParse(response, out commentId))
                 {
                     Log.Debug($"Ended resource {resourceId} comment: {commentId}");

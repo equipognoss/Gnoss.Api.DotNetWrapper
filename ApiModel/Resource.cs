@@ -690,11 +690,16 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Categories of the destination community
         /// </summary>
         public List<Guid> categories { get; set; }
-        
+
         /// <summary>
         /// Mail of the resource publisher
         /// </summary>
-        public string publisher_email { get; set; }
+        //public string publisher_email { get; set; }
+
+        /// <summary>
+        /// Identifier of the resource publisher
+        /// </summary>
+        public Guid user_id { get; internal set; }
     }
 
     /// <summary>
@@ -765,9 +770,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         public Guid resource_id { get; set; }
 
         /// <summary>
-        /// User short name
+        /// User identifier
         /// </summary>
-        public string user_short_name { get; set; }
+        //public string user_short_name { get; set; }
+        public Guid user_id { get; set; }
 
         /// <summary>
         /// Description of the comment
@@ -788,6 +794,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if the comment must be pusblished in the community home
         /// </summary>
         public bool publish_home { get; set; }
+        
     }
 
     /// <summary>
