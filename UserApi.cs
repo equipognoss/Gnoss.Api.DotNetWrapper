@@ -374,18 +374,31 @@ namespace Gnoss.ApiWrapper
         /// </summary>
         /// <param name="pValorDocumentoAcreditativo">Person accreditation document</param>
         /// <param name="pUserID">Person ID</param>
-        public bool SetAccreditationDocumentByUser(string pValorDocumentoAcreditativo, Guid pUserID)
+        /// <param name="pTipoDocumentoAcreditativo">
+        /// Types of accreditation document 
+        /// -1 -> None (Default)
+        ///  0 -> DNI
+        ///  1 -> Passport
+        ///  2 -> Residence card
+        /// </param>
+        public bool SetAccreditationDocumentByUser(string pValorDocumentoAcreditativo, Guid pUserID, short pTipoDocumentoAcreditativo = -1)
         {
             try
             {
-                string url = $"{ApiUrl}/user/set-accreditation-document-by-user?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pUserID={pUserID}";
+                if(pTipoDocumentoAcreditativo < -1 || pTipoDocumentoAcreditativo > 2)
+                {
+                    Log.Error($"Error setting type of acreditation document {pTipoDocumentoAcreditativo} to person with id person {pUserID}");
+                    return false;
+                }
+
+                string url = $"{ApiUrl}/user/set-accreditation-document-by-user?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pUserID={pUserID}&pTipoDocumentoAcreditativo={pTipoDocumentoAcreditativo}";
                 string response = WebRequest("POST", url);
 
                 return JsonConvert.DeserializeObject<bool>(response);
             }
             catch (Exception ex)
             {
-                Log.Error($"Error seting accreditaion document {pValorDocumentoAcreditativo} to person with id person {pUserID}: \r\n{ex.Message}");
+                Log.Error($"Error setting accreditaion document {pValorDocumentoAcreditativo} to person with id person {pUserID}: \r\n{ex.Message}");
                 throw;
             }
         }
