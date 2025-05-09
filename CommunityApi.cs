@@ -910,6 +910,37 @@ namespace Gnoss.ApiWrapper
             }
         }
 
+        public List<TextosTraducidosIdiomas> GetTranslations(Guid? community_id, string community_short_name, string language)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/get-language-translations?community_id={community_id}&community_short_name={community_short_name}&language={language}";
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                return JsonConvert.DeserializeObject<List<TextosTraducidosIdiomas>>(response);
+            }
+            catch (System.Exception)
+            {
+                Log.Error($"The proyect could not be obtained");
+                return null;
+            }
+        }
+
+        public string GetTranslation(Guid? community_id, string community_short_name, string language, string text_id)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/community/get-language-translation?community_id={community_id}&community_short_name={community_short_name}&language={language}&text_id={text_id}";
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                return JsonConvert.DeserializeObject<string>(response);
+            }
+            catch (System.Exception)
+            {
+                Log.Error($"The proyect could not be obtained");
+                return null;
+            }
+        }
+
+
         /// <summary>
         /// Gets the community identifier
         /// </summary>
