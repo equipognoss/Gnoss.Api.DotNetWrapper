@@ -5,6 +5,7 @@ using Gnoss.ApiWrapper.Model;
 using Gnoss.ApiWrapper.OAuth;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -282,26 +283,6 @@ namespace Gnoss.ApiWrapper
 
         }
 
-        /// <summary>
-        /// Veerify User
-        /// </summary>
-        /// <param name="loginOrEmail">Login o email of the user</param>
-        public void VerificarUsuario(string loginOrEmail)
-        {
-            try
-            {
-                string url = $"{ApiUrl}/user/verify-user?login={loginOrEmail}";
-
-                WebRequest("POST", url, "", "application/json");
-
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error validation user {loginOrEmail} from the community {CommunityShortName}: \r\n{ex.Message}");
-                throw;
-            }
-        }
-
 		/// <summary>
 		/// Delete the user given from a organization group
 		/// </summary>
@@ -323,6 +304,31 @@ namespace Gnoss.ApiWrapper
 			catch (Exception ex)
 			{
 				Log.Error($"Error deleting the user {user_id} from the grup {groupShortName} of the organization {organizationShortName}: \n {ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Delete the user given from a organization group
+		/// </summary>
+		/// <param name="shortNameOrEmail">Identifier of the user to delete</param>
+		/// <param name="organizationShortName">Short name of the organization which the user will be deleted</param>
+		/// <param name="groupShortName">Short name of the group which the user will be deleted</param>
+		public void DeleteUserFromOrganizationGroup(string shortNameOrEmail, string organizationShortName, string groupShortName)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/delete-user-from-organization-group";
+
+				ParamsDeleteUserOrgGroup model = new ParamsDeleteUserOrgGroup() { group_short_name = groupShortName, organization_short_name = organizationShortName, login = shortNameOrEmail };
+
+				WebRequestPostWithJsonObject(url, model);
+
+				Log.Debug($"The user {shortNameOrEmail} has been deleted from the group {groupShortName} of the organization {organizationShortName}");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error deleting the user {shortNameOrEmail} from the grup {groupShortName} of the organization {organizationShortName}: \n {ex.Message}");
 				throw;
 			}
 		}
@@ -390,12 +396,33 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Gets the URL to recover the password of a user
-        /// </summary>
-        /// <param name="loginOrEmail">Login o email of the user</param>
-        /// <returns>URL to recover the password of a user</returns>
-        public string GenerateForgottenPasswordUrl(string loginOrEmail)
+		/// <summary>
+		/// Set accreditation document of a person
+		/// </summary>
+		/// <param name="pValorDocumentoAcreditativo">Person accreditation document</param>
+		/// <param name="shortNameOrEmail">User's short name or email</param>
+		public bool SetAccreditationDocumentByUser(string pValorDocumentoAcreditativo, string shortNameOrEmail)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/set-accreditation-document-by-user?pValorDocumentoAcreditativo={pValorDocumentoAcreditativo}&pLogin={shortNameOrEmail}";
+				string response = WebRequest("POST", url);
+
+				return JsonConvert.DeserializeObject<bool>(response);
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error seting accreditaion document {pValorDocumentoAcreditativo} to person with id person {shortNameOrEmail}: \r\n{ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Gets the URL to recover the password of a user
+		/// </summary>
+		/// <param name="loginOrEmail">Login o email of the user</param>
+		/// <returns>URL to recover the password of a user</returns>
+		public string GenerateForgottenPasswordUrl(string loginOrEmail)
         {
             string link = string.Empty;
 
@@ -418,11 +445,39 @@ namespace Gnoss.ApiWrapper
             return link;
         }
 
-        /// <summary>
-        /// Modify a user
-        /// </summary>
-        /// <param name="user">User data</param>
-        public void ModifyUser(User user)
+		/// <summary>
+		/// Gets the URL to recover the password of a user
+		/// </summary>
+		/// <param name="userId">Login o email of the user</param>
+		/// <returns>URL to recover the password of a user</returns>
+		public string GenerateForgottenPasswordUrl(Guid userId)
+		{
+			string link = string.Empty;
+
+			if (!userId.Equals(Guid.Empty))
+			{
+				try
+				{
+					string url = $"{ApiUrl}/user/generate-forgotten-password-url?user_id={userId}&community_short_name={CommunityShortName}";
+					link = WebRequest("GET", url)?.Trim('"');
+
+					Log.Debug($"Forgotten password url generated {link}");
+				}
+				catch (Exception ex)
+				{
+					Log.Error($"Error generating forgotten password url for user {userId}: {ex.Message}");
+					throw;
+				}
+			}
+
+			return link;
+		}
+
+		/// <summary>
+		/// Modify a user
+		/// </summary>
+		/// <param name="user">User data</param>
+		public void ModifyUser(User user)
         {
             string json = JsonConvert.SerializeObject(user);
             try
@@ -465,11 +520,37 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Delete a user
-        /// </summary>
-        /// <param name="userId">User identifier to delete</param>
-        public void DeleteUser(Guid userId)
+		/// <summary>
+		/// Delete a user from a community
+		/// </summary>
+		/// <param name="userId">User's identifier</param>
+		public void DeleteUserFromCommunity(Guid userId)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/delete-user-from-community";
+
+				ParamsUserCommunity model = new ParamsUserCommunity() { user_id = userId, community_short_name = CommunityShortName };
+
+				string postData = JsonConvert.SerializeObject(model);
+
+				WebRequest("POST", url, postData, "application/json");
+
+				Log.Debug($"User {userId} deleted successfully from the community {CommunityShortName}");
+
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error deleting user {userId} from the community {CommunityShortName}: \r\n{ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Delete a user
+		/// </summary>
+		/// <param name="userId">User identifier to delete</param>
+		public void DeleteUser(Guid userId)
         {
             try
             {
@@ -486,14 +567,14 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Add a user to an organization
-        /// </summary>
-        /// <param name="userId">User ID to delete</param>
-        /// <param name="organizationShortName">Short name of the organization</param>
-        /// <param name="position">Position in the organization</param>
-        /// <param name="communitiesShortNames">Short names of the communities that will be included</param>
-        public void AddUserToOrganization(Guid userId, string organizationShortName, string position, List<string> communitiesShortNames)
+		/// <summary>
+		/// Add a user to an organization
+		/// </summary>
+		/// <param name="userId">User ID to delete</param>
+		/// <param name="organizationShortName">Short name of the organization</param>
+		/// <param name="position">Position in the organization</param>
+		/// <param name="communitiesShortNames">Short names of the communities that will be included</param>
+		public void AddUserToOrganization(Guid userId, string organizationShortName, string position, List<string> communitiesShortNames)
         {
             try
             {
@@ -514,39 +595,40 @@ namespace Gnoss.ApiWrapper
         }
 
 		/// <summary>
-		/// Change visibility of a user in a communities
+		/// Add a user to an organization
 		/// </summary>
-		/// <param name="pUserId">User's ID</param>
-		/// <param name="pComunidadesID">Id´s of communities</param>
-		/// <param name="pVisibilidad">Visibility of user</param>
-		public void ChangeVisibilityUserCommunities(Guid pUserId, List<Guid> pComunidadesID, bool pVisibilidad = false)
-        {
-            try
-            {
-                string url = $"{ApiUrl}/user/change-user-visibility";
+		/// <param name="shortNameOrEmail">User short name or email</param>
+		/// <param name="organizationShortName">Short name of the organization</param>
+		/// <param name="position">Position in the organization</param>
+		/// <param name="communitiesShortNames">Short names of the communities that will be included</param>
+		public void AddUserToOrganization(string shortNameOrEmail, string organizationShortName, string position, List<string> communitiesShortNames)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/add-user-to-organization";
 
-                ParamsChangeVisibility model = new ParamsChangeVisibility() { user_id = pUserId, communities_Id = pComunidadesID, visibility = pVisibilidad };
-                string postData = JsonConvert.SerializeObject(model);
+				ParamsAddUserOrg model = new ParamsAddUserOrg() { login = shortNameOrEmail, position = position, organization_short_name = organizationShortName, communities_short_names = communitiesShortNames };
+				string postData = JsonConvert.SerializeObject(model);
 
-                WebRequest("POST", url, postData, "application/json");
+				WebRequest("POST", url, postData, "application/json");
 
-                Log.Debug($"User {pUserId} change visibility in the communities: {string.Join(",", pComunidadesID)}");
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error adding user {pUserId} change visibility in the communities: {string.Join(",", pComunidadesID)}: \r\n{ex.Message}");
-                throw;
-            }
-        }
+				Log.Debug($"User {shortNameOrEmail} added successfully to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error adding user {shortNameOrEmail} to organization {organizationShortName} in the communities: {string.Join(",", communitiesShortNames)}: \r\n{ex.Message}");
+				throw;
+			}
+		}
 
-        /// <summary>
-        /// Add a user to organization groups
-        /// </summary>
-        /// <param name="userId">User ID </param>
-        /// <param name="organizationShortName">Short name of the organization</param>
-        /// <param name="groupsShortNames">Short names of the organization groups that will be included</param>
-        /// <returns></returns>
-        public void AddUserToOrganizationGroup(Guid userId, string organizationShortName, List<string> groupsShortNames)
+		/// <summary>
+		/// Add a user to organization groups
+		/// </summary>
+		/// <param name="userId">User ID </param>
+		/// <param name="organizationShortName">Short name of the organization</param>
+		/// <param name="groupsShortNames">Short names of the organization groups that will be included</param>
+		/// <returns></returns>
+		public void AddUserToOrganizationGroup(Guid userId, string organizationShortName, List<string> groupsShortNames)
         {
             try
             {
@@ -567,12 +649,40 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Get the data a user by user id
-        /// </summary>
-        /// <param name="listaIds">List of users ID´s</param>
-        /// <returns>List with the users </returns>
-        public Dictionary<Guid, Userlite> GetUsersByIds(List<Guid> listaIds)
+		/// <summary>
+		/// Add a user to organization groups
+		/// </summary>
+		/// <param name="shortNameOrEmail">User short name or email</param>
+		/// <param name="organizationShortName">Short name of the organization</param>
+		/// <param name="groupsShortNames">Short names of the organization groups that will be included</param>
+		/// <returns></returns>
+		public void AddUserToOrganizationGroup(string shortNameOrEmail, string organizationShortName, List<string> groupsShortNames)
+		{
+			try
+			{
+				string url = $"{ApiUrl}/user/add-user-to-organization-group";
+
+				ParamsAddUserOrgGroups model = new ParamsAddUserOrgGroups() { login = shortNameOrEmail, organization_short_name = organizationShortName, groups_short_names = groupsShortNames };
+
+				string postData = JsonConvert.SerializeObject(model);
+
+				WebRequest("POST", url, postData, "application/json");
+
+				Log.Debug($"User {shortNameOrEmail} added successfully to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error adding user {shortNameOrEmail} to organization {organizationShortName} in the groups: {string.Join(",", groupsShortNames)}: \r\n{ex.Message}");
+				throw;
+			}
+		}
+
+		/// <summary>
+		/// Get the data a user by user id
+		/// </summary>
+		/// <param name="listaIds">List of users ID´s</param>
+		/// <returns>List with the users </returns>
+		public Dictionary<Guid, Userlite> GetUsersByIds(List<Guid> listaIds)
         {
             Dictionary<Guid, Userlite> users = null;
             try
@@ -593,12 +703,38 @@ namespace Gnoss.ApiWrapper
             return users;
         }
 
-        /// <summary>
-        /// Gets the modified users from a datetime in a community
-        /// </summary>
-        /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
-        /// <returns>List with the modified users identifiers</returns>
-        public List<Guid> GetModifiedUsersFromDate(string searchDate)
+		/// <summary>
+		/// Get the data a user by user id
+		/// </summary>
+		/// <param name="lista">List of users short name or email</param>
+		/// <returns>List with the users </returns>
+		public Dictionary<Guid, Userlite> GetUsersByShortNameOrEmail(List<string> lista)
+		{
+			Dictionary<Guid, Userlite> users = null;
+			try
+			{
+				string url = $"{ApiUrl}/user/get-users-by-shortname-or-email";
+
+				string result = WebRequestPostWithJsonObject(url, lista);
+
+				users = JsonConvert.DeserializeObject<Dictionary<Guid, Userlite>>(result);
+
+				Log.Debug($"Users obtained by short name or email");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error getting the users", ex.Message);
+				throw;
+			}
+			return users;
+		}
+
+		/// <summary>
+		/// Gets the modified users from a datetime in a community
+		/// </summary>
+		/// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
+		/// <returns>List with the modified users identifiers</returns>
+		public List<Guid> GetModifiedUsersFromDate(string searchDate)
         {
             List<Guid> users = null;
             try
@@ -653,13 +789,39 @@ namespace Gnoss.ApiWrapper
             return communities;
         }
 
-        /// <summary>
-        /// Gets the novelties of the user from a datetime
-        /// </summary>
-        /// <param name="userId">User identifier</param>
-        /// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
-        /// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
-        public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string searchDate)
+		/// <summary>
+		/// Gets the short name of the communities that manages the user.
+		/// </summary>
+		/// <param name="userId">User identifier</param>
+		/// <returns>Short name of the communities that manages the user</returns>
+		public List<string> GetManagedCommunity(Guid userId)
+		{
+			List<string> communities = null;
+			try
+			{
+				string url = $"{ApiUrl}/user/get-admin-communities?user_id={userId}";
+
+				string response = WebRequest("GET", url);
+
+				communities = JsonConvert.DeserializeObject<List<string>>(response);
+
+				Log.Debug($"Communities obtained for user {userId}");
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error getting the communities of {userId}", ex.Message);
+				throw;
+			}
+			return communities;
+		}
+
+		/// <summary>
+		/// Gets the novelties of the user from a datetime
+		/// </summary>
+		/// <param name="userId">User identifier</param>
+		/// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
+		/// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
+		public UserNoveltiesModel GetUserNoveltiesFromDate(Guid userId, string searchDate)
         {
             UserNoveltiesModel user = null;
             try
@@ -691,12 +853,50 @@ namespace Gnoss.ApiWrapper
             return user;
         }
 
-        /// <summary>
-        /// Gets the UserID form Cookie
-        /// </summary>
-        /// <param name="pCookie">cookie</param>
-        /// <returns>UserID from cookie</returns>
-        public Guid GetUserIDFromCookie(string pCookie)
+		/// <summary>
+		/// Gets the novelties of the user from a datetime
+		/// </summary>
+		/// <param name="shortNameOrEmail">User short name or email</param>
+		/// <param name="searchDate">Start search datetime in ISO8601 format string ("yyyy-MM-ddTHH:mm:ss.mmm" (no spaces) OR "yyyy-MM-ddTHH:mm:ss.mmmZ" (no spaces))</param>
+		/// <returns>UserNoveltiesModel with the novelties of the user from the search date</returns>
+		public UserNoveltiesModel GetUserNoveltiesFromDate(string shortNameOrEmail, string searchDate)
+		{
+			UserNoveltiesModel user = null;
+			try
+			{
+				if (searchDate.Contains(" ") || !searchDate.Contains("T"))
+				{
+					Log.Error($"The search date string is not in the ISO8601 format {searchDate}");
+					return null;
+				}
+
+				string url = $"{ApiUrl}/user/get-user-novelties?login={shortNameOrEmail}&community_short_name={CommunityShortName}&search_date={searchDate}";
+				string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+				user = JsonConvert.DeserializeObject<UserNoveltiesModel>(response);
+
+				if (user != null)
+				{
+					Log.Debug($"Obtained the user {shortNameOrEmail} of the community {CommunityShortName} from the date {searchDate}");
+				}
+				else
+				{
+					Log.Debug($"The user {shortNameOrEmail} could not be obtained of the community {CommunityShortName} from the date {searchDate}.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Log.Error($"Error getting the user {shortNameOrEmail} of the community {CommunityShortName} from the date {searchDate}", ex.Message);
+				throw;
+			}
+			return user;
+		}
+
+		/// <summary>
+		/// Gets the UserID form Cookie
+		/// </summary>
+		/// <param name="pCookie">cookie</param>
+		/// <returns>UserID from cookie</returns>
+		public Guid GetUserIDFromCookie(string pCookie)
         {
             Guid userID = Guid.Empty;
             try
