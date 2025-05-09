@@ -695,6 +695,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Mail of the resource publisher
         /// </summary>
         public string publisher_email { get; set; }
+
+        public string shortNameOrEmail { get; set; }
+
+        public Guid userId { get; set; }
     }
 
     /// <summary>
@@ -788,6 +792,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// True if the comment must be pusblished in the community home
         /// </summary>
         public bool publish_home { get; set; }
+        public Guid UserId { get; set; }
     }
 
     /// <summary>
