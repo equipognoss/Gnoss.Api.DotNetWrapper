@@ -87,4 +87,20 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string tipo { get; set; }
     }
+    public class NotificationContentHtml
+    {
+        public Guid usuario { get; set; }
+        public Guid comunidad { get; set; }
+        public string contenidoNotificacion { get; set; }
+        public DateTime fechaNotificacion { get; set; }
+    }
+    public class NotificationContentDefault
+    {
+        //id usuario, Guid comunidad,string contenidoNotificacion,string urlNotificacion, DateTime fechaNotificacion
+        public Guid usuario { get; set; }
+        public Guid comunidad { get; set; }
+        public string contenidoNotificacion { get; set; }
+        public string urlNotificacion { get; set; }
+        public DateTime fechaNotificacion { get; set; }
+    }
 }

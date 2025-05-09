@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.ServiceModel.Channels;
+using static Microsoft.ApplicationInsights.MetricDimensionNames.TelemetryContext;
+using System.Web;
 
 namespace Gnoss.ApiWrapper
 {
@@ -108,6 +111,30 @@ namespace Gnoss.ApiWrapper
             catch (Exception ex)
             {
                 Log.Error($"Error getting mails with ID: {mailID}: \r\n{ex.Message}");
+                throw;
+            }
+        }
+        public void IngestNotificationHtml(Guid usuario, Guid comunidad, string contenidoNotificacion, DateTime fechaNotificacion)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/notification/ingest-notifications-html?usuario={usuario}&comunidad={comunidad}&contenidoNotificacion={contenidoNotificacion}&fechaNotificacion={fechaNotificacion}";
+                string result = WebRequest($"POST", url);
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+        public void IngestNotificationDefault(Guid usuario, Guid comunidad, string contenidoNotificacion, string urlNotificacion,DateTime fechaNotificacion)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/notification/ingest-notifications-default?usuario={usuario}&comunidad={comunidad}&contenidoNotificacion={contenidoNotificacion}&urlNotificacion={urlNotificacion}&fechaNotificacion={fechaNotificacion}";
+                string result = WebRequest($"POST", url);
+            }
+            catch (Exception ex)
+            {
                 throw;
             }
         }
