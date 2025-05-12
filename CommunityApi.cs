@@ -115,11 +115,13 @@ namespace Gnoss.ApiWrapper
         /// <param name="administratorUserId">Admin ID of the community</param>
         /// <param name="organizationShortName">Admin organization short name of the community</param>
         /// <param name="logo">Logo of the community</param>
-        public void CreateCommunity(string communityName, string communityShortName, string description, List<string> tagList, short type, short accessType, string parentCommunityShortName, Guid administratorUserId, string organizationShortName, byte[] logo = null, string domain = null)
+        /// <param name="communityDefaultLanguage">Default language of the community</param>
+        /// <param name="domain">Domanin of the community</param>
+        public void CreateCommunity(string communityName, string communityShortName, string description, List<string> tagList, short type, short accessType, string parentCommunityShortName, Guid administratorUserId, string organizationShortName, string communityDefaultLanguage = "es", byte[] logo = null, string domain = null)
         {
             string tags = StringHelper.UrlEncoderUTF8(string.Join(",", tagList));
 
-            CommunityModel community = new CommunityModel() { community_name = communityName, community_short_name = communityShortName, description = description, tags = tags, type = type, access_type = accessType, parent_community_short_name = parentCommunityShortName, admin_id = administratorUserId, organization_short_name = organizationShortName, logo = logo, domain = domain };
+            CommunityModel community = new CommunityModel() { community_name = communityName, community_short_name = communityShortName,community_default_language = communityDefaultLanguage, description = description, tags = tags, type = type, access_type = accessType, parent_community_short_name = parentCommunityShortName, admin_id = administratorUserId, organization_short_name = organizationShortName, logo = logo, domain = domain };
 
             CreateCommunity(community);
         }
