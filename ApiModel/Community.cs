@@ -23,6 +23,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Short name
         /// </summary>
         public string community_short_name { get; set; }
+        /// <summary>
+        /// Default language
+        /// </summary>
+        public string community_default_language { get; set; } = "es";
 
         /// <summary>
         /// Brief Description
