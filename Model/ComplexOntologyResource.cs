@@ -93,6 +93,8 @@ namespace Gnoss.ApiWrapper.Model
             }
         }
 
+        public bool? permitir_compartidos { get; set; }
+
         #region Attached files
 
         /// <summary>
