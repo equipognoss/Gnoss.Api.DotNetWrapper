@@ -20,6 +20,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Community short name
         /// </summary>
         public string community_short_name { get; set; }
+
+		/// <summary>
+		/// User identifier
+		/// </summary>
+		public Guid user_id { get; set; }
     }
 
     /// <summary>
@@ -62,6 +67,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Communities short names where the user is going to be added (The organization must be member of all of them)
         /// </summary>
         public List<string> communities_short_names { get; set; }
+
+		/// <summary>
+		/// User short name or email
+		/// </summary>
+		public string login { get; set; }
     }
 
 	/// <summary>
@@ -83,6 +93,11 @@ namespace Gnoss.ApiWrapper.ApiModel
 		/// Group where the user is going to be added
 		/// </summary>
 		public string group_short_name { get; set; }
+
+		/// <summary>
+		/// User email or short name
+		/// </summary>
+		public string login { get; set; }
 	}
 
 	/// <summary>
@@ -104,7 +119,12 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Communities short names where the user is going to be added (The organization must be member of all of them)
         /// </summary>
         public bool visibility { get; set; }
-    }
+
+		/// <summary>
+		/// User short name or email
+		/// </summary>
+		public string login{ get; set; }
+	}
 
     /// <summary>
     /// Parameters for add a user in a organization group
@@ -125,6 +145,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Groups where the user is going to be added
         /// </summary>
         public List<string> groups_short_names { get; set; }
+
+        /// <summary>
+        /// User short name or email
+        /// </summary>
+        public string login { get; set; }
     }
 
     /// <summary>

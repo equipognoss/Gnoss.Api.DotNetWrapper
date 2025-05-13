@@ -3218,6 +3218,47 @@ namespace Gnoss.ApiWrapper
         /// Checks whether the user has permission on the resource editing
         /// </summary>
         /// <param name="resourceId">Resource identifier</param>
+        /// <param name="shortNameOrEmail">User identifier</param>
+        /// <returns>True if the user has editing permission on the resource. False if not.</returns>
+        public bool HasUserEditingPermissionOnResourceByCommunityName(Guid resourceId, string shortNameOrEmail)
+        {
+            bool result = false;
+
+            if (!resourceId.Equals(Guid.Empty) && !shortNameOrEmail.Equals(Guid.Empty))
+            {
+                try
+                {
+                    string url = $"{ApiUrl}/resource/get-user-editing-permission-on-resource-by-community-name?resource_id={resourceId}&login={shortNameOrEmail}&community_short_name={CommunityShortName}";
+
+                    string response = WebRequest($"GET", url);
+                    result = JsonConvert.DeserializeObject<bool>(response);
+
+                    if (result)
+                    {
+                        Log.Debug($"The user {shortNameOrEmail} is allowed to edit the resource {resourceId} in {CommunityShortName}");
+                    }
+                    else
+                    {
+                        Log.Debug($"The user {shortNameOrEmail} is not allowed to edit the resource {resourceId} in {CommunityShortName}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.Message);
+                    throw;
+                }
+            }
+            else
+            {
+                Log.Error($"Any of this are null or empty: resourceId, userId");
+            }
+
+            return result;
+        }
+        /// <summary>
+        /// Checks whether the user has permission on the resource editing
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
         /// <param name="userId">User identifier</param>
         /// <param name="communityId">Community identifier</param>
         /// <returns>True if the user has editing permission on the resource. False if not.</returns>
@@ -3257,6 +3298,48 @@ namespace Gnoss.ApiWrapper
             return result;
         }
 
+        /// <summary>
+        /// Checks whether the user has permission on the resource editing
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="shortNameOrEmail">User identifier</param>
+        /// <param name="communityId">Community identifier</param>
+        /// <returns>True if the user has editing permission on the resource. False if not.</returns>
+        public bool HasUserEditingPermissionOnResourceByCommunityID(Guid resourceId, string shortNameOrEmail, Guid communityId)
+        {
+            bool result = false;
+
+            if (!resourceId.Equals(Guid.Empty) && !shortNameOrEmail.Equals(Guid.Empty))
+            {
+                try
+                {
+                    string url = $"{ApiUrl}/resource/get-user-editing-permission-on-resource?resource_id={resourceId}&login={shortNameOrEmail}&community_id={communityId}";
+
+                    string response = WebRequest($"GET", url);
+                    result = JsonConvert.DeserializeObject<bool>(response);
+
+                    if (result)
+                    {
+                        Log.Debug($"The user {shortNameOrEmail} is allowed to edit the resource {resourceId} in {CommunityShortName}");
+                    }
+                    else
+                    {
+                        Log.Debug($"The user {shortNameOrEmail} is not allowed to edit the resource {resourceId} in {CommunityShortName}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex.Message);
+                    throw;
+                }
+            }
+            else
+            {
+                Log.Error($"Any of this are null or empty: resourceId, userId");
+            }
+
+            return result;
+        }
         /// <summary>
         /// Gets the visibility of the resource
         /// </summary>
@@ -3355,12 +3438,38 @@ namespace Gnoss.ApiWrapper
             return listaDocs;
         }
 
-		/// <summary>
-		/// Gets the path of the styles
-		/// </summary>
-		/// <param name="proyectoid"></param>
-		/// <returns></returns>
-		public string ObtenerPathEstilos(Guid proyectoid)
+        //GetDocumentsPublishedByUser
+        /// <summary>
+        /// Gets the documents publisher by user
+        /// </summary>
+        /// <param name="shortNameOrEmail">User identifier</param>
+        /// <returns>List of community names</returns>
+        public Dictionary<string, List<Guid>> GetDocumentsPublishedByUser(string shortNameOrEmail)
+        {
+            Dictionary<string, List<Guid>> listaDocs = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/get-documents-published-by-user?login={shortNameOrEmail}";
+                string result = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+
+                listaDocs = JsonConvert.DeserializeObject<Dictionary<string, List<Guid>>>(result);
+
+                Log.Debug($"the user id {shortNameOrEmail} published {result}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error getting the shared communities of {shortNameOrEmail}: {ex.Message}");
+                throw;
+            }
+            return listaDocs;
+        }
+
+        /// <summary>
+        /// Gets the path of the styles
+        /// </summary>
+        /// <param name="proyectoid"></param>
+        /// <returns></returns>
+        public string ObtenerPathEstilos(Guid proyectoid)
         {
             string valor = null;
             try
@@ -4152,6 +4261,35 @@ namespace Gnoss.ApiWrapper
 
             return shared;
         }
+        /// <summary>
+        /// Shares the resource in the target community
+        /// </summary>
+        /// <param name="targetCommunity">target community short name string</param>
+        /// <param name="categories">categories guid list where the document is going to be shared to</param>
+        /// <param name="resourceId">resource identifier Guid</param>
+        /// <param name="user_Id"></param>
+        public bool Share(string targetCommunity, Guid resourceId, List<Guid> categories, Guid user_Id)
+        {
+            bool shared = false;
+            ShareParams model = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/share";
+                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, userId = user_Id };
+                WebRequestPostWithJsonObject(url, model);
+
+                Log.Debug("Ended resource sharing");
+
+                shared = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error sharing resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                throw;
+            }
+
+            return shared;
+        }
 
 
         /// <summary>
@@ -4178,6 +4316,7 @@ namespace Gnoss.ApiWrapper
 
             return shared;
         }
+
         /// <summary>
         /// Sets the resource main image
         /// </summary>
@@ -4223,7 +4362,45 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/resource/comment";
-                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome };
+                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome, login=userShortName };
+                string response = WebRequestPostWithJsonObject(url, model);
+
+                if (Guid.TryParse(response, out commentId))
+                {
+                    Log.Debug($"Ended resource {resourceId} comment: {commentId}");
+                }
+                else
+                {
+                    Log.Debug($"Error commenting resource {resourceId}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error commenting resource {resourceId}. \r\n: Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                throw;
+            }
+
+            return commentId;
+        }
+
+        /// <summary>
+        /// Adds a comment in a resource. It can be a response of another parent comment.
+        /// </summary>
+        /// <param name="resourceId">resource identifier</param>
+        /// <param name="commentDate">publish date of the comment</param>
+        /// <param name="description">Html content of the comment wrapped in a Html paragraph and special characters encoded in ANSI. Example: <p>Descripci&amp;oacute;n del comentario</p> string</param>
+        /// <param name="parentCommentId">optional parent comment identifier Guid. The current comment is its answer</param>
+        /// <param name="publishHome">indicates whether the home must be updated</param>
+        /// <param name="user_Id">publisher user short name</param>
+        /// <returns>Comment identifier</returns>
+        public Guid Comment(Guid resourceId, Guid user_Id, string description, Guid parentCommentId, DateTime commentDate, bool publishHome)
+        {
+            Guid commentId = Guid.Empty;
+            CommentParams model = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/comment";
+                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, UserId = user_Id, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome };
                 string response = WebRequestPostWithJsonObject(url, model);
 
                 if (Guid.TryParse(response, out commentId))
