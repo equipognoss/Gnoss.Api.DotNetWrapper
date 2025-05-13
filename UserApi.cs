@@ -998,7 +998,6 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/user/block?user_id={userId}";
-                WebRequestPostWithJsonObject(url, userId);
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
@@ -1017,7 +1016,6 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/user/block?login={shortNameOrEmail}";
-                WebRequestPostWithJsonObject(url, shortNameOrEmail);
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
@@ -1220,8 +1218,8 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                string url = $"{ApiUrl}/user/get-user-photo";
-                return WebRequestPostWithJsonObject(url, user_id);
+                string url = $"{ApiUrl}/user/get-user-photo?user_id={user_id}";
+                return WebRequest($"POST", url);
             }
             catch (Exception ex)
             {
@@ -1239,8 +1237,8 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                string url = $"{ApiUrl}/user/get-user-photo";
-                return WebRequestPostWithJsonObject(url, shortNameOrEmail);
+                string url = $"{ApiUrl}/user/get-user-photo?login={shortNameOrEmail}";
+                return WebRequest($"POST", url);
             }
             catch (Exception ex)
             {

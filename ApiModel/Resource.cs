@@ -793,6 +793,8 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public bool publish_home { get; set; }
         public Guid UserId { get; set; }
+
+        public string login { get; set; }
     }
 
     /// <summary>

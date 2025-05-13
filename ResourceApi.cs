@@ -4362,7 +4362,7 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/resource/comment";
-                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome };
+                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome, login=userShortName };
                 string response = WebRequestPostWithJsonObject(url, model);
 
                 if (Guid.TryParse(response, out commentId))
