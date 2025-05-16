@@ -118,7 +118,8 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                string url = $"{ApiUrl}/notification/ingest-notifications-html?usuario={usuario}&comunidad={comunidad}&contenidoNotificacion={contenidoNotificacion}&fechaNotificacion={fechaNotificacion}";
+                string fechaFormateada = fechaNotificacion.ToString("yyyy-MM-ddTHH:mm:ss");
+                string url = $"{ApiUrl}/notification/ingest-notifications-html?usuario={usuario}&comunidad={comunidad}&contenidoNotificacion={contenidoNotificacion}&fechaNotificacion={fechaFormateada}";
                 string result = WebRequest($"POST", url);
             }
             catch (Exception ex)
@@ -130,7 +131,8 @@ namespace Gnoss.ApiWrapper
         {
             try
             {
-                string url = $"{ApiUrl}/notification/ingest-notifications-default?usuario={usuario}&comunidad={comunidad}&contenidoNotificacion={contenidoNotificacion}&urlNotificacion={urlNotificacion}&fechaNotificacion={fechaNotificacion}";
+                string fechaFormateada = fechaNotificacion.ToString("yyyy-MM-ddTHH:mm:ss");
+                string url = $"{ApiUrl}/notification/ingest-notifications-default?usuario={usuario}&comunidad={comunidad}&contenidoNotificacion={contenidoNotificacion}&urlNotificacion={urlNotificacion}&fechaNotificacion={fechaFormateada}";
                 string result = WebRequest($"POST", url);
             }
             catch (Exception ex)
