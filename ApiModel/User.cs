@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Web;
 
@@ -21,10 +22,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string community_short_name { get; set; }
 
-		/// <summary>
-		/// User identifier
-		/// </summary>
-		public Guid user_id { get; set; }
+        /// <summary>
+        /// User identifier
+        /// </summary>
+        public Guid user_id { get; set; }
     }
 
     /// <summary>
@@ -68,42 +69,42 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public List<string> communities_short_names { get; set; }
 
-		/// <summary>
-		/// User short name or email
-		/// </summary>
-		public string login { get; set; }
+        /// <summary>
+        /// User short name or email
+        /// </summary>
+        public string login { get; set; }
     }
 
-	/// <summary>
-	/// Parameters for delete a user from a organization group
-	/// </summary>
-	public class ParamsDeleteUserOrgGroup
-	{
-		/// <summary>
-		/// User identificator
-		/// </summary>	
-		public Guid user_id { get; set; }
+    /// <summary>
+    /// Parameters for delete a user from a organization group
+    /// </summary>
+    public class ParamsDeleteUserOrgGroup
+    {
+        /// <summary>
+        /// User identificator
+        /// </summary>	
+        public Guid user_id { get; set; }
 
-		/// <summary>
-		/// Organization short name
-		/// </summary>
-		public string organization_short_name { get; set; }
+        /// <summary>
+        /// Organization short name
+        /// </summary>
+        public string organization_short_name { get; set; }
 
-		/// <summary>
-		/// Group where the user is going to be added
-		/// </summary>
-		public string group_short_name { get; set; }
+        /// <summary>
+        /// Group where the user is going to be added
+        /// </summary>
+        public string group_short_name { get; set; }
 
-		/// <summary>
-		/// User email or short name
-		/// </summary>
-		public string login { get; set; }
-	}
+        /// <summary>
+        /// User email or short name
+        /// </summary>
+        public string login { get; set; }
+    }
 
-	/// <summary>
-	/// Parameters for add a user in a organization
-	/// </summary>
-	public class ParamsChangeVisibility
+    /// <summary>
+    /// Parameters for add a user in a organization
+    /// </summary>
+    public class ParamsChangeVisibility
     {
         /// <summary>
         /// User identifier
@@ -120,11 +121,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public bool visibility { get; set; }
 
-		/// <summary>
-		/// User short name or email
-		/// </summary>
-		public string login{ get; set; }
-	}
+        /// <summary>
+        /// User short name or email
+        /// </summary>
+        public string login { get; set; }
+    }
 
     /// <summary>
     /// Parameters for add a user in a organization group
@@ -353,7 +354,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// User prefered language
         /// </summary>
         public string languaje { get; set; }
-        
+
         /// <summary>
         /// Photo of personal profile
         /// </summary>
@@ -368,7 +369,12 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Date of last login
         /// </summary>
         public DateTime? last_login { get; set; }
-        public bool ValidarEmail { get;set; }
+
+        /// <summary>
+        /// Mark email as validate or not
+        /// </summary>
+        [DefaultValue(true)]
+        public bool validate_email { get; set; }
     }
 
     /// <summary>
