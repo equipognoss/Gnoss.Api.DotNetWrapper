@@ -373,8 +373,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// <summary>
         /// Mark email as validate or not
         /// </summary>
-        [DefaultValue(true)]
-        public bool validate_email { get; set; }
+        public bool validate_email { get; set; } = true;
     }
 
     /// <summary>
