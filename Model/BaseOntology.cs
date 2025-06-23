@@ -25,6 +25,11 @@ namespace Gnoss.ApiWrapper.Model
         #region Constructors
 
         /// <summary>
+        /// Void constructor of <see cref="BaseOntology"/>
+        /// </summary>
+        protected BaseOntology() { }
+
+        /// <summary>
         /// Constructor of <see cref="BaseOntology"/>
         /// </summary>
         /// <param name="graphsUrl">Graphs url of the enviroment.</param>
