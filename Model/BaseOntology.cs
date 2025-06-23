@@ -120,15 +120,7 @@ namespace Gnoss.ApiWrapper.Model
                 if (value.EndsWith("\0"))
                 {
                     value = value.Replace("\0", "");
-                }
-                if (value.Contains("\r\n"))
-                {
-                    value = value.Replace("\r\n", "<br />");
-                }
-                if (value.Contains("\n"))
-                {
-                    value = value.Replace("\n", "<br />");
-                }
+                }               
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     if (value.Contains("&") || value.Contains("<") || value.Contains(">"))
@@ -186,15 +178,7 @@ namespace Gnoss.ApiWrapper.Model
                         if (newValue.EndsWith("\0"))
                         {
                             newValue = newValue.Replace("\0", "");
-                        }
-                        if (newValue.Contains("\r\n"))
-                        {
-                            newValue = newValue.Replace("\r\n", "<br />");
-                        }
-                        if (newValue.Contains("\n"))
-                        {
-                            newValue = newValue.Replace("\n", "<br />");
-                        }
+                        }                        
                     }
                     if (!string.IsNullOrWhiteSpace(newValue) && !listAux.Contains(newValue))
                     {
