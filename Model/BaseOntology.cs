@@ -35,7 +35,7 @@ namespace Gnoss.ApiWrapper.Model
         /// <param name="propertyList">Property list of the ontology</param>
         /// <param name="identifier">Ontology identifier</param>
         /// <param name="entityList">list of <see cref="OntologyEntity"> auxiliary entities</see></param>
-        public BaseOntology(string graphsUrl, string ontologyUrl, string rdfType, string rdfsLabel, List<string> prefixList, List<OntologyProperty> propertyList, string identifier, List<OntologyEntity> entityList = null)
+        protected BaseOntology(string graphsUrl, string ontologyUrl, string rdfType, string rdfsLabel, List<string> prefixList, List<OntologyProperty> propertyList, string identifier, List<OntologyEntity> entityList = null)
         {
             if (string.IsNullOrWhiteSpace(rdfType) || string.IsNullOrEmpty(rdfType))
             {
@@ -47,14 +47,14 @@ namespace Gnoss.ApiWrapper.Model
             }
             else
             {
+                PrefixList = prefixList;
                 GraphsUrl = graphsUrl;
                 OntologyUrl = ontologyUrl;
-                this._rdfType = rdfType;
-                this._rdfsLabel = rdfsLabel;
-                PrefixList = prefixList;
-                this._properties = propertyList;
                 Entities = entityList;
-                this.Identifier = identifier;
+                Identifier = identifier;
+                _rdfType = rdfType;
+                _rdfsLabel = rdfsLabel;
+                _properties = propertyList;
             }
         }
 
@@ -68,7 +68,7 @@ namespace Gnoss.ApiWrapper.Model
         /// <param name="prefixList">Prefix list declared in the ontology</param>
         /// <param name="propertyList">Property list of the ontology</param>
         /// <param name="entityList">list of <see cref="OntologyEntity"> auxiliary entities</see></param>
-        public BaseOntology(string graphsUrl, string ontologyUrl, string rdfType, string rdfsLabel, List<string> prefixList, List<OntologyProperty> propertyList, List<OntologyEntity> entityList = null)
+        protected BaseOntology(string graphsUrl, string ontologyUrl, string rdfType, string rdfsLabel, List<string> prefixList, List<OntologyProperty> propertyList, List<OntologyEntity> entityList = null)
         {
             if (string.IsNullOrWhiteSpace(rdfType) || string.IsNullOrEmpty(rdfType))
             {
@@ -90,37 +90,86 @@ namespace Gnoss.ApiWrapper.Model
             }
         }
 
-        internal BaseOntology()
-        {
-
-        }
-
         #endregion
 
         #region Internal methods to build the RDF
 
+        /// <summary>
+        /// Write the header of the RDF, including the ontology URL and the declared prefixes in the ontology.
+        /// </summary>
         internal void WriteRdfHeader()
         {
-            string txt = string.Empty;
+            StringBuilder txt = new StringBuilder($"<rdf:RDF xmlns:gnossonto=\"{OntologyUrl}\"");
 
-            txt += "<rdf:RDF ";
-            txt += $"xmlns:gnossonto=\"{OntologyUrl}\"";
             foreach (string ontologia in PrefixList)
             {
-                txt += $" {ontologia}";
+                txt.Append($" {ontologia}");
             }
-            txt += ">";
+            txt.Append(">");
             File.WriteLine(txt);
         }
 
+        /// <summary>
+        /// Write the label and its value in the RDF, considering the language attribute based on the provided parameters. 
+        /// The data will be written according to the provided value parameter.
+        /// </summary>
+        /// <param name="label">Label to write in the RDF.</param>
+        /// <param name="value">Value to wirte in the RDF.</param>
+        /// <param name="languageAttribute">Valur of the language of the content (can be nullable)</param>
+        internal void Write(string label, object value, string languageAttribute = null)
+        {
+            if (label != null && value != null)
+            {
+                Type valueDataType = value.GetType();
+
+                if (valueDataType.Equals(DataTypes.String))
+                {
+                    Write(label, value as string, languageAttribute);
+                }
+                else if (valueDataType.Equals(DataTypes.ListString))
+                {
+                    Write(label, value as List<string>, languageAttribute);
+                }
+                else if (valueDataType.Equals(DataTypes.Bool))
+                {
+                    Write(label, Convert.ToBoolean(value));
+                }
+            }
+        }
+
+        /// <summary>
+        /// Write the label and its values in the RDF, considering the language attribute based on the provided parameters. 
+        /// The data will be written according to the provided value parameter.
+        /// </summary>
+        /// <param name="label">Label to write in the RDF.</param>
+        /// <param name="valueList">List of value to wirte in the RDF.</param>
+        /// <param name="languageAttribute">Valur of the language of the content (can be nullable)</param>
+        internal void Write(string label, List<string> valueList, string languageAttribute = null)
+        {
+            if (valueList != null && valueList.Count > 0)
+            {
+                foreach (string value in valueList.Distinct())
+                {
+                    Write(label, value, languageAttribute);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Write the label and its value in the RDF, considering the language attribute based on the provided parameters. 
+        /// The data will be written according to the provided value parameter.
+        /// </summary>
+        /// <param name="label">Label to write in the RDF.</param>
+        /// <param name="value">Value to wirte in the RDF.</param>
+        /// <param name="languageAttribute">Valur of the language of the content (can be nullable)</param>
         internal void Write(string label, string value, string languageAttribute = null)
         {
             if (!string.IsNullOrWhiteSpace(value) && !string.IsNullOrWhiteSpace(label))
             {
-                if (value.EndsWith("\0"))
+                if (value.EndsWith('\0'))
                 {
                     value = value.Replace("\0", "");
-                }               
+                }
                 if (!string.IsNullOrWhiteSpace(value))
                 {
                     if (value.Contains("&") || value.Contains("<") || value.Contains(">"))
@@ -149,6 +198,11 @@ namespace Gnoss.ApiWrapper.Model
             }
         }
 
+        /// <summary>
+        /// Write the boolean value in the RDF, with the provided label.
+        /// </summary>
+        /// <param name="label">Label to write in the RDF.</param>
+        /// <param name="value">Value of the boolean to write in the RDF.</param>
         internal void Write(string label, bool value)
         {
             if (value)
@@ -161,77 +215,12 @@ namespace Gnoss.ApiWrapper.Model
             }
         }
 
-        internal void Write(string label, List<string> valueList, string languageAttribute = null)
-        {
-            List<string> listAux = null;
-            if (valueList != null && valueList.Count > 0)
-            {
-                if (listAux == null)
-                {
-                    listAux = new List<string>();
-                }
-                foreach (string value in valueList)
-                {
-                    string newValue = value;
-                    if (!string.IsNullOrEmpty(newValue))
-                    {
-                        if (newValue.EndsWith("\0"))
-                        {
-                            newValue = newValue.Replace("\0", "");
-                        }                        
-                    }
-                    if (!string.IsNullOrWhiteSpace(newValue) && !listAux.Contains(newValue))
-                    {
-                        listAux.Add(newValue);
-                        if (newValue.Contains("&") || newValue.Contains("<") || newValue.Contains(">"))
-                        {
-                            if (languageAttribute == null)
-                            {
-                                File.WriteLine($"<{label}><![CDATA[{newValue}]]></{label}>");
-                            }
-                            else
-                            {
-                                File.WriteLine($"<{label} xml:lang=\"{languageAttribute}\"><![CDATA[{newValue}]]></{label}>");
-                            }
-                        }
-                        else
-                        {
-                            if (languageAttribute == null)
-                            {
-                                File.WriteLine($"<{label}>{newValue}</{label}>");
-                            }
-                            else
-                            {
-                                File.WriteLine($"<{label} xml:lang=\"{languageAttribute}\">{newValue}</{label}>");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        internal void Write(string label, object value, string languageAttribute = null)
-        {
-            List<string> listString = new List<string>();
-            if (label != null && value != null)
-            {
-                Type dataType = value.GetType();
-
-                if (value.GetType().Equals(DataTypes.String))
-                {
-                    Write(label, value as string, languageAttribute);
-                }
-                else if (value.GetType().Equals(DataTypes.ListString))
-                {
-                    Write(label, value as List<string>, languageAttribute);
-                }
-                else if (value.GetType().Equals(DataTypes.Bool))
-                {
-                    Write(label, Convert.ToBoolean(value));
-                }
-            }
-        }
-
+        /// <summary>
+        /// Convert a list of secondary entities into a dictionary, where the keys are the unique identifiers 
+        /// of the entities and the values are the entities themselves.        
+        /// </summary>
+        /// <param name="entityList">List of <see cref="OntologyEntity"> auxiliary entities</see> to convert into a dictionary.</param>
+        /// <returns>Dictionary with the unique identifiers as keys and the entities as values.</returns>
         internal Dictionary<Guid, OntologyEntity> EntityListToEntityDictionary(List<OntologyEntity> entityList = null)
         {
             Dictionary<Guid, OntologyEntity> entityDictionary = null;
@@ -321,7 +310,7 @@ namespace Gnoss.ApiWrapper.Model
                                         }
                                         prop.Value = GnossHelper.GetImagePath(resourceId, prop.Value.ToString());
                                     }
-                                    Write(prop.Name, prop.Value,  prop.Language);
+                                    Write(prop.Name, prop.Value, prop.Language);
                                 }
                                 if (entityDictionary[id].Entities == null || entityDictionary[id].Entities.Count == 0)
                                 {
