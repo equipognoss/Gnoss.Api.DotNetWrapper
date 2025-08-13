@@ -524,6 +524,11 @@ namespace Gnoss.ApiWrapper.ApiModel
     public class ReaderEditor
     {
         /// <summary>
+        /// User identificator
+        /// </summary>
+        public Guid user_id { get; set; }
+
+        /// <summary>
         /// User short name
         /// </summary>
         public string user_short_name { get; set; }
