@@ -1338,75 +1338,84 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
-        /// Adds the Community CMS Admin rol to a user
+        /// Add the role to the user with userId identifier
         /// </summary>
         /// <param name="userId">User identifier</param>
-        public void AddCmsAdminRolToUser(Guid userId)
+        /// <param name="rolId">User identifier</param>
+        public void AddRolToUser(Guid userId,Guid rolId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/add-permission?user_id={userId}&community_short_name={CommunityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                string url = $"{ApiUrl}/user/add-permission?user_id={userId}&community_short_name={CommunityShortName}&pRolID={rolId}";
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
             {
-                Log.Error($"The community CMS admin rol could not be added to user '{userId}'");
+                Log.Error($"The rol could not be added to user '{userId}'");
                 throw;
             }
         }
         /// <summary>
-        /// Adds the Community CMS Admin rol to a user
+        /// Add the role to the user with login shortNameOrEmail
         /// </summary>
         /// <param name="shortNameOrEmail">User identifier</param>
-        public void AddCmsAdminRolToUser(string shortNameOrEmail)
+        /// <param name="rolId">Rol identifier</param>
+        public void AddRolToUser(string shortNameOrEmail, Guid rolId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/add-permission?login={shortNameOrEmail}&community_short_name={CommunityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                string url = $"{ApiUrl}/user/add-permission?login={shortNameOrEmail}&community_short_name={CommunityShortName}&pRolID={rolId}";
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
             {
-                Log.Error($"The community CMS admin rol could not be added to user '{shortNameOrEmail}'");
+                Log.Error($"The community rol could not be added to user '{shortNameOrEmail}'");
                 throw;
             }
         }
 
         /// <summary>
-        /// Removes the Community CMS Admin rol to a user
+        /// Delete the user's role with role identifier Id
         /// </summary>
         /// <param name="userId">User identifier</param>
-        public void RemoveCmsAdminRolToUser(Guid userId)
+        /// <param name="rolId">Rol identifier</param>
+        public void RemoveRolToUser(Guid userId,Guid rolId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/remove-permission?user_id={userId}&community_short_name={CommunityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                string url = $"{ApiUrl}/user/remove-permission?user_id={userId}&community_short_name={CommunityShortName}&pRolID={rolId}";
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
             {
-                Log.Error($"The community CMS admin rol could not be removed from user '{userId}'");
+                Log.Error($"The rol could not be removed from user '{userId}'");
                 throw;
             }
         }
 
         /// <summary>
-        /// Removes the Community CMS Admin rol to a user
+        /// Delete the role of the user with login shortNameOrEmail
         /// </summary>
         /// <param name="shortNameOrEmail">User identifier</param>
-        public void RemoveCmsAdminRolToUser(string shortNameOrEmail)
+        /// <param name="rolId">Rol identifier</param>
+        public void RemoveRolToUser(string shortNameOrEmail,Guid rolId)
         {
             try
             {
-                string url = $"{ApiUrl}/user/remove-permission?login={shortNameOrEmail}&community_short_name={CommunityShortName}&admin_page_type={(short)AdministrationPageType.Page}";
+                string url = $"{ApiUrl}/user/remove-permission?login={shortNameOrEmail}&community_short_name={CommunityShortName}&pRolID={rolId}";
                 WebRequest($"POST", url);
             }
             catch (System.Exception)
             {
-                Log.Error($"The community CMS admin rol could not be removed from user '{shortNameOrEmail}'");
+                Log.Error($"The rol could not be removed from user '{shortNameOrEmail}'");
                 throw;
             }
         }
+
+
+        
+
+
         /// <summary>
         /// Clear caches of a person
         /// </summary>
