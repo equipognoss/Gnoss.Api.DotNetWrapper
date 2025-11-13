@@ -26,8 +26,13 @@ namespace Gnoss.Apiwrapper.ApiModel
         public bool Concedido { get; set; }
     }
 
-    public class ParamsAddRolCommunity
+    #region parametros para el add
+    public class ParamsRoleCommunity
     {
+        /// <summary>
+        /// Rol identifier
+        /// </summary>
+        public Guid? rol_id { get; set; }
         /// <summary>
         /// Short name of the community to add the role
         /// </summary>
@@ -51,7 +56,7 @@ namespace Gnoss.Apiwrapper.ApiModel
         /// <summary>
         /// Community scope (community/ecosystem)
         /// </summary>
-        public short pAmbito { get; set; }
+        public AmbitoRol pAmbito { get; set; }
 
         /// <summary>
         /// Permissions with PermisosDTO
@@ -80,11 +85,15 @@ namespace Gnoss.Apiwrapper.ApiModel
 
 
     }
+    #endregion
+
+
     public enum AmbitoRol
     {
         Comunidad,
         Ecosistema
     }
+
 
     public partial class DiccionarioDePermisos
     {
@@ -106,7 +115,7 @@ namespace Gnoss.Apiwrapper.ApiModel
     }
 
 
-
+    #region PERMISOS DE LA COMUNIDAD
     public class PermisosDTO
     {
         // COMUNIDAD
@@ -266,8 +275,9 @@ namespace Gnoss.Apiwrapper.ApiModel
         [Section("APLICACIONES")]
         public bool GestionarAplicacionesEspecificas { get; set; }
     }
+    #endregion
 
-    //PERMISOS DE CONTENIDOS
+    # region PERMISOS DE CONTENIDOS
     public class PermisosContenidosDTO
     {
         // COMUNIDAD
@@ -394,8 +404,9 @@ namespace Gnoss.Apiwrapper.ApiModel
         [Section("DESCUBRIMIENTO")]
         public bool EliminarFaceta { get; set; }
     }
+    #endregion
 
-    //PERMISOS ECOSISTEMA
+    #region PERMISOS ECOSISTEMA
     public class PermisosEcosistemaDTO
     {
         // ECOSISTEMA
@@ -447,8 +458,9 @@ namespace Gnoss.Apiwrapper.ApiModel
         [Section("ECOSISTEMA")]
         public bool AdministrarMiembrosEcosistema { get; set; }
     }
+    #endregion
 
-    //PERMISOS RECURSOS
+    #region PERMISOS RECURSOS
     public class PermisosRecursosDTO
     {
         // RECURSOS - Adjuntos
@@ -623,4 +635,6 @@ namespace Gnoss.Apiwrapper.ApiModel
         [Section("RECURSOS")]
         public bool CertificarRecurso { get; set; }
     }
+    #endregion
+
 }

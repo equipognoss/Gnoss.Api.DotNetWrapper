@@ -99,7 +99,6 @@ namespace Gnoss.Apiwrapper
             return list;
         }
 
-
         /// <summary>
         /// Add a new role to the community. The parameter pSemanticResources is a dictionary to which the ontology guid is passed. 
         /// and a class with the permissions.
@@ -125,12 +124,12 @@ namespace Gnoss.Apiwrapper
             try
             {
                 string url = $"{ApiUrl}/roles/add-role-community";
-                ParamsAddRolCommunity model = new ParamsAddRolCommunity()
+                ParamsRoleCommunity model = new ParamsRoleCommunity()
                 {
                     community_short_name = CommunityShortName,
                     pNombre = pNombre,
                     pDescripcion = pDescripcion,
-                    pAmbito = (short)pAmbito,
+                    pAmbito = pAmbito,
                     pPermisos = pPermisos,
                     pPermisosRecursos = pPermisosRecursos,
                     pPermisosEcosistema = pPermisosEcosistema,
@@ -175,12 +174,12 @@ namespace Gnoss.Apiwrapper
             try
             {
                 string url = $"{ApiUrl}/roles/add-role-community";
-                ParamsAddRolCommunity model = new ParamsAddRolCommunity()
+                ParamsRoleCommunity model = new ParamsRoleCommunity()
                 {
                     community_id = community_id,
                     pNombre = pNombre,
                     pDescripcion = pDescripcion,
-                    pAmbito = (short)pAmbito,
+                    pAmbito = pAmbito,
                     pPermisos = pPermisos,
                     pPermisosRecursos = pPermisosRecursos,
                     pPermisosEcosistema = pPermisosEcosistema,
@@ -197,7 +196,118 @@ namespace Gnoss.Apiwrapper
                 throw;
             }
         }
+
+
+        /// <summary>
+        /// Add a new role to the community. The parameter pSemanticResources is a dictionary to which the ontology guid is passed. 
+        /// and a class with the permissions. Keep in mind that you must define all the roles, if one already existed it will be deactivated by default.
+        /// </summary>
+        /// <param name="role_id">Identifier of the role to modify</param>
+        /// <param name="community_id">Community ID (optional if community_short_name is provided)</param>
+        /// <param name="pNombre">Role name</param>
+        /// <param name="pDescripcion">Role description</param>
+        /// <param name="pAmbito">Role scope</param>
+        /// <param name="pPermisos">Community permissions (binary string)</param>
+        /// <param name="pPermisosRecursos">Resource permissions (binary string)</param>
+        /// <param name="pPermisosEcosistema">Ecosystem permissions (binary string)</param>
+        /// <param name="pPermisosContenidos">Content permissions (binary string)</param>
+        /// <param name="pPermisosRecursosSemanticos">Semantic resource permissions (JSON)</param>
+        public void SetRoleCommunity(
+            Guid role_id,
+            Guid community_id,
+            string pNombre,
+            string pDescripcion,
+            AmbitoRol pAmbito,
+            PermisosDTO pPermisos,
+            PermisosRecursosDTO pPermisosRecursos,
+            PermisosEcosistemaDTO pPermisosEcosistema,
+            PermisosContenidosDTO pPermisosContenidos,
+            Dictionary<Guid, DiccionarioDePermisos> pPermisosRecursosSemanticos)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/roles/set-role-community";
+                ParamsRoleCommunity model = new ParamsRoleCommunity()
+                {
+                    rol_id = role_id,
+                    community_id = community_id,
+                    pNombre = pNombre,
+                    pDescripcion = pDescripcion,
+                    pAmbito = pAmbito,
+                    pPermisos = pPermisos,
+                    pPermisosRecursos = pPermisosRecursos,
+                    pPermisosEcosistema = pPermisosEcosistema,
+                    pPermisosContenidos = pPermisosContenidos,
+                    pPermisosRecursosSemanticos = pPermisosRecursosSemanticos
+                };
+
+                WebRequestPostWithJsonObject(url, model);
+
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error adding role to community '{community_id}':  \r\n {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Add a new role to the community. The parameter pSemanticResources is a dictionary to which the ontology guid is passed. 
+        /// and a class with the permissions. Keep in mind that you must define all the roles, if one already existed it will be deactivated by default.
+        /// </summary>
+        /// <param name="role_id">Identifier of the role to modify</param>
+        /// <param name="pNombre">Role name</param>
+        /// <param name="pDescripcion">Role description</param>
+        /// <param name="pAmbito">Role scope</param>
+        /// <param name="pPermisos">Community permissions (binary string)</param>
+        /// <param name="pPermisosRecursos">Resource permissions (binary string)</param>
+        /// <param name="pPermisosEcosistema">Ecosystem permissions (binary string)</param>
+        /// <param name="pPermisosContenidos">Content permissions (binary string)</param>
+        /// <param name="pPermisosRecursosSemanticos">Semantic resource permissions (JSON)</param>
+        public void SetRoleCommunity(
+            Guid role_id,
+            string pNombre,
+            string pDescripcion,
+            AmbitoRol pAmbito,
+            PermisosDTO pPermisos,
+            PermisosRecursosDTO pPermisosRecursos,
+            PermisosEcosistemaDTO pPermisosEcosistema,
+            PermisosContenidosDTO pPermisosContenidos,
+            Dictionary<Guid, DiccionarioDePermisos> pPermisosRecursosSemanticos)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/roles/set-role-community";
+                ParamsRoleCommunity model = new ParamsRoleCommunity()
+                {
+                    rol_id = role_id,
+                    community_short_name = CommunityShortName,
+                    pNombre = pNombre,
+                    pDescripcion = pDescripcion,
+                    pAmbito = pAmbito,
+                    pPermisos = pPermisos,
+                    pPermisosRecursos = pPermisosRecursos,
+                    pPermisosEcosistema = pPermisosEcosistema,
+                    pPermisosContenidos = pPermisosContenidos,
+                    pPermisosRecursosSemanticos = pPermisosRecursosSemanticos
+                };
+
+                WebRequestPostWithJsonObject(url, model);
+
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error adding role to community '{CommunityShortName}':  \r\n {ex.Message}");
+                throw;
+            }
+        }
         #endregion
 
     }
 }
+
+
+
+
+
+
