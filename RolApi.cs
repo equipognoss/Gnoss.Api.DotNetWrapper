@@ -301,11 +301,51 @@ namespace Gnoss.Apiwrapper
                 throw;
             }
         }
+
+        /// <summary>
+        /// Delete a role from the community
+        /// </summary>
+        /// <param name="role_id">Identifier of the role to delete</param>
+        public void DeleteRoleCommunity(Guid role_id)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/roles/delete-role-community?community_short_name={CommunityShortName}&rol_id={role_id}";
+                WebRequest("DELETE", url, acceptHeader: "application/json");
+                Log.Debug($"Role '{role_id}' has been successfully deleted from community '{CommunityShortName}'.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error deleting role '{role_id}' from community '{CommunityShortName}': \r\n {ex.Message}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Delete a role from the community using its ID
+        /// </summary>
+        /// <param name="community_id">Community identifier</param>
+        /// <param name="role_id">Identifier of the role to delete</param>
+        public void DeleteRoleCommunity(Guid community_id, Guid role_id)
+        {
+            try
+            {
+                string url = $"{ApiUrl}/roles/delete-role-community?community_id={community_id}&rol_id={role_id}";
+                WebRequest("DELETE", url, acceptHeader: "application/json");
+                Log.Debug($"Role '{role_id}' has been successfully deleted from community '{community_id}'.");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error deleting role '{role_id}' from community '{community_id}': \r\n {ex.Message}");
+                throw;
+            }
+        }
+
+
         #endregion
 
     }
 }
-
 
 
 
