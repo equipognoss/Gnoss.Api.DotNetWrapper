@@ -997,7 +997,7 @@ namespace Gnoss.ApiWrapper
             {
                 UserCommunityModel parameters = new UserCommunityModel() { user_id = userId, community_short_name = CommunityShortName };
 
-                string url = $"{ApiUrl}/community/block-member";
+                string url = $"{ApiUrl}/community/unblock-member";
 
                 WebRequestPostWithJsonObject(url, parameters);
             }
