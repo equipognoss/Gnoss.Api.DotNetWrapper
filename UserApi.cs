@@ -951,7 +951,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>Token</returns>
         public string GetLoginTokenForEmail(Guid userId, bool longLiveToken = false)
         {
-            if (userId==null)
+            if (userId == Guid.Empty)
             {
                 throw new GnossAPIArgumentException("The email can't be null or empty", "email");
             }
