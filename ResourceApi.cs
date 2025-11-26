@@ -4548,7 +4548,7 @@ namespace Gnoss.ApiWrapper
             string resourceId = string.Empty;
             try
             {
-                string url = $"{ApiUrl}/resource/massive-complex-ontology-resource-creation";
+                string url = $"{ApiUrl}/MassiveResource/massive-complex-ontology-resource-creation";
                 WebRequestPostWithJsonObject(url, massiveLoad)?.Trim('"');
 
                 if (!string.IsNullOrEmpty(resourceId))
