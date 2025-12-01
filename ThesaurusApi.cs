@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Gnoss.ApiWrapper
 {
 	/// <summary>
-	/// Wrapper for GNOSS thsaurus API
+	/// Wrapper for GNOSS thesaurus API
 	/// </summary>
 	public class ThesaurusApi : GnossApiWrapper
 	{
@@ -154,7 +154,7 @@ namespace Gnoss.ApiWrapper
 			{
 				string url = $"{ApiUrl}/thesaurus/create-category";
 
-				ParamsCreateCategory model = new ParamsCreateCategory() { community_short_name = CommunityShortName, category_name = categoryName, parent_catergory_id = parentCategoryId };
+				ParamsCreateCategory model = new ParamsCreateCategory() { community_short_name = CommunityShortName, category_name = categoryName, parent_category_id = parentCategoryId };
 
 				WebRequestPostWithJsonObject(url, model);
 
@@ -203,7 +203,7 @@ namespace Gnoss.ApiWrapper
 			{
 				string url = $"{ApiUrl}/thesaurus/set-node-parent";
 
-				ParamsParentNode model = new ParamsParentNode() { thesaurus_ontology_url = pUrlOntologiaTesauro, community_short_name = CommunityShortName, parent_catergory_id = pCategoriaPadreId, child_category_id = pCategoriaHijoId };
+				ParamsParentNode model = new ParamsParentNode() { thesaurus_ontology_url = pUrlOntologiaTesauro, community_short_name = CommunityShortName, parent_category_id = pCategoriaPadreId, child_category_id = pCategoriaHijoId };
 
 				WebRequestPostWithJsonObject(url, model);
 
