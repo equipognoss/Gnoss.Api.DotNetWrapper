@@ -4218,7 +4218,7 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/resource/link-resource";
-                model = new LinkedParams() { resource_id = resourceId, community_short_name = CommunityShortName, resoruce_list_to_link = resourceListToLink };
+                model = new LinkedParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_list_to_link = resourceListToLink };
                 WebRequestPostWithJsonObject(url, model);
                 loaded = true;
                 Log.Debug("Ended link resources");
@@ -4246,7 +4246,7 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/resource/share";
-                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, publisher_email = publisher_email };
+                model = new ShareParams() { destination_community_short_name = targetCommunity, resource_id = resourceId, categories = categories, publisher_email = publisher_email };
                 WebRequestPostWithJsonObject(url, model);
 
                 Log.Debug("Ended resource sharing");
@@ -4275,7 +4275,7 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/resource/share";
-                model = new ShareParams() { destination_communitiy_short_name = targetCommunity, resource_id = resourceId, categories = categories, userId = user_Id };
+                model = new ShareParams() { destination_community_short_name = targetCommunity, resource_id = resourceId, categories = categories, userId = user_Id };
                 WebRequestPostWithJsonObject(url, model);
 
                 Log.Debug("Ended resource sharing");

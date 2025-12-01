@@ -684,7 +684,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// <summary>
         /// Community short name where the resource is going to be published
         /// </summary>
-        public string destination_communitiy_short_name { get; set; }
+        public string destination_community_short_name { get; set; }
 
         /// <summary>
         /// Resource identifier
@@ -820,7 +820,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// <summary>
         /// List of resources to link
         /// </summary>
-        public List<Guid> resoruce_list_to_link { get; set; }
+        public List<Guid> resource_list_to_link { get; set; }
     }
 
     /// <summary>
