@@ -77,7 +77,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// <summary>
         /// Identificator of the parent category
         /// </summary>
-        public Guid? parent_catergory_id { get; set; }
+        public Guid? parent_category_id { get; set; }
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// <summary>
         /// Identificator of the parent category
         /// </summary>
-        public string parent_catergory_id { get; set; }
+        public string parent_category_id { get; set; }
 
         /// <summary>
         /// Identificator of the child category
