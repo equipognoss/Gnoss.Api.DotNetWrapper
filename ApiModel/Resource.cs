@@ -875,6 +875,32 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to translate a resource
+    /// </summary>
+    public class TranslateResourceParams
+    {
+        /// <summary>
+        /// Identifier of the resource
+        /// </summary>
+        public Guid resource_id { get; set; }
+
+        /// <summary>
+        /// Original language of the resource
+        /// </summary>
+        public string original_language { get; set; }
+
+		/// <summary>
+		/// List of language codes (ISO 639-1) to translate the resource
+		/// </summary>
+		public List<string> target_languages { get; set; }
+
+        /// <summary>
+        /// Short name of the community of the resource
+        /// </summary>
+        public string community_short_name { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to upload a resource
     /// </summary>
     public class LoadResourceParams
