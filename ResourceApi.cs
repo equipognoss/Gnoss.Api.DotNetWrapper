@@ -4936,7 +4936,7 @@ namespace Gnoss.ApiWrapper
 		/// <summary>
 		/// Obtains the list of languages available to translate a resource
 		/// </summary>
-		/// <returns>List of language codes (ISO 639-1)</returns>
+		/// <returns>List of language codes (BCP 47)</returns>
 		public List<string> GetTranslationLanguages()
         {            
             try
@@ -4967,7 +4967,7 @@ namespace Gnoss.ApiWrapper
 		/// </summary>
 		/// <param name="resourceId">Resource identifier</param>
 		/// <param name="originalLanguage">Original language of the resource</param>
-		/// <param name="targetLanguages">List of language codes in ISO 639-1 format that the resource will be translated to</param>
+		/// <param name="targetLanguages">List of language codes in BCP 47 format that the resource will be translated to</param>
 		/// <returns>Identifier of the async translation progress</returns>
 		public Guid TranslateResource(Guid resourceId, string originalLanguage, List<string> targetLanguages)
         {
