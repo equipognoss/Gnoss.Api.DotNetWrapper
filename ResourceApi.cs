@@ -1,21 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using Gnoss.ApiWrapper.Model;
+﻿using Gnoss.ApiWrapper.ApiModel;
+using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Helpers;
+using Gnoss.ApiWrapper.Model;
 using Gnoss.ApiWrapper.OAuth;
+using Gnoss.ApiWrapper.Web;
+using Microsoft.ApplicationInsights.AspNetCore;
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.Data;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
-using Newtonsoft.Json;
-using Gnoss.ApiWrapper.Exceptions;
-using Gnoss.ApiWrapper.Web;
-using Gnoss.ApiWrapper.ApiModel;
-using System.Xml;
+using System.Text;
 using System.Web;
-using Microsoft.AspNetCore.Http;
+using System.Xml;
 
 namespace Gnoss.ApiWrapper
 {
@@ -4932,13 +4933,76 @@ namespace Gnoss.ApiWrapper
             return resource;
         }
 
-        #region Oauth methods
+		/// <summary>
+		/// Obtains the list of languages available to translate a resource
+		/// </summary>
+		/// <returns>List of language codes (BCP 47)</returns>
+		public List<string> GetTranslationLanguages()
+        {            
+            try
+            {
+				string url = $"{ApiUrl}/resource/get-translation-languages";
+				string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+				List<string> languagesList = JsonConvert.DeserializeObject<List<string>>(response);
+                if (languagesList != null && languagesList.Count > 0)
+                {
+					Log.Debug($"List of languages obtained");
+				}
+                else
+                {
+					Log.Error($"Error attempting to get the list of languages");
+				}
 
-        /// <summary>
-        /// Changes the current ontology by the indicated ontology.
-        /// </summary>
-        /// <param name="newOntology">New ontology name</param>
-        [Obsolete("Se recomienda usar el nuevo metodo ChangeOntology")]
+				return languagesList;
+			}
+            catch (Exception ex)
+            {
+                Log.Error($"Error attempting to get the list of languages", ex.Message);
+                throw;
+            }            
+        }
+
+		/// <summary>
+		/// Initiates an asynchronous translation process of the resource to the selected languages from the original language
+		/// </summary>
+		/// <param name="resourceId">Resource identifier</param>
+		/// <param name="originalLanguage">Original language of the resource</param>
+		/// <param name="targetLanguages">List of language codes in BCP 47 format that the resource will be translated to</param>
+		/// <returns>Identifier of the async translation progress</returns>
+		public Guid TranslateResource(Guid resourceId, string originalLanguage, List<string> targetLanguages)
+        {
+            try
+            {
+				string url = $"{ApiUrl}/resource/translate-resource";
+                TranslateResourceParams translateResourceParams = new TranslateResourceParams { resource_id = resourceId, original_language = originalLanguage, target_languages = targetLanguages, community_short_name = CommunityShortName };
+				string response = WebRequestPostWithJsonObject(url, translateResourceParams);
+				Guid translationID = JsonConvert.DeserializeObject<Guid>(response);
+
+                if (translationID.Equals(Guid.Empty))
+                {
+					Log.Error($"Error translating the resource '{resourceId}'");
+				}
+                else
+                {
+					Log.Debug($"The resource '{resourceId}' is being translated. Identifier '{translationID}' has been associated with the process to track the progress.");
+				}
+
+                return translationID;
+			}
+            catch (Exception ex)
+            {
+				Log.Error($"Error translating the resource {resourceId}", ex.Message);
+                throw;
+			}
+        }
+
+		#region Oauth methods
+
+		/// <summary>
+		/// Changes the current ontology by the indicated ontology.
+		/// </summary>
+		/// <param name="newOntology">New ontology name</param>
+		[Obsolete("Se recomienda usar el nuevo metodo ChangeOntology")]
         public void ChangeOntoly(string newOntology)
         {
             string ontologia = newOntology.ToLower().Replace(".owl", "");
