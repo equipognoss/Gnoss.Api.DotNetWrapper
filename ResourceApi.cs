@@ -1708,7 +1708,7 @@ namespace Gnoss.ApiWrapper
 
         #region Categories
 
-        private List<Guid> GetHierarquicalCategoriesIdentifiersList(List<string> hierarquicalCategoriesList)
+        protected List<Guid> GetHierarquicalCategoriesIdentifiersList(List<string> hierarquicalCategoriesList)
         {
             List<Guid> resultList = null;
 
@@ -1791,7 +1791,7 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        private List<Guid> GetNotHierarquicalCategoriesIdentifiersList(List<string> notHierarquicalCategoriesList)
+        protected List<Guid> GetNotHierarquicalCategoriesIdentifiersList(List<string> notHierarquicalCategoriesList)
         {
             List<ThesaurusCategory> categoryList = null;
 
@@ -3037,7 +3037,7 @@ namespace Gnoss.ApiWrapper
             return model;
         }
 
-        private LoadResourceParams GetResourceModelOfComplexOntologyResource(ComplexOntologyResource rec, bool pCrearVersion, bool pEsUltimo)
+        protected LoadResourceParams GetResourceModelOfComplexOntologyResource(ComplexOntologyResource rec, bool pCrearVersion, bool pEsUltimo)
         {
             LoadResourceParams model = new LoadResourceParams();
             model.resource_id = rec.ShortGnossId;
@@ -4512,63 +4512,7 @@ namespace Gnoss.ApiWrapper
         }
 
 
-        /// <summary>
-        /// Creates a complex ontology resource
-        /// </summary>
-        /// <param name="parameters"></param>
-        /// <param name="pCargaID"></param>
-        /// <param name="hierarquicalCategories"></param>
-        /// <returns>resource identifier guid</returns>
-        public string MassiveComplexOntologyResourceCreation(List<ComplexOntologyResource> parameters, Guid pCargaID, bool hierarquicalCategories = false)
-        {
-            List<LoadResourceParams> listaLoadResourceParams = new List<LoadResourceParams>();
-            foreach (ComplexOntologyResource resource in parameters)
-            {
-                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
-                {
-                    if (hierarquicalCategories)
-                    {
-                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-
-                    }
-                    else
-                    {
-                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
-                    }
-                }
-
-                string documentId = string.Empty;
-
-                LoadResourceParams resourceParam = GetResourceModelOfComplexOntologyResource(resource, false, false);
-                listaLoadResourceParams.Add(resourceParam);
-                resource.Uploaded = true;
-            }
-            MassiveResourceLoad massiveLoad = new MassiveResourceLoad();
-            massiveLoad.resources = listaLoadResourceParams;
-            massiveLoad.load_id = pCargaID;
-            string resourceId = string.Empty;
-            try
-            {
-                string url = $"{ApiUrl}/MassiveResource/massive-complex-ontology-resource-creation";
-                WebRequestPostWithJsonObject(url, massiveLoad)?.Trim('"');
-
-                if (!string.IsNullOrEmpty(resourceId))
-                {
-                    Log.Debug($"Complex ontology resource created: {resourceId}");
-                }
-                else
-                {
-                    Log.Debug($"Massive Complex ontology resource not created: {JsonConvert.SerializeObject(massiveLoad)}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error($"Error trying to create a Massive complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(massiveLoad)}");
-                throw;
-            }
-
-            return resourceId;
-        }
+        
 
         /// <summary>
         /// Modify a categories resource
