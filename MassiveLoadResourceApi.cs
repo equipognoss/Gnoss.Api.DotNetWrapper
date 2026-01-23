@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -137,15 +138,16 @@ namespace Gnoss.ApiWrapper
                 File.WriteAllText(testFilePath, $"Testing file... {DateTime.Now.Ticks}");
 
                 //summarie of nq file
-                byte[] fileHash = new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(testFilePath));
+                byte[] fileHash = MD5.HashData(File.ReadAllBytes(testFilePath));
 
                 //download nq file
-                WebClient client = new WebClient();
-                client.DownloadFile($"{Uri}/test.nq", downloadedTestFilePath);
+                HttpClient client = new HttpClient();
+                var bytes = client.GetByteArrayAsync($"{Uri}/test.nq").Result;
+                File.WriteAllBytes(downloadedTestFilePath, bytes);
                 client.Dispose();
 
                 //summarie of downloaded nq file
-                byte[] downloadedFileHash = new MD5CryptoServiceProvider().ComputeHash(File.ReadAllBytes(downloadedTestFilePath));
+                byte[] downloadedFileHash = MD5.HashData(File.ReadAllBytes(downloadedTestFilePath));
 
                 //if the summaries are different, something is wrong
                 if (!fileHash.SequenceEqual(downloadedFileHash))
@@ -155,7 +157,7 @@ namespace Gnoss.ApiWrapper
                 }
 
                 //Test resource api
-                string url = $"{ApiUrl}/resource/test-massive-load";
+                string url = $"{ApiUrl}/massiveresource/test-massive-load";
 
                 MassiveDataLoadTestResource resource = new MassiveDataLoadTestResource()
                 {
@@ -176,7 +178,6 @@ namespace Gnoss.ApiWrapper
         /// <param name="pMassiveLoadIdentifier">Massive data load identifier</param>
         public void UploadPreparedMassiveLoad(Guid pMassiveLoadIdentifier)
         {
-            //MassiveLoadIdentifier = pMassiveLoadIdentifier;
             if (Directory.Exists(FilesDirectory))
             {
                 int length = Directory.GetFiles(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{pMassiveLoadIdentifier}*.txt").Length;
@@ -266,7 +267,7 @@ namespace Gnoss.ApiWrapper
         /// <returns>True if the data load is closed</returns>
         public bool CloseMassiveDataLoad()
         {
-            string url = $"{ApiUrl}/resource/close-massive-load";
+            string url = $"{ApiUrl}/massiveresource/close-massive-load";
             CloseMassiveDataLoadResource model = null;
             bool closed = false;
             try
@@ -311,7 +312,7 @@ namespace Gnoss.ApiWrapper
             
             try
             {
-                string url = $"{ApiUrl}/resource/create-massive-load";
+                string url = $"{ApiUrl}/massiveresource/create-massive-load";
 
                 model = new MassiveDataLoadResource()
                 {
@@ -415,7 +416,7 @@ namespace Gnoss.ApiWrapper
             bool created = false;
             try
             {
-                string url = $"{ApiUrl}/resource/create-massive-load-package";
+                string url = $"{ApiUrl}/massiveresource/create-massive-load-package";
                 WebRequestPostWithJsonObject(url, model);
                 created = true;
                 Log.Debug("Massive data load package created");
@@ -434,17 +435,74 @@ namespace Gnoss.ApiWrapper
             EstadoCargaModel estadoCarga;
             try
             {
-                string url = $"{ApiUrl}/resource/load-state";
+                string url = $"{ApiUrl}/massiveresource/load-state";
                 string response = WebRequestPostWithJsonObject(url, pLoadId);
 
                 estadoCarga = JsonConvert.DeserializeObject<EstadoCargaModel>(response);
             }
             catch (Exception ex)
             {
+                Log.Error($"Error loading state {pLoadId}", ex.Message);
                 throw;
             }
 
             return estadoCarga;
+        }
+
+        /// <summary>
+        /// Creates a complex ontology resource
+        /// </summary>
+        /// <param name="parameters"></param>
+        /// <param name="pCargaID"></param>
+        /// <param name="hierarquicalCategories"></param>
+        /// <returns>resource identifier guid</returns>
+        public string MassiveComplexOntologyResourceCreation(List<ComplexOntologyResource> parameters, Guid pCargaID, bool hierarquicalCategories = false)
+        {
+            List<LoadResourceParams> listaLoadResourceParams = new List<LoadResourceParams>();
+            foreach (ComplexOntologyResource resource in parameters)
+            {
+                if (resource.TextCategories != null && resource.TextCategories.Count > 0)
+                {
+                    if (hierarquicalCategories)
+                    {
+                        resource.CategoriesIds = GetHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+
+                    }
+                    else
+                    {
+                        resource.CategoriesIds = GetNotHierarquicalCategoriesIdentifiersList(resource.TextCategories);
+                    }
+                }
+
+                LoadResourceParams resourceParam = GetResourceModelOfComplexOntologyResource(resource, false, false);
+                listaLoadResourceParams.Add(resourceParam);
+                resource.Uploaded = true;
+            }
+            MassiveResourceLoad massiveLoad = new MassiveResourceLoad();
+            massiveLoad.resources = listaLoadResourceParams;
+            massiveLoad.load_id = pCargaID;
+            string resourceId = string.Empty;
+            try
+            {
+                string url = $"{ApiUrl}/MassiveResource/massive-complex-ontology-resource-creation";
+                WebRequestPostWithJsonObject(url, massiveLoad)?.Trim('"');
+
+                if (!string.IsNullOrEmpty(resourceId))
+                {
+                    Log.Debug($"Complex ontology resource created: {resourceId}");
+                }
+                else
+                {
+                    Log.Debug($"Massive Complex ontology resource not created: {JsonConvert.SerializeObject(massiveLoad)}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error trying to create a Massive complex ontology resource. \r\n Error description: {ex.Message}. \r\n: Json: {JsonConvert.SerializeObject(massiveLoad)}");
+                throw;
+            }
+
+            return resourceId;
         }
     }
 }
