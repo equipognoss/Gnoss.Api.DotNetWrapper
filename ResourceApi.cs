@@ -1,4 +1,5 @@
-﻿using Gnoss.ApiWrapper.ApiModel;
+﻿using Gnoss.Apiwrapper.GenerateTiles;
+using Gnoss.ApiWrapper.ApiModel;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.Model;
@@ -15,6 +16,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Xml;
 
@@ -374,6 +376,151 @@ namespace Gnoss.ApiWrapper
                 return false;
             }
         }
+
+
+        /// <summary>
+        /// Generates Deep Zoom tiles from a local image, uploads them to the server
+        /// together with the .dzi descriptor, and returns the server path of the .dzi.
+        /// </summary>
+        /// <param name="resourceId">Short resource identifier.</param>
+        /// <param name="tilesDirectory">
+        /// Absolute path to the *_files folder produced by Dzsave,
+        /// e.g. "C:\temp\LasMeninas_files".
+        /// The sibling .dzi file (e.g. "C:\temp\LasMeninas.dzi") is inferred automatically.
+        /// </param>
+        /// <param name="mainImage">Main-image descriptor string, e.g. "[IMGPrincipal][268,]guid.jpg".</param>
+        /// <param name="batchSize">Number of tiles sent per HTTP call (default 300).</param>
+        /// <param name="delayBetweenBatchesMs">Milliseconds to wait between batches (default 5000).</param>
+        /// <returns>
+        /// Server path of the .dzi descriptor,
+        /// e.g. "imagenes/Documentos/imgsem/72/7266/727661f6-.../LasMeninas.dzi".
+        /// Returns <c>null</c> if the upload fails.
+        /// </returns>
+        public string LoadOpenSeaDragon(
+            Guid resourceId,
+            string tilesDirectory,
+            string mainImage,
+            int batchSize = 300,
+            int delayBetweenBatchesMs = 5000)
+        {
+            if (string.IsNullOrWhiteSpace(tilesDirectory))
+                throw new ArgumentException("tilesDirectory cannot be null or empty.", nameof(tilesDirectory));
+
+            if (!Directory.Exists(tilesDirectory))
+            {
+                Log.Error($"[LoadOpenSeaDragon] Tiles directory not found: {tilesDirectory}");
+                return null;
+            }
+
+            try
+            {
+                string parentDirectory = Path.GetDirectoryName(tilesDirectory)!;
+                string baseName = Path.GetFileName(tilesDirectory).Replace("_files", string.Empty);
+                string dziPath = Path.Combine(parentDirectory, $"{baseName}.dzi");
+
+                // Build the base server path
+                string primeraCarpeta = resourceId.ToString().Substring(0, 2);
+                string segundaCarpeta = resourceId.ToString().Substring(0, 4);
+                string rutaBaseServidor = $"imagenes/Documentos/imgsem/{primeraCarpeta}/{segundaCarpeta}/{resourceId}";
+                string rutaDziServidor = $"{rutaBaseServidor}/{baseName}.dzi";
+
+                Log.Debug($"[LoadOpenSeaDragon] tilesDirectory:    {tilesDirectory}");
+                Log.Debug($"[LoadOpenSeaDragon] baseName:          {baseName}");
+                Log.Debug($"[LoadOpenSeaDragon] rutaBaseServidor:  {rutaBaseServidor}");
+                Log.Debug($"[LoadOpenSeaDragon] rutaDziServidor:   {rutaDziServidor}");
+
+                //Upload tiles 
+                string[] subDirs = Directory.GetDirectories(tilesDirectory);
+                var batch = new List<SemanticAttachedResource>();
+                var uploadedPaths = new List<string>();
+                
+                Log.Debug($"[LoadOpenSeaDragon] Zoom levels found: {subDirs.Length}");
+
+                foreach (string subDir in subDirs)
+                {
+                    string relativeBase = Path.GetRelativePath(parentDirectory, subDir);
+
+                    foreach (string filePath in Directory.GetFiles(subDir))
+                    {
+                        string serverRelativePath = Path
+                            .Combine(relativeBase, Path.GetFileName(filePath))
+                            .Replace(Path.DirectorySeparatorChar, '/');
+
+                        batch.Add(new SemanticAttachedResource
+                        {
+                            file_rdf_property = serverRelativePath,
+                            file_property_type = 1, // image
+                            rdf_attached_file = File.ReadAllBytes(filePath)
+                        });
+
+                        uploadedPaths.Add(serverRelativePath);
+
+                        if (batch.Count >= batchSize)
+                        {
+                            Log.Debug($"[LoadOpenSeaDragon] Sending batch of {batch.Count} tiles...");
+                            SendTilesBatch(resourceId, batch, mainImage);
+                            Thread.Sleep(delayBetweenBatchesMs);
+                            batch.Clear();
+                        }
+                    }
+
+                    if (batch.Count > 0)
+                    {
+                        Log.Debug($"[LoadOpenSeaDragon] Flushing {batch.Count} remaining tiles for level {Path.GetFileName(subDir)}...");
+                        SendTilesBatch(resourceId, batch, mainImage);
+                        Thread.Sleep(delayBetweenBatchesMs);
+                        batch.Clear();
+                    }
+                }
+
+                Log.Debug($"[LoadOpenSeaDragon] Tiles upload complete. Total tiles sent: {uploadedPaths.Count}");
+                foreach (string path in uploadedPaths.Take(5))
+                    Log.Debug($"  file_rdf_property: {path}");
+                
+                //Upload .dzi after all tiles are on the server
+                if (!File.Exists(dziPath))
+                {
+                    Log.Error($"[LoadOpenSeaDragon] .dzi not found at: {dziPath}");
+                    return null;
+                }
+
+                string dziFileName = Path.GetFileName(dziPath);
+                byte[] dziBytes = File.ReadAllBytes(dziPath);
+                Log.Debug($"[LoadOpenSeaDragon] dziPath: {dziPath}");
+                Log.Debug($"[LoadOpenSeaDragon] dziBytes length: {dziBytes.Length}");
+                Log.Debug($"[LoadOpenSeaDragon] dziBytes preview: {System.Text.Encoding.UTF8.GetString(dziBytes, 0, Math.Min(200, dziBytes.Length))}");
+                var dziBatch = new List<SemanticAttachedResource>
+                {
+                    new SemanticAttachedResource
+                    {
+                        file_rdf_property  = dziFileName,
+                        file_property_type = 1, 
+                        rdf_attached_file  = File.ReadAllBytes(dziPath)
+                    }
+                };
+
+                Log.Debug($"[LoadOpenSeaDragon] Uploading .dzi: {dziFileName}...");
+                UploadImages(resourceId, dziBatch, mainImage);
+                Log.Debug($"[LoadOpenSeaDragon] .dzi uploaded successfully to: {rutaDziServidor}");
+
+                return rutaDziServidor;
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[LoadOpenSeaDragon] resourceId={resourceId}: {ex.Message}");
+                return null;
+            }
+        }
+
+
+
+        private void SendTilesBatch(Guid resourceId, List<SemanticAttachedResource> batch, string mainImage)
+        {
+            //hacer comprobación de que existe el recurso
+            UploadImages(resourceId, batch, mainImage);
+        }
+
+
 
         #endregion
 
