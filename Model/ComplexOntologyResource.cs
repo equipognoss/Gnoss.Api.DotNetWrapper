@@ -385,6 +385,92 @@ namespace Gnoss.ApiWrapper.Model
         }
 
         /// <summary>
+        /// Prepares a Deep Zoom (OpenSeadragon) structure for upload.
+        /// 
+        /// - All tile images from the *_files directory are registered WITHOUT an RDF reference
+        ///   (bytes only, uploaded later via UploadImages in ResourceApi).
+        /// 
+        /// Call ResourceApi.UploadImages after loading the resource to push the tile bytes.
+        /// </summary>
+        /// <param name="tilesDirectory">
+        /// Absolute path to the *_files folder produced by Dzsave,
+        /// e.g. "C:\temp\LasMeninas_files".
+        /// The sibling .dzi file (e.g. "C:\temp\LasMeninas.dzi") is inferred automatically.
+        /// </param>
+        /// <param name="dziPredicate">
+        /// Ontology predicate that will hold the .dzi reference,
+        /// e.g. "myns:deepZoomUrl".
+        /// </param>
+        /// <param name="entity">(Optional) Auxiliary entity that owns the predicate.</param>
+        public void LoadOpenSeaDragon(
+            string tilesDirectory,
+            string dziPredicate,
+            Guid resourceId,       
+            string apiUrl,          
+            OntologyEntity entity = null)
+        {
+            if (string.IsNullOrWhiteSpace(tilesDirectory))
+                throw new GnossAPIArgumentException("Required.", nameof(tilesDirectory));
+
+            if (!Directory.Exists(tilesDirectory))
+                throw new GnossAPIException($"Tiles directory not found: {tilesDirectory}");
+
+            if (string.IsNullOrWhiteSpace(dziPredicate))
+                throw new GnossAPIArgumentException("Required.", nameof(dziPredicate));
+
+            string baseName = Path.GetFileName(tilesDirectory)
+                                  .Replace("_files", string.Empty, StringComparison.OrdinalIgnoreCase);
+            string dziFileName = $"{baseName}.dzi";
+
+            if (AttachedFilesName.Any(f => f.EndsWith(dziFileName, StringComparison.OrdinalIgnoreCase)))
+                throw new GnossAPIException($"A .dzi file with the name '{dziFileName}' is already registered in this resource.");
+
+
+            string primeraCarpeta = resourceId.ToString().Substring(0, 2);
+            string segundaCarpeta = resourceId.ToString().Substring(0, 4);
+            string rutaBaseServidor = $"imagenes/Documentos/imgsem/{primeraCarpeta}/{segundaCarpeta}/{resourceId}";
+            string baseUrl = apiUrl.Replace("/api", "");
+            string urlCompletaDzi = $"{baseUrl}/{rutaBaseServidor}/{dziFileName}";
+
+            string parentDirectory = Path.GetDirectoryName(tilesDirectory)!;
+            foreach (string subDir in Directory.GetDirectories(tilesDirectory))
+            {
+                foreach (string filePath in Directory.GetFiles(subDir))
+                {
+                    string relativeBase = Path.GetRelativePath(parentDirectory, subDir);
+                    string serverRelativePath = Path
+                        .Combine(relativeBase, Path.GetFileName(filePath))
+                        .Replace(Path.DirectorySeparatorChar, '/');
+
+                    AttachedFiles.Add(File.ReadAllBytes(filePath));
+                    AttachedFilesName.Add(serverRelativePath);
+                    AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+                }
+            }
+
+            string dziLocalPath = Path.Combine(
+                Path.GetDirectoryName(tilesDirectory)!, dziFileName);
+
+            if (!File.Exists(dziLocalPath))
+                throw new GnossAPIException($".dzi file not found at: {dziLocalPath}");
+
+            AttachedFiles.Add(File.ReadAllBytes(dziLocalPath));
+            AttachedFilesName.Add(dziFileName);          
+            AttachedFilesType.Add(AttachedResourceFilePropertyTypes.file);
+
+            AttachFileInternal(
+                file: null,
+                filePredicate: dziPredicate,
+                fileName: urlCompletaDzi,   
+                fileType: AttachedResourceFilePropertyTypes.file,
+                entity: entity,
+                onlyReference: true);
+        }
+
+        
+
+
+        /// <summary>
         /// Attach a reference to a file (not an image, to attach an image use AttachImageWithoutReference method) previusly uploaded using the <see cref="AttachFileWithoutReference"/> method 
         /// A downloadable file it's a file that can be accessed from the Web. It means that the file won't be encripted in the server
         /// </summary>

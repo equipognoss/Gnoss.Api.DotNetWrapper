@@ -16,9 +16,19 @@ namespace Gnoss.Apiwrapper.GenerateTiles
     /// <summary>
     /// Generates Deep Zoom tiles from a local image using libvips.
     /// Optimized for speed on large/high-resolution images.
+    /// Only levels >= MinLevel are kept (levels 0..MinLevel-1 are deleted after generation).
     /// </summary>
     public class ImageTessellator
     {
+        #region Constants
+
+        /// <summary>
+        /// Lowest Deep Zoom level that is kept. Levels 0 … MinLevel-1 are deleted.
+        /// </summary>
+        public const int MinLevel = 8;
+
+        #endregion
+
         #region Constructor
 
         private readonly int _tileSize;
@@ -63,6 +73,7 @@ namespace Gnoss.Apiwrapper.GenerateTiles
         /// Tiles the image at <paramref name="sourceImagePath"/> and writes the
         /// Deep Zoom output (*.dzi + *_files/) to <paramref name="destinationDirectory"/>.
         /// Output tile format matches the source image format.
+        /// Levels 0 to <see cref="MinLevel"/>-1 are removed after generation.
         /// </summary>
         public void GenerateTiles(string sourceImagePath, string destinationDirectory)
         {
@@ -92,6 +103,12 @@ namespace Gnoss.Apiwrapper.GenerateTiles
                 overlap: _overlap,
                 tileSize: _tileSize
             );
+
+            // ── Remove low-resolution levels ──────────────────────────────────
+            // Dzsave always generates every level from 0 (1×1 px) up to the full
+            // resolution level. We discard levels 0 … MinLevel-1 because they are
+            // too coarse to be useful and only waste disk space.
+            DeleteLowResolutionLevels(destinationDirectory, baseName);
         }
 
         /// <summary>
@@ -147,6 +164,26 @@ namespace Gnoss.Apiwrapper.GenerateTiles
             var (isValid, errorMessage) = ValidateImage(sourceImagePath);
             if (!isValid)
                 throw new InvalidOperationException(errorMessage);
+        }
+
+        /// <summary>
+        /// Deletes the tile subdirectories for levels 0 … <see cref="MinLevel"/>-1
+        /// inside <c>&lt;destinationDirectory&gt;/&lt;baseName&gt;_files/</c>.
+        /// Directories that do not exist are silently ignored.
+        /// </summary>
+        private static void DeleteLowResolutionLevels(string destinationDirectory, string baseName)
+        {
+            string tilesRoot = Path.Combine(destinationDirectory, $"{baseName}_files");
+
+            if (!Directory.Exists(tilesRoot))
+                return;
+
+            for (int level = 0; level < MinLevel; level++)
+            {
+                string levelDir = Path.Combine(tilesRoot, level.ToString());
+                if (Directory.Exists(levelDir))
+                    Directory.Delete(levelDir, recursive: true);
+            }
         }
 
         /// <summary>
