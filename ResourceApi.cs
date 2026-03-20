@@ -4885,7 +4885,7 @@ namespace Gnoss.ApiWrapper
         {            
             try
             {
-				string url = $"{ApiUrl}/resource/get-translation-languages";
+				string url = $"{ApiUrl}/resource/get-translation-languages?community_short_name={CommunityShortName}";
 				string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
 				List<string> languagesList = JsonConvert.DeserializeObject<List<string>>(response);
                 if (languagesList != null && languagesList.Count > 0)
