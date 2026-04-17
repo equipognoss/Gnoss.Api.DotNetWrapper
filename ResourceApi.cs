@@ -406,7 +406,9 @@ namespace Gnoss.ApiWrapper
             if (resource.ShortGnossId == Guid.Empty)
                 throw new GnossAPIException("The resource must be loaded before calling UploadOpenSeaDragonTiles.");
 
-            int total = resource.AttachedFiles.Count;
+            var tiles = resource.PendingTiles;
+            int total = tiles.Count;
+
             Log.Debug($"[UploadOpenSeaDragonTiles] Starting upload of {total} tiles for resource {resource.ShortGnossId}");
 
             var batch = new List<SemanticAttachedResource>();
@@ -415,9 +417,9 @@ namespace Gnoss.ApiWrapper
             {
                 batch.Add(new SemanticAttachedResource
                 {
-                    file_rdf_property = resource.AttachedFilesName[i],
+                    file_rdf_property = tiles[i].FileName,
                     file_property_type = 1,
-                    rdf_attached_file = resource.AttachedFiles[i]
+                    rdf_attached_file = tiles[i].Bytes
                 });
 
                 if (batch.Count >= batchSize)
@@ -429,7 +431,7 @@ namespace Gnoss.ApiWrapper
                 }
             }
 
-            // Flush remaining tiles
+            // Flush del último batch
             if (batch.Count > 0)
             {
                 Log.Debug($"[UploadOpenSeaDragonTiles] Flushing final batch of {batch.Count} tiles...");
@@ -439,13 +441,6 @@ namespace Gnoss.ApiWrapper
             Log.Debug($"[UploadOpenSeaDragonTiles] All tiles uploaded for resource {resource.ShortGnossId}");
         }
 
-
-
-        private void SendTilesBatch(Guid resourceId, List<SemanticAttachedResource> batch, string mainImage)
-        {
-            //hacer comprobación de que existe el recurso
-            UploadImages(resourceId, batch, mainImage);
-        }
 
 
 

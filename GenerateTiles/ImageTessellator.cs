@@ -25,7 +25,7 @@ namespace Gnoss.Apiwrapper.GenerateTiles
         /// <summary>
         /// Lowest Deep Zoom level that is kept. Levels 0 … MinLevel-1 are deleted.
         /// </summary>
-        public const int MinLevel = 8;
+        public const int MinLevel = 7;
 
         #endregion
 

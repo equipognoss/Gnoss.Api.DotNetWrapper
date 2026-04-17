@@ -21,6 +21,8 @@ namespace Gnoss.ApiWrapper.Model
         private byte[] _rdfFile;
         private string _stringRdfFile;
         private Ontology _ontology;
+        private List<(string FileName, byte[] Bytes)> _pendingTiles
+            = new List<(string, byte[])>();
 
         #endregion
 
@@ -94,6 +96,13 @@ namespace Gnoss.ApiWrapper.Model
         }
 
         public bool? permitir_compartidos { get; set; }
+
+        /// <summary>
+        /// Tile bytes + server paths prepared by LoadOpenSeaDragon.
+        /// Consumed by ResourceApi.UploadOpenSeaDragonTiles after resource creation.
+        /// </summary>
+        public IReadOnlyList<(string FileName, byte[] Bytes)> PendingTiles
+            => _pendingTiles.AsReadOnly();
 
         #region Attached files
 
@@ -405,33 +414,34 @@ namespace Gnoss.ApiWrapper.Model
         public void LoadOpenSeaDragon(
             string tilesDirectory,
             string dziPredicate,
-            Guid resourceId,       
-            string apiUrl,          
+            Guid resourceId,
             OntologyEntity entity = null)
         {
             if (string.IsNullOrWhiteSpace(tilesDirectory))
-                throw new GnossAPIArgumentException("Required.", nameof(tilesDirectory));
+                throw new GnossAPIArgumentException("Required. It can't be null or empty.", nameof(tilesDirectory));
 
             if (!Directory.Exists(tilesDirectory))
                 throw new GnossAPIException($"Tiles directory not found: {tilesDirectory}");
 
             if (string.IsNullOrWhiteSpace(dziPredicate))
-                throw new GnossAPIArgumentException("Required.", nameof(dziPredicate));
+                throw new GnossAPIArgumentException("Required. It can't be null or empty.", nameof(dziPredicate));
 
             string baseName = Path.GetFileName(tilesDirectory)
-                                  .Replace("_files", string.Empty, StringComparison.OrdinalIgnoreCase);
+                                     .Replace("_files", string.Empty, StringComparison.OrdinalIgnoreCase);
             string dziFileName = $"{baseName}.dzi";
 
-            if (AttachedFilesName.Any(f => f.EndsWith(dziFileName, StringComparison.OrdinalIgnoreCase)))
-                throw new GnossAPIException($"A .dzi file with the name '{dziFileName}' is already registered in this resource.");
+            // Controlar duplicados
+            if (_pendingTiles.Any(t => t.FileName.EndsWith(dziFileName, StringComparison.OrdinalIgnoreCase)))
+                throw new GnossAPIException(
+                    $"A .dzi file with the name '{dziFileName}' is already registered in this resource.");
 
-
+            // Construir URL completa del .dzi para el RDF
             string primeraCarpeta = resourceId.ToString().Substring(0, 2);
             string segundaCarpeta = resourceId.ToString().Substring(0, 4);
             string rutaBaseServidor = $"imagenes/Documentos/imgsem/{primeraCarpeta}/{segundaCarpeta}/{resourceId}";
-            string baseUrl = apiUrl.Replace("/api", "");
-            string urlCompletaDzi = $"{baseUrl}/{rutaBaseServidor}/{dziFileName}";
+            string urlCompletaDzi = $"{rutaBaseServidor}/{dziFileName}";
 
+            // Teselas -> PendingTiles (NO a AttachedFiles, así el JSON de creación es pequeño)
             string parentDirectory = Path.GetDirectoryName(tilesDirectory)!;
             foreach (string subDir in Directory.GetDirectories(tilesDirectory))
             {
@@ -442,32 +452,28 @@ namespace Gnoss.ApiWrapper.Model
                         .Combine(relativeBase, Path.GetFileName(filePath))
                         .Replace(Path.DirectorySeparatorChar, '/');
 
-                    AttachedFiles.Add(File.ReadAllBytes(filePath));
-                    AttachedFilesName.Add(serverRelativePath);
-                    AttachedFilesType.Add(AttachedResourceFilePropertyTypes.image);
+                    _pendingTiles.Add((serverRelativePath, File.ReadAllBytes(filePath)));
                 }
             }
-
-            string dziLocalPath = Path.Combine(
-                Path.GetDirectoryName(tilesDirectory)!, dziFileName);
-
+            
+            // .dzi bytes -> PendingTiles también
+            string dziLocalPath = Path.Combine(Path.GetDirectoryName(tilesDirectory)!, dziFileName);
             if (!File.Exists(dziLocalPath))
                 throw new GnossAPIException($".dzi file not found at: {dziLocalPath}");
 
-            AttachedFiles.Add(File.ReadAllBytes(dziLocalPath));
-            AttachedFilesName.Add(dziFileName);          
-            AttachedFilesType.Add(AttachedResourceFilePropertyTypes.file);
-
+            _pendingTiles.Add((dziFileName, File.ReadAllBytes(dziLocalPath)));
+            
+            // Solo la referencia RDF -> onlyReference = true, sin bytes en AttachedFiles
             AttachFileInternal(
                 file: null,
                 filePredicate: dziPredicate,
-                fileName: urlCompletaDzi,   
+                fileName: urlCompletaDzi,
                 fileType: AttachedResourceFilePropertyTypes.file,
                 entity: entity,
                 onlyReference: true);
         }
 
-        
+
 
 
         /// <summary>
@@ -867,7 +873,7 @@ namespace Gnoss.ApiWrapper.Model
                 {
                     List<string> errorList = new List<string>();
 
-                    if (actions == null && actions.Count == 0)
+                    if (actions == null || actions.Count == 0)
                     {
                         // Without actions
                         if (mainImage && saveOriginalImage)
