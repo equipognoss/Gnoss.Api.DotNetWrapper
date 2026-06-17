@@ -265,27 +265,14 @@ namespace Gnoss.ApiWrapper
 
         private void SetOauthHeader(HttpWebRequest webRequest)
         {
-            string signUrl = webRequest.RequestUri.ToString();
+            string signUrl = webRequest.RequestUri.AbsoluteUri;
 
             if (signUrl.Contains("?"))
             {
                 signUrl = signUrl.Substring(0, signUrl.IndexOf('?'));
             }
 
-            OAuthInfo OAuth2 = new OAuthInfo(signUrl, OAuthInstance.Token, OAuthInstance.TokenSecret, OAuthInstance.ConsumerKey, OAuthInstance.ConsumerSecret, OAuthInstance.DeveloperEmail);
-            string[] partesUrlOAuth = OAuth2.OAuthSignedUrl.Split('?');
-
-            partesUrlOAuth = partesUrlOAuth[1].Split('&');
-            string consumer_key = partesUrlOAuth[0].Split('=')[1];
-            string token = partesUrlOAuth[1].Split('=')[1];
-            string method = partesUrlOAuth[2].Split('=')[1];
-            string timestamp = partesUrlOAuth[3].Split('=')[1];
-            string nonce = partesUrlOAuth[4].Split('=')[1];
-            string version = partesUrlOAuth[5].Split('=')[1];
-            string signature = partesUrlOAuth[6].Split('=')[1];
-            string oauth = string.Format("OAuth realm=\"Example\", oauth_consumer_key=\"{0}\", oauth_token=\"{1}\", oauth_signature_method=\"{2}\", oauth_signature=\"{3}\", oauth_timestamp=\"{4}\", oauth_nonce=\"{5}\", oauth_version=\"{6}\"", consumer_key, token, method, signature, timestamp, nonce, version);
-
-            webRequest.Headers.Add("Authorization", oauth);
+            webRequest.Headers.Add("Authorization", OAuthInstance.GetOAuthHeader(webRequest.Method, signUrl));
         }
 
         private void SetHeaders(HttpWebRequest webRequest, string contentType = "", string acceptHeader = "", Dictionary<string, string> otherHeaders = null)

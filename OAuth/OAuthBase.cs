@@ -74,41 +74,6 @@ namespace Gnoss.ApiWrapper.OAuth
         #region Methods
 
         /// <summary>
-        /// Gets the oauth parameters
-        /// </summary>
-        /// <param name="httpMethod">Http method of the request</param>
-        /// <param name="url">url</param>
-        /// <param name="requestToken">token</param>
-        /// <param name="tokenSecret">token secret</param>
-        /// <param name="verifier">verifier</param>
-        /// <param name="callback">callback</param>
-        /// <returns>Collection of parameter - value</returns>
-        public NameValueCollection GetOAuthParameters(string httpMethod, string url, string requestToken, string tokenSecret, string verifier, string callback)
-        {
-            var oAuthParameters = new NameValueCollection
-                                            {
-                                               {"oauth_timestamp",GenerateTimeStamp()},
-                                               {"oauth_nonce",GenerateNonce()},
-                                               {"oauth_version", "1.0"},
-                                               {"oauth_signature_method", "HMAC-SHA1"},
-                                               {"oauth_consumer_key", ConsumerKey},
-                                            };
-
-
-            if (!string.IsNullOrEmpty(requestToken)) oAuthParameters.Add("oauth_token", requestToken);
-
-            if (!string.IsNullOrEmpty(verifier)) oAuthParameters.Add("oauth_verifier", verifier);
-
-            if (!string.IsNullOrEmpty(callback)) oAuthParameters.Add("oauth_callback", callback);
-
-            var signatureBase = GetSignatureBase(httpMethod, NormalizeUrl(url), oAuthParameters);
-            var signature = GetSignature(ConsumerSecret, signatureBase, tokenSecret);
-            oAuthParameters.Add("oauth_signature", signature);
-
-            return oAuthParameters;
-        }
-
-        /// <summary>
         /// Gets the oauth parameters without http encode
         /// </summary>
         /// <param name="httpMethod">Http method of the request</param>
@@ -121,61 +86,24 @@ namespace Gnoss.ApiWrapper.OAuth
         public NameValueCollection GetOAuthParametersWithoutEncode(string httpMethod, string url, string requestToken, string tokenSecret, string verifier, string callback)
         {
             var oAuthParameters = new NameValueCollection
-                                            {
-                                               {"oauth_consumer_key", UrlEncode(ConsumerKey)}
-                                            };
-
-            var oAuthParametersEncode = new NameValueCollection
-                                            {
-                                               {"oauth_consumer_key", UrlEncode(ConsumerKey)}
-                                            };
-
+            {
+                { "oauth_consumer_key",      ConsumerKey  },
+                { "oauth_signature_method",  "HMAC-SHA1"  },
+                { "oauth_timestamp",         GenerateTimeStamp() },
+                { "oauth_nonce",             GenerateNonce() },
+                { "oauth_version",           "1.0" }
+            };
 
             if (!string.IsNullOrEmpty(requestToken)) oAuthParameters.Add("oauth_token", requestToken);
-            if (!string.IsNullOrEmpty(requestToken)) oAuthParametersEncode.Add("oauth_token", UrlEncode(requestToken));
-
-            oAuthParameters.Add("oauth_signature_method", "HMAC-SHA1");
-            oAuthParametersEncode.Add("oauth_signature_method", "HMAC-SHA1");
-
-            oAuthParameters.Add("oauth_timestamp", GenerateTimeStamp());
-            oAuthParametersEncode.Add("oauth_timestamp", oAuthParameters["oauth_timestamp"]);
-
-            oAuthParameters.Add("oauth_nonce", GenerateNonce());
-            oAuthParametersEncode.Add("oauth_nonce", oAuthParameters["oauth_nonce"]);
-
-            oAuthParameters.Add("oauth_version", "1.0");
-            oAuthParametersEncode.Add("oauth_version", "1.0");
-
             if (!string.IsNullOrEmpty(verifier)) oAuthParameters.Add("oauth_verifier", verifier);
-            if (!string.IsNullOrEmpty(verifier)) oAuthParametersEncode.Add("oauth_verifier", UrlEncode(verifier));
-
             if (!string.IsNullOrEmpty(callback)) oAuthParameters.Add("oauth_callback", callback);
-            if (!string.IsNullOrEmpty(callback)) oAuthParametersEncode.Add("oauth_callback", callback);
 
-            var signatureBase = GetSignatureBaseEncoded(httpMethod, NormalizeUrl(url), oAuthParametersEncode);
-            var signature = GetSignature(UrlEncode(ConsumerSecret), signatureBase, UrlEncode(tokenSecret));
+            var signatureBase = GetSignatureBaseEncoded(httpMethod, NormalizeUrl(url), oAuthParameters);
+            var signature = GetSignature(ConsumerSecret, signatureBase, tokenSecret);
+
             oAuthParameters.Add("oauth_signature", signature);
-            oAuthParametersEncode.Add("oauth_signature", signature);
 
-            return oAuthParametersEncode;
-        }
-
-        /// <summary>
-        /// Gets signature base
-        /// </summary>
-        /// <param name="httpMethod">Http method</param>
-        /// <param name="url">url</param>
-        /// <param name="oAuthParameters">oauth parameters</param>
-        /// <returns></returns>
-        private static string GetSignatureBase(string httpMethod, string url, NameValueCollection oAuthParameters)
-        {
-            var parameters = new Dictionary<string, string>();
-            foreach (var key in oAuthParameters.AllKeys)
-                parameters.Add(key, oAuthParameters[key]);
-
-            var normalizedParameters = NormalizeParameters(parameters);
-            
-            return string.Format("{0}&{1}&{2}", httpMethod, Uri.EscapeDataString(url), normalizedParameters.Replace("=", "%3D").Replace("&", "%26"));
+            return oAuthParameters;
         }
 
         /// <summary>
@@ -189,7 +117,10 @@ namespace Gnoss.ApiWrapper.OAuth
         {
             var parameters = new Dictionary<string, string>();
             foreach (var key in oAuthParameters.AllKeys)
-                parameters.Add(key, oAuthParameters[key]);
+            {
+                if (key != "oauth_signature") // exclusión explícita
+                    parameters.Add(key, oAuthParameters[key]);
+            }
 
             var normalizedParameters = NormalizeParameters(parameters);
 
@@ -210,12 +141,9 @@ namespace Gnoss.ApiWrapper.OAuth
         /// <returns>the sign</returns>
         private static string GetSignature(string consumerSecret, string signatureBase, string tokenSecret)
         {
-            var hmacsha1 = new HMACSHA1(Encoding.UTF8.GetBytes(string.Concat(consumerSecret, "&", tokenSecret)));
-
-            var data = Encoding.ASCII.GetBytes(signatureBase);
-            var hashData = hmacsha1.ComputeHash(data);
-
-            return Uri.EscapeDataString(Convert.ToBase64String(hashData));
+            var key = string.Concat(UrlEncode(consumerSecret), "&", UrlEncode(tokenSecret));
+            var hmac = new HMACSHA1(Encoding.UTF8.GetBytes(key));
+            return Convert.ToBase64String(hmac.ComputeHash(Encoding.UTF8.GetBytes(signatureBase)));
         }
 
         /// <summary>
@@ -230,19 +158,23 @@ namespace Gnoss.ApiWrapper.OAuth
         private static string NormalizeParameters(Dictionary<string, string> parameters)
         {
             var normalizedParameters = new StringBuilder();
-            var sortedParameters = from ps in parameters
-                                   orderby ps.Key, ps.Value
-                                   select ps;
+            var sortedParameters = parameters
+                .OrderBy(p => UrlEncode(p.Key))
+                .ThenBy(p => UrlEncode(p.Value));
 
             foreach (var parameter in sortedParameters)
             {
                 if (normalizedParameters.Length > 0)
                     normalizedParameters.Append("&");
-                normalizedParameters.AppendFormat("{0}={1}", parameter.Key, parameter.Value);
+
+                normalizedParameters.AppendFormat("{0}={1}",
+                    UrlEncode(parameter.Key),
+                    UrlEncode(parameter.Value));
             }
 
             return normalizedParameters.ToString();
         }
+
 
         /// <summary>
         /// The Signature Base String includes the request absolute URL, tying the signature to a specific 
@@ -282,7 +214,7 @@ namespace Gnoss.ApiWrapper.OAuth
                 throw new ArgumentNullException("data");
             }
 
-            byte[] dataBuffer = System.Text.Encoding.ASCII.GetBytes(data);
+            byte[] dataBuffer = Encoding.UTF8.GetBytes(data);
             byte[] hashBytes = hashAlgorithm.ComputeHash(dataBuffer);
 
             return Convert.ToBase64String(hashBytes);
@@ -333,20 +265,16 @@ namespace Gnoss.ApiWrapper.OAuth
         /// <returns>Returns a Url encoded string</returns>
         public static string UrlEncode(string value)
         {
-            StringBuilder result = new StringBuilder();
-
-            foreach (char symbol in value)
+            var bytes = Encoding.UTF8.GetBytes(value);
+            var result = new StringBuilder();
+            foreach (byte b in bytes)
             {
-                if (UnreservedChars.IndexOf(symbol) != -1)
-                {
-                    result.Append(symbol);
-                }
+                char c = (char)b;
+                if (UnreservedChars.IndexOf(c) != -1)
+                    result.Append(c);
                 else
-                {
-                    result.Append('%' + String.Format("{0:X2}", (int)symbol));
-                }
+                    result.Append('%').Append(b.ToString("X2"));
             }
-
             return result.ToString();
         }
 
@@ -505,7 +433,7 @@ namespace Gnoss.ApiWrapper.OAuth
                     string signatureBase = GenerateSignatureBase(url, consumerKey, token, tokenSecret, httpMethod, timeStamp, nonce, HMACSHA1SignatureType, out normalizedUrl, out normalizedRequestParameters);
 
                     HMACSHA1 hmacsha1 = new HMACSHA1();
-                    hmacsha1.Key = Encoding.ASCII.GetBytes(string.Format("{0}&{1}", UrlEncode(consumerSecret), string.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret)));
+                    hmacsha1.Key = Encoding.UTF8.GetBytes(string.Format("{0}&{1}", UrlEncode(consumerSecret), string.IsNullOrEmpty(tokenSecret) ? "" : UrlEncode(tokenSecret)));
 
                     return GenerateSignatureUsingHash(signatureBase, hmacsha1);
                 case SignatureTypes.RSASHA1:

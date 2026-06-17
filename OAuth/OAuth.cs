@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Xml;
-using System.Data;
 using System.Collections.Specialized;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Xml;
 
 namespace Gnoss.ApiWrapper.OAuth
 {
@@ -34,7 +35,7 @@ namespace Gnoss.ApiWrapper.OAuth
         /// Gets the consumer secret of the consumer
         /// </summary>
         public string ConsumerSecret { get; }
-        
+
         /// <summary>
         /// Gets the Api URL
         /// </summary>
@@ -67,34 +68,49 @@ namespace Gnoss.ApiWrapper.OAuth
         /// <summary>
         /// Sign a url to make a oauth request
         /// </summary>
-        /// <param name="url">Url to sign</param>
+        /// <param name="httpMethod">Method used GET, POST, PUT, DELETE</param>
+        /// <param name="requestUrl">Url to sign</param>
         /// <returns></returns>
-        public string GetSignedUrl(string url)
+        private NameValueCollection GetOAuthParameters(string httpMethod, string requestUrl)
         {
             OAuthBase oauthBase = new OAuthBase(ConsumerKey, ConsumerSecret);
-            NameValueCollection parameters = oauthBase.GetOAuthParametersWithoutEncode("GET", url, Token, TokenSecret, null, null);
-
-            string urlOauth = $"{url}?";
-
-            foreach (string key in parameters.Keys)
-            {
-                urlOauth += $"{key}={parameters[key]}&";
-            }
-
-            urlOauth = urlOauth.Substring(0, urlOauth.Length - 1);
-
-            return urlOauth;
+            return oauthBase.GetOAuthParametersWithoutEncode(
+                httpMethod,
+                requestUrl,   // la URL real del endpoint
+                Token,
+                TokenSecret,
+                null,
+                null
+            );
         }
 
         /// <summary>
-        /// Gets a signed url for the API
+        /// Sign a url to make a oauth request
         /// </summary>
-        public string OAuthSignedUrl
+        /// <param name="httpMethod">Method used GET, POST, PUT, DELETE</param>
+        /// <param name="requestUrl">Url to sign</param>
+        /// <returns>The formated OAuth header</returns>
+        public string GetOAuthHeader(string httpMethod, string requestUrl)
         {
-            get
-            {
-                return GetSignedUrl(ApiUrl);
-            }
+            NameValueCollection parameters = GetOAuthParameters(httpMethod, requestUrl);
+
+            return string.Format(
+                "OAuth realm=\"Example\", " +
+                "oauth_consumer_key=\"{0}\", " +
+                "oauth_token=\"{1}\", " +
+                "oauth_signature_method=\"{2}\", " +
+                "oauth_signature=\"{3}\", " +
+                "oauth_timestamp=\"{4}\", " +
+                "oauth_nonce=\"{5}\", " +
+                "oauth_version=\"{6}\"",
+                OAuthBase.UrlEncode(parameters["oauth_consumer_key"]),   // puede tener caracteres especiales
+                OAuthBase.UrlEncode(parameters["oauth_token"]),          // puede tener caracteres especiales
+                parameters["oauth_signature_method"],
+                OAuthBase.UrlEncode(parameters["oauth_signature"]),      // base64: siempre necesita encoding
+                parameters["oauth_timestamp"],
+                parameters["oauth_nonce"],
+                parameters["oauth_version"]
+            );
         }
     }
 }
