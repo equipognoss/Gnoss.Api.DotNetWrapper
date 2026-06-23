@@ -83,26 +83,37 @@ namespace Gnoss.ApiWrapper.OAuth
         /// <param name="verifier">verifier</param>
         /// <param name="callback">callback</param>
         /// <returns>Collection of parameter - value</returns>
-        public NameValueCollection GetOAuthParametersWithoutEncode(string httpMethod, string url, string requestToken, string tokenSecret, string verifier, string callback)
+        public NameValueCollection GetOAuthParametersWithoutEncode(string httpMethod, string url, string requestToken, string tokenSecret, string verifier, string callback, NameValueCollection additionalParams = null)
         {
             var oAuthParameters = new NameValueCollection
             {
-                { "oauth_consumer_key",      ConsumerKey  },
-                { "oauth_signature_method",  "HMAC-SHA1"  },
-                { "oauth_timestamp",         GenerateTimeStamp() },
-                { "oauth_nonce",             GenerateNonce() },
-                { "oauth_version",           "1.0" }
+                { "oauth_consumer_key",     ConsumerKey  },
+                { "oauth_signature_method", "HMAC-SHA1"  },
+                { "oauth_timestamp",        GenerateTimeStamp() },
+                { "oauth_nonce",            GenerateNonce() },
+                { "oauth_version",          "1.0" }
             };
 
             if (!string.IsNullOrEmpty(requestToken)) oAuthParameters.Add("oauth_token", requestToken);
             if (!string.IsNullOrEmpty(verifier)) oAuthParameters.Add("oauth_verifier", verifier);
             if (!string.IsNullOrEmpty(callback)) oAuthParameters.Add("oauth_callback", callback);
 
-            var signatureBase = GetSignatureBaseEncoded(httpMethod, NormalizeUrl(url), oAuthParameters);
+            // Construir diccionario para NormalizeParameters incluyendo query string params
+            var allParams = new Dictionary<string, string>();
+            foreach (string key in oAuthParameters.AllKeys)
+                allParams[key] = oAuthParameters[key];
+
+            // Añadir parámetros de query string al base string
+            if (additionalParams != null)
+            {
+                foreach (string key in additionalParams.AllKeys)
+                    allParams[key] = additionalParams[key];
+            }
+
+            var signatureBase = GetSignatureBaseEncoded(httpMethod, NormalizeUrl(url), allParams);
             var signature = GetSignature(ConsumerSecret, signatureBase, tokenSecret);
 
             oAuthParameters.Add("oauth_signature", signature);
-
             return oAuthParameters;
         }
 
@@ -111,18 +122,16 @@ namespace Gnoss.ApiWrapper.OAuth
         /// </summary>
         /// <param name="httpMethod">Http method</param>
         /// <param name="url">url</param>
-        /// <param name="oAuthParameters">oauth parameters</param>
+        /// <param name="parameters">all parameters</param>
         /// <returns></returns>
-        private static string GetSignatureBaseEncoded(string httpMethod, string url, NameValueCollection oAuthParameters)
+        private static string GetSignatureBaseEncoded(string httpMethod, string url, Dictionary<string, string> parameters)
         {
-            var parameters = new Dictionary<string, string>();
-            foreach (var key in oAuthParameters.AllKeys)
-            {
-                if (key != "oauth_signature") // exclusión explícita
-                    parameters.Add(key, oAuthParameters[key]);
-            }
+            // oauth_signature nunca debe entrar en el base string
+            var filtered = parameters
+                .Where(p => p.Key != "oauth_signature")
+                .ToDictionary(p => p.Key, p => p.Value);
 
-            var normalizedParameters = NormalizeParameters(parameters);
+            var normalizedParameters = NormalizeParameters(filtered);
 
             StringBuilder signatureBase = new StringBuilder();
             signatureBase.AppendFormat("{0}&", httpMethod.ToUpper());

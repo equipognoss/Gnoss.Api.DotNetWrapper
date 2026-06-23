@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -265,14 +266,27 @@ namespace Gnoss.ApiWrapper
 
         private void SetOauthHeader(HttpWebRequest webRequest)
         {
-            string signUrl = webRequest.RequestUri.AbsoluteUri;
+            string fullUrl = webRequest.RequestUri.AbsoluteUri;
+            string signUrl = fullUrl;
+            NameValueCollection queryParams = new NameValueCollection();
 
-            if (signUrl.Contains("?"))
+            if (fullUrl.Contains("?"))
             {
-                signUrl = signUrl.Substring(0, signUrl.IndexOf('?'));
+                signUrl = fullUrl.Substring(0, fullUrl.IndexOf('?'));
+
+                // Extraer parámetros de la query string para incluirlos en la firma
+                string queryString = fullUrl.Substring(fullUrl.IndexOf('?') + 1);
+                foreach (var pair in queryString.Split('&', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    var idx = pair.IndexOf('=');
+                    if (idx < 0) continue;
+                    var key = Uri.UnescapeDataString(pair[..idx]);
+                    var value = Uri.UnescapeDataString(pair[(idx + 1)..]);
+                    queryParams.Add(key, value);
+                }
             }
 
-            webRequest.Headers.Add("Authorization", OAuthInstance.GetOAuthHeader(webRequest.Method, signUrl));
+            webRequest.Headers.Add("Authorization", OAuthInstance.GetOAuthHeader(webRequest.Method, signUrl, queryParams));
         }
 
         private void SetHeaders(HttpWebRequest webRequest, string contentType = "", string acceptHeader = "", Dictionary<string, string> otherHeaders = null)

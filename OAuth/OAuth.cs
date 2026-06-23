@@ -70,8 +70,9 @@ namespace Gnoss.ApiWrapper.OAuth
         /// </summary>
         /// <param name="httpMethod">Method used GET, POST, PUT, DELETE</param>
         /// <param name="requestUrl">Url to sign</param>
+        /// <param name="additionalParams">Aditionals params of the query string</param>
         /// <returns></returns>
-        private NameValueCollection GetOAuthParameters(string httpMethod, string requestUrl)
+        private NameValueCollection GetOAuthParameters(string httpMethod, string requestUrl, NameValueCollection additionalParams = null)
         {
             OAuthBase oauthBase = new OAuthBase(ConsumerKey, ConsumerSecret);
             return oauthBase.GetOAuthParametersWithoutEncode(
@@ -80,7 +81,8 @@ namespace Gnoss.ApiWrapper.OAuth
                 Token,
                 TokenSecret,
                 null,
-                null
+                null,
+                additionalParams
             );
         }
 
@@ -89,10 +91,11 @@ namespace Gnoss.ApiWrapper.OAuth
         /// </summary>
         /// <param name="httpMethod">Method used GET, POST, PUT, DELETE</param>
         /// <param name="requestUrl">Url to sign</param>
+        /// <param name="additionalParams">Aditionals params of the query string</param>
         /// <returns>The formated OAuth header</returns>
-        public string GetOAuthHeader(string httpMethod, string requestUrl)
+        public string GetOAuthHeader(string httpMethod, string requestUrl, NameValueCollection additionalParams = null)
         {
-            NameValueCollection parameters = GetOAuthParameters(httpMethod, requestUrl);
+            NameValueCollection parameters = GetOAuthParameters(httpMethod, requestUrl, additionalParams);
 
             return string.Format(
                 "OAuth realm=\"Example\", " +
@@ -103,10 +106,10 @@ namespace Gnoss.ApiWrapper.OAuth
                 "oauth_timestamp=\"{4}\", " +
                 "oauth_nonce=\"{5}\", " +
                 "oauth_version=\"{6}\"",
-                OAuthBase.UrlEncode(parameters["oauth_consumer_key"]),   // puede tener caracteres especiales
-                OAuthBase.UrlEncode(parameters["oauth_token"]),          // puede tener caracteres especiales
+                OAuthBase.UrlEncode(parameters["oauth_consumer_key"]),  // puede tener caracteres especiales
+                OAuthBase.UrlEncode(parameters["oauth_token"]),         // puede tener caracteres especiales
                 parameters["oauth_signature_method"],
-                OAuthBase.UrlEncode(parameters["oauth_signature"]),      // base64: siempre necesita encoding
+                OAuthBase.UrlEncode(parameters["oauth_signature"]),     // base64: siempre necesita encoding
                 parameters["oauth_timestamp"],
                 parameters["oauth_nonce"],
                 parameters["oauth_version"]
