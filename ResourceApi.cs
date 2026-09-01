@@ -37,16 +37,16 @@ namespace Gnoss.ApiWrapper
         private const int _DEFAULT_LOCK_DURATION = 60;
         private const int _DEFAULT_TIMEOUT_LOCK = 60;
 
-		#endregion
+        #endregion
 
-		#region Constructors
+        #region Constructors
 
-		/// <summary>
-		/// Constructor of <see cref="ResourceApi"/>
-		/// </summary>
-		/// <param name="oauth">OAuth information to sign the Api requests</param>
-		/// <param name="logHelper">Log helper for ApiWrapper</param>
-		public ResourceApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
+        /// <summary>
+        /// Constructor of <see cref="ResourceApi"/>
+        /// </summary>
+        /// <param name="oauth">OAuth information to sign the Api requests</param>
+        /// <param name="logHelper">Log helper for ApiWrapper</param>
+        public ResourceApi(OAuthInfo oauth, ILogHelper logHelper = null) : base(oauth, logHelper)
         {
             LoadApi();
         }
@@ -1268,25 +1268,25 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-		/// <summary>
-		/// Modifies secondary entities loaded in a normal way (one RDF by resource).
-		/// </summary>
-		/// /// <param name="secondaryResource">Resource list to delete</param>
-		public bool ModifySecondaryResource(SecondaryResource secondaryResource)
+        /// <summary>
+        /// Modifies secondary entities loaded in a normal way (one RDF by resource).
+        /// </summary>
+        /// /// <param name="secondaryResource">Resource list to delete</param>
+        public bool ModifySecondaryResource(SecondaryResource secondaryResource)
         {
             bool modified = false;
 
             try
             {
                 ModifySecondaryEntity(OntologyUrl, CommunityShortName, secondaryResource.RdfFile);
-				secondaryResource.Modified = true;
+                secondaryResource.Modified = true;
                 modified = true;
             }
             catch (Exception ex)
             {
                 string mensaje = $"The secondary resource with ID: {secondaryResource.Id} cannot be modified . Menssage: {ex.Message}";
                 Log.Error(mensaje, this.GetType().Name);
-				secondaryResource.Modified = false;
+                secondaryResource.Modified = false;
                 throw new GnossAPIException(mensaje);
             }
             return modified;
@@ -1626,16 +1626,6 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Gets an OAuth signed url
-        /// </summary>
-        /// <param name="url">url to sign</param>
-        /// <returns>Signed url string</returns>
-        public string GetSignForUrl(string url)
-        {
-            string sign = OAuthInstance.GetSignedUrl(url);
-            return sign.Replace("&", ",").Replace($"{url}?", "");
-        }
 
         /// <summary>
         /// Gets the resource rdf and downloads it in the indicated directory path
@@ -1656,7 +1646,7 @@ namespace Gnoss.ApiWrapper
             {
                 webClient.Headers.Add($"Referer:{urlRdf}");
                 webClient.Headers.Add("User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36 gnossspider");
-                webClient.Headers.Add($"Authorization: OAuth \n {GetSignForUrl(resourceUrl)}");
+                webClient.Headers.Add($"Authorization: {OAuthInstance.GetOAuthHeader("GET", resourceUrl)}");
                 webClient.DownloadFile(urlRdf, filePath);
                 StreamReader sr = new StreamReader(filePath, Encoding.UTF8, true);
                 rdf = sr.ReadToEnd();
@@ -1673,18 +1663,17 @@ namespace Gnoss.ApiWrapper
         /// <summary>
         /// Downloads a file from the url
         /// </summary>
-        /// <param name="URL">Resource url to download</param>
+        /// <param name="url">Resource url to download</param>
         /// <param name="fileName">File name where the resource will be downloaded</param>
-        public void DownloadFilesFromURL(string URL, string fileName)
+        public void DownloadFilesFromURL(string url, string fileName)
         {
             GnossWebClient webClient = new GnossWebClient(false);
             try
             {
-                webClient.Headers.Add($"Referer:{URL}");
+                webClient.Headers.Add($"Referer:{url}");
                 webClient.Headers.Add("User-Agent:Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.131 Safari/537.36 gnossspider");
-                string sign = GetSignForUrl(URL);
-                webClient.Headers.Add($"Authorization: OAuth \n {sign}");
-                webClient.DownloadFile(URL, fileName);
+                webClient.Headers.Add($"Authorization: {OAuthInstance.GetOAuthHeader("GET", url)}");
+                webClient.DownloadFile(url, fileName);
             }
             catch (WebException wex)
             {
@@ -1711,12 +1700,12 @@ namespace Gnoss.ApiWrapper
             {
 
                 string url = $"{ApiUrl}/resource/get-automatic-labeling";
-                TagsFromServiceModel model = new TagsFromServiceModel{ title = title, description = description, community_short_name = CommunityShortName };
+                TagsFromServiceModel model = new TagsFromServiceModel { title = title, description = description, community_short_name = CommunityShortName };
 
                 string response = WebRequestPostWithJsonObject(url, model);
 
                 tagList = response.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(item => item.Trim()).ToList();
-            }            
+            }
 
             return tagList;
         }
@@ -3085,7 +3074,7 @@ namespace Gnoss.ApiWrapper
             model.auto_tags_description_text = rec.AutomaticTagsTextFromDescription;
             model.create_screenshot = rec.GenerateSnapshot;
             model.url_screenshot = rec.DownloadUrl;
-            
+
             if (rec.SnapshotSizes != null)
             {
                 model.screenshot_sizes = rec.SnapshotSizes.ToList();
@@ -4053,12 +4042,12 @@ namespace Gnoss.ApiWrapper
             return mainImagesList;
         }
 
-		/// <summary>
-		/// Gets the resource novelties in the community from the search date
-		/// </summary>
-		/// <param name="resourceId_list">Resources identifier</param>
-		/// <example>Get resource/get-increased-reading-by-resources</example>
-		public Dictionary<Guid, AumentedReading> GetIncreasedReading(List<Guid> resourceId_list)
+        /// <summary>
+        /// Gets the resource novelties in the community from the search date
+        /// </summary>
+        /// <param name="resourceId_list">Resources identifier</param>
+        /// <example>Get resource/get-increased-reading-by-resources</example>
+        public Dictionary<Guid, AumentedReading> GetIncreasedReading(List<Guid> resourceId_list)
         {
             Dictionary<Guid, AumentedReading> resource = null;
             try
@@ -4085,12 +4074,12 @@ namespace Gnoss.ApiWrapper
             return resource;
         }
 
-		/// <summary>
-		/// Obtain information about a resource given its identifier
-		/// </summary>
-		/// <param name="resourceId"></param>
-		/// <returns></returns>
-		public Resource GetResource(Guid resourceId)
+        /// <summary>
+        /// Obtain information about a resource given its identifier
+        /// </summary>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
+        public Resource GetResource(Guid resourceId)
         {
             Resource resource = null;
             try
@@ -4432,7 +4421,7 @@ namespace Gnoss.ApiWrapper
             try
             {
                 string url = $"{ApiUrl}/resource/comment";
-                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome, login=userShortName };
+                model = new CommentParams() { resource_id = resourceId, community_short_name = CommunityShortName, user_short_name = userShortName, html_description = description, comment_date = commentDate, parent_comment_id = parentCommentId, publish_home = publishHome, login = userShortName };
                 string response = WebRequestPostWithJsonObject(url, model);
 
                 if (Guid.TryParse(response, out commentId))
@@ -4581,7 +4570,7 @@ namespace Gnoss.ApiWrapper
         }
 
 
-        
+
 
         /// <summary>
         /// Modify a categories resource
@@ -4901,7 +4890,7 @@ namespace Gnoss.ApiWrapper
                 attachedFile = JsonConvert.DeserializeObject<byte[]>(response);
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Log.Error($"Error getting the file {file_name} from the resource {resource_id} in the community {CommunityShortName}.", ex.Message);
             }
@@ -4946,76 +4935,76 @@ namespace Gnoss.ApiWrapper
             return resource;
         }
 
-		/// <summary>
-		/// Obtains the list of languages available to translate a resource
-		/// </summary>
-		/// <returns>List of language codes (BCP 47)</returns>
-		public List<string> GetTranslationLanguages()
-        {            
+        /// <summary>
+        /// Obtains the list of languages available to translate a resource
+        /// </summary>
+        /// <returns>List of language codes (BCP 47)</returns>
+        public List<string> GetTranslationLanguages()
+        {
             try
             {
-				string url = $"{ApiUrl}/resource/get-translation-languages?community_short_name={CommunityShortName}";
-				string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
-				List<string> languagesList = JsonConvert.DeserializeObject<List<string>>(response);
+                string url = $"{ApiUrl}/resource/get-translation-languages?community_short_name={CommunityShortName}";
+                string response = WebRequest($"GET", url, acceptHeader: "application/x-www-form-urlencoded");
+                List<string> languagesList = JsonConvert.DeserializeObject<List<string>>(response);
                 if (languagesList != null && languagesList.Count > 0)
                 {
-					Log.Debug($"List of languages obtained");
-				}
+                    Log.Debug($"List of languages obtained");
+                }
                 else
                 {
-					Log.Error($"Error attempting to get the list of languages");
-				}
+                    Log.Error($"Error attempting to get the list of languages");
+                }
 
-				return languagesList;
-			}
+                return languagesList;
+            }
             catch (Exception ex)
             {
                 Log.Error($"Error attempting to get the list of languages", ex.Message);
                 throw;
-            }            
+            }
         }
 
-		/// <summary>
-		/// Initiates an asynchronous translation process of the resource to the selected languages from the original language
-		/// </summary>
-		/// <param name="resourceId">Resource identifier</param>
-		/// <param name="originalLanguage">Original language of the resource</param>
-		/// <param name="targetLanguages">List of language codes in BCP 47 format that the resource will be translated to</param>
-		/// <returns>Identifier of the async translation progress</returns>
-		public Guid TranslateResource(Guid resourceId, string originalLanguage, List<string> targetLanguages)
+        /// <summary>
+        /// Initiates an asynchronous translation process of the resource to the selected languages from the original language
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="originalLanguage">Original language of the resource</param>
+        /// <param name="targetLanguages">List of language codes in BCP 47 format that the resource will be translated to</param>
+        /// <returns>Identifier of the async translation progress</returns>
+        public Guid TranslateResource(Guid resourceId, string originalLanguage, List<string> targetLanguages)
         {
             try
             {
-				string url = $"{ApiUrl}/resource/translate-resource";
+                string url = $"{ApiUrl}/resource/translate-resource";
                 TranslateResourceParams translateResourceParams = new TranslateResourceParams { resource_id = resourceId, original_language = originalLanguage, target_languages = targetLanguages, community_short_name = CommunityShortName };
-				string response = WebRequestPostWithJsonObject(url, translateResourceParams);
-				Guid translationID = JsonConvert.DeserializeObject<Guid>(response);
+                string response = WebRequestPostWithJsonObject(url, translateResourceParams);
+                Guid translationID = JsonConvert.DeserializeObject<Guid>(response);
 
                 if (translationID.Equals(Guid.Empty))
                 {
-					Log.Error($"Error translating the resource '{resourceId}'");
-				}
+                    Log.Error($"Error translating the resource '{resourceId}'");
+                }
                 else
                 {
-					Log.Debug($"The resource '{resourceId}' is being translated. Identifier '{translationID}' has been associated with the process to track the progress.");
-				}
+                    Log.Debug($"The resource '{resourceId}' is being translated. Identifier '{translationID}' has been associated with the process to track the progress.");
+                }
 
                 return translationID;
-			}
+            }
             catch (Exception ex)
             {
-				Log.Error($"Error translating the resource {resourceId}", ex.Message);
+                Log.Error($"Error translating the resource {resourceId}", ex.Message);
                 throw;
-			}
+            }
         }
 
-		#region Oauth methods
+        #region Oauth methods
 
-		/// <summary>
-		/// Changes the current ontology by the indicated ontology.
-		/// </summary>
-		/// <param name="newOntology">New ontology name</param>
-		[Obsolete("Se recomienda usar el nuevo metodo ChangeOntology")]
+        /// <summary>
+        /// Changes the current ontology by the indicated ontology.
+        /// </summary>
+        /// <param name="newOntology">New ontology name</param>
+        [Obsolete("Se recomienda usar el nuevo metodo ChangeOntology")]
         public void ChangeOntoly(string newOntology)
         {
             string ontologia = newOntology.ToLower().Replace(".owl", "");
