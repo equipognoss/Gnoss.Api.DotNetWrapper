@@ -1059,6 +1059,7 @@ namespace Gnoss.ApiWrapper.ApiModel
 
     }
 
+
     /// <summary>
     /// Parameters to modify a resource subtype
     /// </summary>
@@ -1177,6 +1178,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// </summary>
         public string sql_rute { get; set; }
         /// <summary>
+        /// Images rute
+        /// </summary>
+        public string images_manifest_rute { get; set; }
+        /// <summary>
         /// Onotology bytes
         /// </summary>
         public byte[] ontology_bytes { get; set; }
@@ -1188,6 +1193,10 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// SQL file bytes
         /// </summary>
         public byte[] sql_bytes { get; set; }
+        /// <summary>
+        /// Images bytes
+        /// </summary>
+        public byte[] images_manifest_bytes { get; set; }
         /// <summary>
         /// State of the package
         /// </summary>
@@ -1867,5 +1876,11 @@ namespace Gnoss.ApiWrapper.ApiModel
         /// Short name of the project
         /// </summary>
         public string community_short_name { get; set; }
+    }
+
+    public class ImageManifestEntry
+    {
+        public string DocumentoID { get; set; }
+        public List<string> ImagePaths { get; set; }
     }
 }

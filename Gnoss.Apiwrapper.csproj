@@ -16,6 +16,8 @@
   <ItemGroup>
 	 <PackageReference Include="LumenWorksCsvReader2" Version="4.4.0" />
 	 <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
+	 <PackageReference Include="NetVips" Version="3.2.0" />
+	 <PackageReference Include="NetVips.Native" Version="8.18.0" />
 	 <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	 <PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
 	 <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />

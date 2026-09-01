@@ -4,6 +4,7 @@ using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.Interfaces;
 using Gnoss.ApiWrapper.Model;
 using Gnoss.ApiWrapper.OAuth;
+using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using System;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
+using System.Security.Policy;
 using System.Text;
 
 namespace Gnoss.ApiWrapper
@@ -57,6 +59,7 @@ namespace Gnoss.ApiWrapper
         private StreamWriter streamData;
         private StreamWriter streamOntology;
         private StreamWriter streamSearch;
+        private StreamWriter streamImages;
 
         private static readonly int DEBUG_PACKAGE_SIZE = 10;
         private static readonly int MAX_RESOURCE_PER_PACKAGE_STANDAR_SIZE = 50;
@@ -204,8 +207,9 @@ namespace Gnoss.ApiWrapper
         /// Create a new package massive data load
         /// </summary>
         /// <param name="resource">Interface of the Gnoss Methods</param>
-        /// <returns>Identifier of the package</returns>
-        public void AddResourceToPackage(IGnossOCBase resource)
+        /// <param name="pImagePaths">Local paths of the images</param>
+        /// <param name="pImageProperties">RDF properties that contain image paths. Defaults to foaf:img</param>
+        public void AddResourceToPackage(IGnossOCBase resource, List<string> pImagePaths = null,string pImagePropertie = null)
         {
             try
             {
@@ -213,40 +217,123 @@ namespace Gnoss.ApiWrapper
                 {
                     counter.Add(OntologyNameWithoutExtension, new OntologyCount(0, 0));
                 }
-
+                
                 List<string> ontologyTriples = resource.ToOntologyGnossTriples(this);
-                List<string> searchTriples = resource.ToSearchGraphTriples(this);
+                List<string> searchTriples   = resource.ToSearchGraphTriples(this);
                 KeyValuePair<Guid, string> acidData = resource.ToAcidData(this);
 
-                string pathOntology = Path.Combine(FilesDirectory,$"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
-                string pathSearch = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
-                string pathAcid = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
+                string pathOntology = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
+                string pathSearch   = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq");
+                string pathAcid     = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt");
 
                 if (streamData == null || streamOntology == null || streamSearch == null)
                 {
-                    streamData = new StreamWriter(new FileStream(pathAcid, FileMode.OpenOrCreate), Encoding.UTF8);
+                    streamData     = new StreamWriter(new FileStream(pathAcid,     FileMode.OpenOrCreate), Encoding.UTF8);
                     streamOntology = new StreamWriter(new FileStream(pathOntology, FileMode.OpenOrCreate), Encoding.UTF8);
-                    streamSearch = new StreamWriter(new FileStream(pathSearch, FileMode.OpenOrCreate), Encoding.UTF8);
+                    streamSearch   = new StreamWriter(new FileStream(pathSearch,   FileMode.OpenOrCreate), Encoding.UTF8);
                 }
 
+                // Triples de imagen generados directamente en el SDK con la URL final del servidor
+                List<string> triplesImagenOntologia = new List<string>();
+                List<string> triplesImagenBusqueda  = new List<string>();
+
+                if (pImagePaths != null && pImagePaths.Any())
+                {
+                    if (pImagePropertie == null)
+                    {
+                        Log.Error("No image propertie provided. Please specify the RDF propertie that contain image paths.");
+                        return;
+                    }
+                    // Calcular la ruta base en el servidor a partir del DocumentoID
+                    // Estructura: imagenes/Documentos/imgsem/{2chars}/{4chars}/{documentoId}/
+                    string recurso = resource.GetURI(this);
+
+                    // La URI tiene el formato: http://gnoss.com/items/Person_{guid1}_{guid2}
+                    // Buscamos el segundo '_' para obtener guid2
+                    int primerGuion = recurso.IndexOf('_') + 1;
+                    int segundoGuion = recurso.IndexOf('_', primerGuion) + 1;
+                    string ResourceId = recurso.Substring(segundoGuion);
+
+                    string documentoId    = acidData.Key.ToString();
+                    string sinGuiones     = documentoId.Replace("-", "");
+                    string primeraCarpeta = sinGuiones.Substring(0, 2);
+                    string segundaCarpeta = sinGuiones.Substring(0, 4);
+                    string urlBaseServidor = $"imagenes/Documentos/imgsem/{primeraCarpeta}/{segundaCarpeta}/{documentoId}";
+
+                    // URI del recurso en los grafos
+                    // Ejemplo: <http://gnoss.com/items/Person_{resourceId}_{articleId}>
+                    string uriRecursoOntologia = $"{GraphsUrl}items/{resource.GetType().Name}_{acidData.Key}_{ResourceId}";
+                    string uriRecursoBusqueda  = $"http://gnoss/{acidData.Key.ToString().ToUpper()}";
+
+                    // Preparar stream del manifest
+                    string pathImages = Path.Combine(FilesDirectory,
+                        $"{OntologyNameWithoutExtension}_images_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.json");
+
+                    if (streamImages == null)
+                    {
+                        streamImages = new StreamWriter(
+                            new FileStream(pathImages, FileMode.OpenOrCreate), Encoding.UTF8);
+                    }
+
+                    var entry = new ImageManifestEntry
+                    {
+                        DocumentoID = documentoId,
+                        ImagePaths  = new List<string>()
+                    };
+
+                    foreach (string imagePath in pImagePaths)
+                    {
+                        string nombreFichero = Path.GetFileName(imagePath);
+                        string fileName      = $"{documentoId}_{nombreFichero}";
+                        string destPath      = Path.Combine(FilesDirectory, fileName);
+                        string urlFinal      = $"{urlBaseServidor}/{nombreFichero}";
+
+                        // Copiar imagen al directorio de la carga
+                        File.Copy(imagePath, destPath, overwrite: true);
+
+                        // Registrar en el manifest
+                        entry.ImagePaths.Add(fileName);
+
+                        
+                        triplesImagenOntologia.Add($"<{uriRecursoOntologia}> <{pImagePropertie}> \"{urlFinal}\" .");
+                        triplesImagenBusqueda.Add($"<{uriRecursoBusqueda}> <{pImagePropertie}> \"{urlFinal}\" .");
+                        
+                    }
+
+                    streamImages.WriteLine(JsonConvert.SerializeObject(entry));
+                }
+
+                // Escribir triples de ontología + triples de imagen inyectados
                 foreach (string triple in ontologyTriples)
                 {
                     streamOntology.WriteLine(triple);
                 }
+                foreach (string triple in triplesImagenOntologia)
+                {
+                    streamOntology.WriteLine(triple);
+                }
+
+                // Escribir triples de búsqueda + triples de imagen inyectados
                 foreach (string triple in searchTriples)
                 {
                     streamSearch.WriteLine(triple);
                 }
+                foreach (string triple in triplesImagenBusqueda)
+                {
+                    streamSearch.WriteLine(triple);
+                }
+
                 streamData.WriteLine($"{acidData.Key}|||{acidData.Value}");
 
-                if ((counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage && !IsDebugMode) || (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
+                if ((counter[OntologyNameWithoutExtension].ResourcesCount >= MaxResourcesPerPackage && !IsDebugMode) ||
+                    (IsDebugMode && counter[OntologyNameWithoutExtension].ResourcesCount >= DEBUG_PACKAGE_SIZE))
                 {
                     if (IsDebugMode)
                     {
                         this.Log.Warn("DebugMode On, use it only for testing purpose. Please turn DebugMode off as soon as posible.");
                     }
                     SendPackage();
-                    
+
                     counter[OntologyNameWithoutExtension].ResourcesCount = 0;
                     counter[OntologyNameWithoutExtension].FileCount++;
                 }
@@ -261,10 +348,6 @@ namespace Gnoss.ApiWrapper
             }
         }
 
-        /// <summary>
-        /// Close a massive data load
-        /// </summary>
-        /// <returns>True if the data load is closed</returns>
         public bool CloseMassiveDataLoad()
         {
             string url = $"{ApiUrl}/massiveresource/close-massive-load";
@@ -282,6 +365,7 @@ namespace Gnoss.ApiWrapper
                 WebRequestPostWithJsonObject(url, model);
                 Log.Debug("Data load is closed");
                 closed = true;
+            
             }
             catch (Exception ex)
             {
@@ -354,6 +438,7 @@ namespace Gnoss.ApiWrapper
                 string uriOntology = $"{Uri}/{OntologyNameWithoutExtension}_{massiveLoadFilesIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
                 string uriSearch = $"{Uri}/{OntologyNameWithoutExtension}_search_{massiveLoadFilesIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq";
                 string uriAcid = $"{Uri}/{OntologyNameWithoutExtension}_acid_{massiveLoadFilesIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt";
+                string uriImagenes = $"{Uri}/{OntologyNameWithoutExtension}_images_{massiveLoadFilesIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.json";
 
                 MassiveDataLoadPackageResource model = new MassiveDataLoadPackageResource();
                 model.package_id = Guid.NewGuid();
@@ -365,12 +450,14 @@ namespace Gnoss.ApiWrapper
                     model.ontology_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
                     model.search_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
                     model.sql_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt"));
+                    model.images_manifest_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_images_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.json"));
                 }
 
                 model.ontology_rute = uriOntology;
                 model.search_rute = uriSearch;
                 model.sql_rute = uriAcid;
                 model.isLast = false;
+                model.images_manifest_rute = uriImagenes;
 
                 CreatePackageMassiveDataLoad(model);
 
@@ -403,6 +490,12 @@ namespace Gnoss.ApiWrapper
                 streamSearch.Flush();
                 streamSearch.Close();
                 streamSearch = null;
+            }
+            if (streamImages != null)
+            {
+                streamImages.Flush();
+                streamImages.Close();
+                streamImages = null;
             }
         }
 

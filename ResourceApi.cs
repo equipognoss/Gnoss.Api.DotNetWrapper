@@ -1,4 +1,5 @@
-﻿using Gnoss.ApiWrapper.ApiModel;
+﻿using Gnoss.Apiwrapper.GenerateTiles;
+using Gnoss.ApiWrapper.ApiModel;
 using Gnoss.ApiWrapper.Exceptions;
 using Gnoss.ApiWrapper.Helpers;
 using Gnoss.ApiWrapper.Model;
@@ -15,6 +16,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Web;
 using System.Xml;
 
@@ -374,6 +376,73 @@ namespace Gnoss.ApiWrapper
                 return false;
             }
         }
+
+
+        /// <summary>
+        /// Uploads all Deep Zoom tiles (from the *_files directory) to the server via UploadImages,
+        /// using the tile data already registered in <paramref name="resource"/> by
+        /// <see cref="ComplexOntologyResource.LoadOpenSeaDragon"/>.
+        ///
+        /// Call this method AFTER the resource has been loaded (CreateComplexOntologyResource),
+        /// passing the same <see cref="ComplexOntologyResource"/> instance on which
+        /// <c>LoadOpenSeaDragon</c> was previously called.
+        /// </summary>
+        /// <param name="resource">
+        /// The already-loaded resource whose <c>AttachedFiles</c> / <c>AttachedFilesName</c>
+        /// lists contain the tile bytes prepared by <see cref="ComplexOntologyResource.LoadOpenSeaDragon"/>.
+        /// </param>
+        /// <param name="mainImage">Main-image descriptor string passed through to UploadImages.</param>
+        /// <param name="batchSize">Number of tiles sent per HTTP call (default 300).</param>
+        /// <param name="delayBetweenBatchesMs">Milliseconds to wait between batches (default 5000).</param>
+        public void UploadOpenSeaDragonTiles(
+            ComplexOntologyResource resource,
+            string mainImage,
+            int batchSize = 300,
+            int delayBetweenBatchesMs = 5000)
+        {
+            if (resource == null)
+                throw new ArgumentNullException(nameof(resource));
+
+            if (resource.ShortGnossId == Guid.Empty)
+                throw new GnossAPIException("The resource must be loaded before calling UploadOpenSeaDragonTiles.");
+
+            var tiles = resource.PendingTiles;
+            int total = tiles.Count;
+
+            Log.Debug($"[UploadOpenSeaDragonTiles] Starting upload of {total} tiles for resource {resource.ShortGnossId}");
+
+            var batch = new List<SemanticAttachedResource>();
+
+            for (int i = 0; i < total; i++)
+            {
+                batch.Add(new SemanticAttachedResource
+                {
+                    file_rdf_property = tiles[i].FileName,
+                    file_property_type = 1,
+                    rdf_attached_file = tiles[i].Bytes
+                });
+
+                if (batch.Count >= batchSize)
+                {
+                    Log.Debug($"[UploadOpenSeaDragonTiles] Sending batch of {batch.Count} tiles ({i + 1}/{total})...");
+                    UploadImages(resource.ShortGnossId, batch, mainImage);
+                    Thread.Sleep(delayBetweenBatchesMs);
+                    batch.Clear();
+                }
+            }
+
+            // Flush del último batch
+            if (batch.Count > 0)
+            {
+                Log.Debug($"[UploadOpenSeaDragonTiles] Flushing final batch of {batch.Count} tiles...");
+                UploadImages(resource.ShortGnossId, batch, mainImage);
+            }
+
+            Log.Debug($"[UploadOpenSeaDragonTiles] All tiles uploaded for resource {resource.ShortGnossId}");
+        }
+
+
+
 
         #endregion
 
