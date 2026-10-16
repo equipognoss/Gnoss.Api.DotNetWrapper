@@ -1,24 +1,36 @@
 ﻿using System;
 using System.IO;
-using System.Net;
-using Gnoss.ApiWrapper.Exceptions;
-using System.Runtime.Serialization;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
-using SixLabors.ImageSharp.Formats.Jpeg;
-using SixLabors.ImageSharp.Formats;
+using System.Linq;
 using System.Net.Http;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using Gnoss.ApiWrapper.Exceptions;
+using NetVips;
 
 namespace Gnoss.ApiWrapper.Helpers
 {
     /// <summary>
-    /// Utilities to use images
+    /// Utilities to use images. The images are received encoded (JPEG, PNG, GIF or WebP) and the transformed images are returned encoded as PNG
     /// </summary>
     public static class ImageHelper
     {
+        #region Members
+
+        /// <summary>
+        /// Fragments of the libvips loader names allowed to decode images
+        /// </summary>
+        private static readonly string[] AllowedLoaders = { "jpeg", "png", "gif", "webp" };
+
+        /// <summary>
+        /// libvips metadata field of the EXIF ColorSpace tag
+        /// </summary>
+        private const string ExifColorSpaceField = "exif-ifd2-ColorSpace";
+
+        /// <summary>
+        /// Value of the EXIF ColorSpace tag that represents sRGB
+        /// </summary>
+        private const string ExifColorSpaceSRGB = "1";
+
+        #endregion
+
         #region Methods
 
         /// <summary>
@@ -27,21 +39,10 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="widthInPixels">Width to resize</param>
         /// <param name="pResizeAlways">Indicate if the image will be resized always</param>
-        public static void ResizeImageToWidth(Image image, int widthInPixels, bool pResizeAlways = false)
+        /// <returns>Resized image encoded as PNG</returns>
+        public static byte[] ResizeImageToWidth(byte[] image, int widthInPixels, bool pResizeAlways = false)
         {
-            try
-            {
-                float aspectRatio = (float)image.Width / (float)image.Height;
-                if (pResizeAlways || widthInPixels <= image.Width)
-                {
-                    float newHeight = widthInPixels / aspectRatio;
-                    image.Mutate(image => image.Resize(widthInPixels, (int)newHeight));
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new GnossAPIException($"Error in resize: {ex.Message}");
-            }
+            return TransformImage(image, source => ResizeToWidth(source, widthInPixels, pResizeAlways), "Error in resize");
         }
 
         /// <summary>
@@ -50,42 +51,10 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="widthInPixels" >Width to resize</param>
         /// <param name="heightInPixels">Height to resize</param>
-        public static void ResizeImageToHeightAndWidth(Image image, int widthInPixels, int heightInPixels)
+        /// <returns>Resized image encoded as PNG</returns>
+        public static byte[] ResizeImageToHeightAndWidth(byte[] image, int widthInPixels, int heightInPixels)
         {
-            float aspectRatio = (float)image.Width / (float)image.Height;
-            if (widthInPixels <= image.Width)
-            {
-                try
-                {
-                    float newHeight = widthInPixels / aspectRatio;
-                    image.Mutate(image => image.Resize(widthInPixels, (int)newHeight));
-                    if (heightInPixels <= image.Height)
-                    {
-                        aspectRatio = widthInPixels / newHeight;
-                        float newWidth = heightInPixels * aspectRatio;
-                        image.Mutate(image => image.Resize((int)newWidth, heightInPixels));
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new GnossAPIException($"Error in resize: {ex.Message}");
-                }
-            }
-            else
-            {
-                if (heightInPixels <= image.Height)
-                {
-                    try
-                    {
-                        float newWidth = heightInPixels * aspectRatio;
-                        image.Mutate(image => image.Resize((int)newWidth, heightInPixels));
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new GnossAPIException($"Error in resize: {ex.Message}");
-                    }
-                }
-            }
+            return TransformImage(image, source => ResizeToHeightAndWidth(source, widthInPixels, heightInPixels), "Error in resize");
         }
 
         /// <summary>
@@ -94,15 +63,10 @@ namespace Gnoss.ApiWrapper.Helpers
         /// <param name="image">Image to resize</param>
         /// <param name="heightInPixels">Height to resize</param>
         /// <param name="pResizeAlways">Indicate if the image will be resized always</param>
-        public static void ResizeImageToHeight(Image image, int heightInPixels, bool pResizeAlways = false)
+        /// <returns>Resized image encoded as PNG</returns>
+        public static byte[] ResizeImageToHeight(byte[] image, int heightInPixels, bool pResizeAlways = false)
         {
-            float aspectRatio = (float)image.Width / (float)image.Height;
-
-            if (pResizeAlways || heightInPixels <= image.Height)
-            {
-                float newWidth = heightInPixels * aspectRatio;
-                image.Mutate(image => image.Resize((int)newWidth, heightInPixels));
-            }
+            return TransformImage(image, source => ResizeToHeight(source, heightInPixels, pResizeAlways), "Error in resize");
         }
 
         /// <summary>
@@ -110,7 +74,244 @@ namespace Gnoss.ApiWrapper.Helpers
         /// </summary>
         /// <param name="image">Image</param>
         /// <param name="squareSize">Size in pixels of the width and height of the result image</param>
-        public static void CropImageToSquare(Image image, int squareSize)
+        /// <returns>Cropped image encoded as PNG</returns>
+        public static byte[] CropImageToSquare(byte[] image, int squareSize)
+        {
+            return TransformImage(image, source => CropToSquare(source, squareSize), "Error in crop");
+        }
+
+        /// <summary>
+        /// Resize to the indicated size, crop the image and take the top of the image if it is vertical, or the central part if its horizontal
+        /// </summary>
+        /// <param name="pImage">Image</param>
+        /// <param name="pHeight">Height of the image</param>
+        /// <param name="pWidth">Width of the image</param>
+        /// <returns>Cropped image encoded as PNG</returns>
+        public static byte[] CropImageToHeightAndWidth(byte[] pImage, int pHeight, int pWidth)
+        {
+            return TransformImage(pImage, source => CropToHeightAndWidth(source, pHeight, pWidth), "Error in crop");
+        }
+
+        /// <summary>
+        /// Converts an image to PNG
+        /// </summary>
+        /// <param name="pImage">Image to convert</param>
+        /// <returns>Image encoded as PNG</returns>
+        public static byte[] ConvertToPng(byte[] pImage)
+        {
+            return TransformImage(pImage, source => source, "Imposible to convert the image to byte[]");
+        }
+
+        /// <summary>
+        /// Converts an image to PNG, with a minimum quality
+        /// </summary>
+        /// <param name="pImage">Image to convert</param>
+        /// <param name="pQuality">Minimum quality for the converted image</param>
+        /// <returns>Image encoded as PNG</returns>
+        public static byte[] ConvertToPng(byte[] pImage, int pQuality)
+        {
+            if (pQuality == int.MinValue)
+            {
+                // Convert without minimum quality
+                return ConvertToPng(pImage);
+            }
+            else
+            {
+                return TransformImage(pImage, ToRgbWithAlpha, "Imposible to convert the image to byte[]");
+            }
+        }
+
+        /// <summary>
+        /// Download a image from a url
+        /// </summary>
+        /// <param name="imageUrl">Url of the image</param>
+        /// <returns>Downloaded image</returns>
+        public static byte[] DownloadImageFromUrl(string imageUrl)
+        {
+            using (HttpClient httpClient = new HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Add("UserAgent", GnossApiWrapper.GenerarUserAgent());
+                byte[] imageContent = httpClient.GetByteArrayAsync(imageUrl).Result;
+                EnsureSupportedFormat(imageContent);
+                return imageContent;
+            }
+        }
+
+        /// <summary>
+        /// Download a image from a url or a local path
+        /// </summary>
+        /// <param name="imageUrlOrPath">Url or local path of the image</param>
+        /// <returns>Image</returns>
+        internal static byte[] ReadImageFromUrlOrLocalPath(string imageUrlOrPath)
+        {
+            byte[] image = null;
+            if (Uri.IsWellFormedUriString(imageUrlOrPath, UriKind.Absolute))
+            {
+                image = DownloadImageFromUrl(imageUrlOrPath);
+            }
+            else
+            {
+                if (File.Exists(imageUrlOrPath))
+                {
+                    try
+                    {
+                        image = File.ReadAllBytes(imageUrlOrPath);
+                        EnsureSupportedFormat(image);
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new GnossAPIException($"Error reading the image {imageUrlOrPath}: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    throw new GnossAPIException($"The image { imageUrlOrPath } doesn't exists or the application couldn't access");
+                }
+            }
+            return image;
+        }
+
+        /// <summary>
+        /// Gets the width of an image without decoding its pixels
+        /// </summary>
+        /// <param name="image">Image</param>
+        /// <returns>Width in pixels</returns>
+        internal static int GetImageWidth(byte[] image)
+        {
+            using (Image source = LoadImage(image))
+            {
+                return source.Width;
+            }
+        }
+
+        /// <summary>
+        /// Property assigned to the EXIF sRGB Color Space
+        /// </summary>
+        /// <param name="image">Image</param>
+        /// <returns>Image with color space encoded as PNG</returns>
+        public static byte[] AssignEXIFPropertyColorSpaceSRGB(byte[] image)
+        {
+            return TransformImage(image, source => source.Mutate(mutableImage => mutableImage.Set(GValue.GStrType, ExifColorSpaceField, ExifColorSpaceSRGB)), "Error assigning the EXIF color space");
+        }
+
+        #endregion
+
+        #region Private methods
+
+        /// <summary>
+        /// Decodes an image, applies a transformation and encodes the result as PNG
+        /// </summary>
+        /// <param name="image">Image to transform</param>
+        /// <param name="transformation">Transformation to apply</param>
+        /// <param name="errorMessage">Message of the exception if the transformation fails</param>
+        /// <returns>Transformed image encoded as PNG</returns>
+        private static byte[] TransformImage(byte[] image, Func<Image, Image> transformation, string errorMessage)
+        {
+            using (Image source = LoadImage(image))
+            {
+                try
+                {
+                    return EncodePng(transformation(source));
+                }
+                catch (Exception ex)
+                {
+                    throw new GnossAPIException($"{errorMessage}: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Encodes an image as PNG
+        /// </summary>
+        /// <param name="image">Image to encode</param>
+        /// <returns>Image encoded as PNG</returns>
+        private static byte[] EncodePng(Image image)
+        {
+            // libvips adds a default EXIF block when saving, so it is only kept if the image already has EXIF metadata
+            bool hasExif = image.GetFields().Any(field => field.Equals("exif-data") || field.StartsWith("exif-ifd"));
+            Enums.ForeignKeep keep = hasExif ? Enums.ForeignKeep.All : Enums.ForeignKeep.All & ~Enums.ForeignKeep.Exif;
+
+            return image.WriteToBuffer(".png", new VOption { { "keep", keep } });
+        }
+
+        /// <summary>
+        /// Decodes an image, only if its format is allowed
+        /// </summary>
+        /// <param name="image">Image to decode</param>
+        /// <returns>Decoded image</returns>
+        private static Image LoadImage(byte[] image)
+        {
+            EnsureSupportedFormat(image);
+
+            try
+            {
+                return Image.NewFromBuffer(image);
+            }
+            catch (Exception ex)
+            {
+                throw new GnossAPIException($"Imposible to convert the byte[] to image : {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Checks the format of the image by its signature, before decoding it
+        /// </summary>
+        /// <param name="image">Image to check</param>
+        private static void EnsureSupportedFormat(byte[] image)
+        {
+            string loader = image != null && image.Length > 0 ? Image.FindLoadBuffer(image) : null;
+
+            if (string.IsNullOrEmpty(loader) || !AllowedLoaders.Any(allowedLoader => loader.Contains(allowedLoader, StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new GnossAPIException("The image format is not supported. The allowed formats are JPEG, PNG, GIF and WebP");
+            }
+        }
+
+        private static Image ResizeToWidth(Image image, int widthInPixels, bool resizeAlways)
+        {
+            if (resizeAlways || widthInPixels <= image.Width)
+            {
+                float aspectRatio = (float)image.Width / (float)image.Height;
+                float newHeight = widthInPixels / aspectRatio;
+                return Resize(image, widthInPixels, (int)newHeight);
+            }
+            return image;
+        }
+
+        private static Image ResizeToHeight(Image image, int heightInPixels, bool resizeAlways)
+        {
+            if (resizeAlways || heightInPixels <= image.Height)
+            {
+                float aspectRatio = (float)image.Width / (float)image.Height;
+                float newWidth = heightInPixels * aspectRatio;
+                return Resize(image, (int)newWidth, heightInPixels);
+            }
+            return image;
+        }
+
+        private static Image ResizeToHeightAndWidth(Image image, int widthInPixels, int heightInPixels)
+        {
+            float aspectRatio = (float)image.Width / (float)image.Height;
+            if (widthInPixels <= image.Width)
+            {
+                float newHeight = widthInPixels / aspectRatio;
+                if (heightInPixels <= (int)newHeight)
+                {
+                    aspectRatio = widthInPixels / newHeight;
+                    float newWidth = heightInPixels * aspectRatio;
+                    return Resize(image, (int)newWidth, heightInPixels);
+                }
+                return Resize(image, widthInPixels, (int)newHeight);
+            }
+            else if (heightInPixels <= image.Height)
+            {
+                float newWidth = heightInPixels * aspectRatio;
+                return Resize(image, (int)newWidth, heightInPixels);
+            }
+            return image;
+        }
+
+        private static Image CropToSquare(Image image, int squareSize)
         {
             if (image.Height > squareSize && image.Width > squareSize)
             {
@@ -130,209 +331,88 @@ namespace Gnoss.ApiWrapper.Helpers
                 {
                     if (image.Width >= squareSize)
                     {
-                        ResizeImageToWidth(image, squareSize);
-                        Point origin = new Point(0, 0);
-                        Size size = new Size(squareSize, squareSize);
-                        Rectangle rectangle = new Rectangle(origin, size);
-                        image.Mutate(image => image.Crop(rectangle));
+                        image = ResizeToWidth(image, squareSize, false);
+                        return image.Crop(0, 0, squareSize, squareSize);
                     }
                     else if (image.Height > squareSize)
                     {
-                        Point origin = new Point(0, 0);
-                        Size size = new Size(image.Width, squareSize);
-                        Rectangle rectangle = new Rectangle(origin, size);
-                        image.Mutate(image => image.Crop(rectangle));
+                        return image.Crop(0, 0, image.Width, squareSize);
                     }
                 }
                 else if (isHorizontal)
                 {
                     if (image.Height >= squareSize)
                     {
-                        ResizeImageToHeight(image, squareSize);
-                        Point origin = new Point(Convert.ToInt32(image.Width - squareSize) / 2, 0);
-                        Size size = new Size(squareSize, squareSize);
-                        Rectangle rectangle = new Rectangle(origin, size);
-                        image.Mutate(image => image.Crop(rectangle));
+                        image = ResizeToHeight(image, squareSize, false);
+                        return image.Crop((image.Width - squareSize) / 2, 0, squareSize, squareSize);
                     }
                     else if (image.Width > squareSize)
                     {
-                        Point origin = new Point(Convert.ToInt32(image.Width - squareSize) / 2, 0);
-                        Size size = new Size(squareSize, image.Height);
-                        Rectangle rectangle = new Rectangle(origin, size);
-                        image.Mutate(image => image.Crop(rectangle));
+                        return image.Crop((image.Width - squareSize) / 2, 0, squareSize, image.Height);
                     }
                 }
                 else
                 {
                     //If the image isn't vertical and isn't horizontal, have to be a square
-                    ResizeImageToWidth(image, squareSize);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Resize to the indicated size, crop the image and take the top of the image if it is vertical, or the central part if its horizontal
-        /// </summary>
-        /// <param name="pImage">Image</param>
-        /// <param name="pHeight">Height of the image</param>
-        /// <param name="pWidth">Width of the image</param>       
-        public static void CropImageToHeightAndWidth(Image pImage, int pHeight, int pWidth)
-        {
-            float aspcetRatioDeseado = pHeight / pWidth;
-            float aspcetRatio = pImage.Height / pImage.Width;
-
-            if (aspcetRatio < aspcetRatioDeseado)
-            {
-                ResizeImageToHeight(pImage, pHeight, true);
-                Point origin = new Point(Convert.ToInt32(pImage.Width - pWidth) / 2, 0);
-                Size size = new Size(pWidth, pHeight);
-                Rectangle rectangle = new Rectangle(origin, size);
-                pImage.Mutate(image => image.Crop(rectangle));
-            }
-            else
-            {
-                ResizeImageToWidth(pImage, pWidth, true);
-                Point origin = new Point(0, Convert.ToInt32(pImage.Height - pHeight) / 2);
-                Size size = new Size(pWidth, pHeight);
-                Rectangle rectangle = new Rectangle(origin, size);
-                pImage.Mutate(image => image.Crop(rectangle));
-            }
-        }
-
-        /// <summary>
-        /// Converts Image to byte[]
-        /// </summary>
-        /// <param name="pImage">Image to convert to byte[]</param>
-        /// <returns>byte[] converted from <paramref name="pImage"/></returns>
-        public static byte[] ImageToByteArray(Image pImage)
-        {
-            try
-            {
-                using (MemoryStream ms = new MemoryStream())
-                {
-                    pImage.Save(ms, new PngEncoder());
-                    return ms.ToArray();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new GnossAPIException($"Imposible to convert the image to byte[]: {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Converts image to byte[], with a minimum quality
-        /// </summary>
-        /// <param name="pImage">Image to convert to byte[]</param>
-        /// <param name="pQuality">Minimum quality for the converted image</param>
-        /// <returns>byte[] converted from <paramref name="pImage"/></returns>
-        public static byte[] ImageToByteArray(Image pImage, int pQuality)
-        {
-            if (pQuality == int.MinValue)
-            {
-                // Convert without minimum quality
-                return ImageToByteArray(pImage);
-            }
-            else
-            {
-                PngEncoder encoder = new PngEncoder()
-                {
-                    ColorType = PngColorType.RgbWithAlpha
-                };
-
-                try
-                {
-                    MemoryStream ms = new MemoryStream();
-                    pImage.Save(ms, encoder);
-                    return ms.ToArray();
-                }
-                catch (Exception ex)
-                {
-                    throw new GnossAPIException($"Imposible to convert the image to byte[]: {ex.Message}");
-                }
-            }
-        }
-
-        /// <summary>
-        /// Download a image from a url
-        /// </summary>
-        /// <param name="imageUrl">Url of the image</param>
-        /// <returns>Image</returns>
-        public static Image DownloadImageFromUrl(string imageUrl)
-        {
-            using (HttpClient httpClient = new HttpClient())
-            {
-                httpClient.DefaultRequestHeaders.Add("UserAgent", GnossApiWrapper.GenerarUserAgent());
-                byte[] imageContent = httpClient.GetByteArrayAsync(imageUrl).Result;
-                return Image.Load(imageContent);
-            }
-        }
-
-        /// <summary>
-        /// Converts ByteArray to Image
-        /// </summary>
-        /// <param name="byteArray">Bytearray of the image</param>
-        /// <returns>Image</returns>
-        public static Image ByteArrayToImage(byte[] byteArray)
-        {
-            try
-            {
-               return Image.Load(byteArray);
-            }
-            catch (Exception ex)
-            {
-                throw new GnossAPIException($"Imposible to convert the byte[] to image : {ex.Message}");
-            }
-        }
-
-        /// <summary>
-        /// Download a image from a url or a local path
-        /// </summary>
-        /// <param name="imageUrlOrPath">Url or local path of the image</param>
-        /// <returns>Image</returns>
-        internal static Image ReadImageFromUrlOrLocalPath(string imageUrlOrPath)
-        {
-            Image image = null;
-            if (Uri.IsWellFormedUriString(imageUrlOrPath, UriKind.Absolute))
-            {
-                image = DownloadImageFromUrl(imageUrlOrPath);
-            }
-            else
-            {
-                if (File.Exists(imageUrlOrPath))
-                {
-                    try
-                    {
-                        image = Image.Load(imageUrlOrPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new GnossAPIException($"Error reading the image {imageUrlOrPath}: {ex.Message}");
-                    }
-                }
-                else
-                {
-                    throw new GnossAPIException($"The image { imageUrlOrPath } doesn't exists or the application couldn't access");
+                    return ResizeToWidth(image, squareSize, false);
                 }
             }
             return image;
         }
 
-        /// <summary>
-        /// Property assigned to the EXIF sRGB Color Space
-        /// <param name="image">Image</param>
-        /// <returns>Image with color space</returns>
-        public static void AssignEXIFPropertyColorSpaceSRGB(Image image)
+        private static Image CropToHeightAndWidth(Image image, int height, int width)
         {
-            if(image.Metadata != null)
+            float desiredAspectRatio = (float)height / width;
+            float aspectRatio = (float)image.Height / image.Width;
+
+            if (aspectRatio < desiredAspectRatio)
             {
-                if(image.Metadata.ExifProfile == null)
-                {
-                    image.Metadata.ExifProfile = new ExifProfile();
-                    
-                }
-                image.Metadata.ExifProfile.SetValue<ushort>(ExifTag.ColorSpace, 1);
-            }            
+                image = ResizeToHeight(image, height, true);
+                return image.Crop((image.Width - width) / 2, 0, width, height);
+            }
+            else
+            {
+                image = ResizeToWidth(image, width, true);
+                return image.Crop(0, (image.Height - height) / 2, width, height);
+            }
+        }
+
+        /// <summary>
+        /// Resize the image to the exact width and height indicated
+        /// </summary>
+        private static Image Resize(Image image, int width, int height)
+        {
+            double horizontalScale = (double)width / image.Width;
+            double verticalScale = (double)height / image.Height;
+
+            if (!image.HasAlpha())
+            {
+                return image.Resize(horizontalScale, Enums.Kernel.Cubic, vscale: verticalScale);
+            }
+
+            // Premultiply the alpha channel to avoid dark halos around the transparent areas
+            return image.Premultiply()
+                .Resize(horizontalScale, Enums.Kernel.Cubic, vscale: verticalScale)
+                .Unpremultiply()
+                .Cast(image.Format);
+        }
+
+        /// <summary>
+        /// Converts the image to RGB with alpha channel
+        /// </summary>
+        private static Image ToRgbWithAlpha(Image image)
+        {
+            if (image.Interpretation != Enums.Interpretation.Srgb && image.Interpretation != Enums.Interpretation.Rgb16)
+            {
+                image = image.Colourspace(Enums.Interpretation.Srgb);
+            }
+
+            if (!image.HasAlpha())
+            {
+                image = image.Bandjoin(image.Format == Enums.BandFormat.Ushort ? 65535 : 255);
+            }
+
+            return image;
         }
 
         #endregion
