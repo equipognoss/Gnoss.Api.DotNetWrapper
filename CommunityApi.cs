@@ -1125,6 +1125,34 @@ namespace Gnoss.ApiWrapper
             return esAdmin;
         }
 
+        /// <summary>
+        /// Checks if an identity is a member of a community
+        /// </summary>
+        /// <param name="identityId">Identity identifier</param>
+        /// <param name="communityShortName">Short name of the community</param>
+        /// <returns>True if the identity is a member of the community</returns>
+        public bool CheckIdentityMembership(Guid identityId, string communityShortName)
+        {
+            bool isMember = false;
+
+            try
+            {
+                string url = $"{ApiUrl}/community/check-identity-membership?identity_id={identityId}& community_short_name={HttpUtility.UrlEncode(communityShortName)}";
+
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                isMember = JsonConvert.DeserializeObject<bool>(response);
+
+                Log.Debug($"Membership of the identity {identityId} in {communityShortName} checked: {isMember}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error checking the membership of the identity {identityId} in {communityShortName}: \r\n{ex.Message}");
+                throw;
+            }
+
+            return isMember;
+        }
+
         public void DowngradeMemberFromAdministrator(Guid userId)
         {
             try
