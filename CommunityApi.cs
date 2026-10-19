@@ -1137,7 +1137,7 @@ namespace Gnoss.ApiWrapper
 
             try
             {
-                string url = $"{ApiUrl}/community/check-identity-membership?identity_id={identityId}& community_short_name={HttpUtility.UrlEncode(communityShortName)}";
+                string url = $"{ApiUrl}/community/check-identity-membership?identity_id={identityId}&community_short_name={HttpUtility.UrlEncode(communityShortName)}";
 
                 string response = WebRequest("GET", url, acceptHeader: "application/json");
                 isMember = JsonConvert.DeserializeObject<bool>(response);
