@@ -1153,6 +1153,63 @@ namespace Gnoss.ApiWrapper
             return isMember;
         }
 
+        /// <summary>
+        /// Checks if an identity is a member of any of the groups
+        /// </summary>
+        /// <param name="identidadId">Identity identifier</param>
+        /// <param name="grupos">Group identifiers</param>
+        /// <returns>True if the identity is a member of any of the groups</returns>
+        public bool CheckPertenenciaAGrupoDeComunidad(Guid identidadId, List<Guid> grupos)
+        {
+            bool isMember = false;
+
+            try
+            {
+                string url = $"{ApiUrl}/community/check-identity-groups-membership";
+
+                IdentityGroupsModel model = new IdentityGroupsModel() { identity_id = identidadId, groups = grupos };
+
+                string response = WebRequestPostWithJsonObject(url, model);
+                isMember = JsonConvert.DeserializeObject<bool>(response);
+
+                Log.Debug($"Membership of the identity {identidadId} in the groups checked: {isMember}");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error checking the membership of the identity {identidadId} in the groups: \r\n{ex.Message}");
+                throw;
+            }
+
+            return isMember;
+        }
+
+        /// <summary>
+        /// Gets the identifiers of the groups an identity is a member of
+        /// </summary>
+        /// <param name="identidadId">Identity identifier</param>
+        /// <returns>Identifiers of the groups the identity is a member of</returns>
+        public List<Guid> GetGruposDeIdentidad(Guid identidadId)
+        {
+            List<Guid> groups = null;
+
+            try
+            {
+                string url = $"{ApiUrl}/community/get-identity-groups?identity_id={identidadId}";
+
+                string response = WebRequest("GET", url, acceptHeader: "application/json");
+                groups = JsonConvert.DeserializeObject<List<Guid>>(response);
+
+                Log.Debug($"Groups of the identity {identidadId} obtained");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error obtaining the groups of the identity {identidadId}: \r\n{ex.Message}");
+                throw;
+            }
+
+            return groups;
+        }
+
         public void DowngradeMemberFromAdministrator(Guid userId)
         {
             try

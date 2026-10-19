@@ -583,6 +583,22 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Represents an identity and a list of groups to check its membership
+    /// </summary>
+    public class IdentityGroupsModel
+    {
+        /// <summary>
+        /// Identity identifier
+        /// </summary>
+        public Guid identity_id { get; set; }
+
+        /// <summary>
+        /// Group identifiers
+        /// </summary>
+        public List<Guid> groups { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to change the name of a community
     /// </summary>
     public class ChangeNameCommunityModel
