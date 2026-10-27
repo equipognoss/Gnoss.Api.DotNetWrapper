@@ -875,6 +875,40 @@ namespace Gnoss.ApiWrapper.ApiModel
     }
 
     /// <summary>
+    /// Parameters to replace the images of an already loaded resource
+    /// </summary>
+    public class UpdateImagesFromIDParams : UploadImagesParams
+    {
+        /// <summary>
+        /// Images of the resource to replace with the uploaded images
+        /// </summary>
+        [Required]
+        public List<ImageTripleReplacement> image_triples { get; set; }
+    }
+
+    /// <summary>
+    /// Replacement of an image of a resource. The API detects the image triples to modify from the resource RDF
+    /// </summary>
+    public class ImageTripleReplacement
+    {
+        /// <summary>
+        /// File name of the new image, included in resource_attached_files. Example: a27b1e80-9755-7ad5-2731-e2ac6be9b463.jpg
+        /// </summary>
+        [Required]
+        public string new_image { get; set; }
+
+        /// <summary>
+        /// (Optional) File name of the image to replace. Required when the resource has more than one image and predicate does not identify it. Example: 3f2a1c80-1234-4ad5-2731-e2ac6be9b463.jpg
+        /// </summary>
+        public string old_image { get; set; }
+
+        /// <summary>
+        /// (Optional) Predicate of the image property, with pipe splitting for the diferent levels. Used to identify the image to replace when old_image is not indicated
+        /// </summary>
+        public string predicate { get; set; }
+    }
+
+    /// <summary>
     /// Parameters to translate a resource
     /// </summary>
     public class TranslateResourceParams

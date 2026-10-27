@@ -4266,6 +4266,45 @@ namespace Gnoss.ApiWrapper
         }
 
         /// <summary>
+        /// Replaces images of an already loaded resource. Uploads the new images and updates the image triples that reference them,
+        /// which are detected by the API from the resource RDF.
+        /// </summary>
+        /// <param name="resourceId">Resource identifier</param>
+        /// <param name="imageList">New images (and their crops) to upload. List of SemanticAttachedResource</param>
+        /// SemanticAttachedResource:
+        ///     file_rdf_property = image name. Example: a27b1e80-9755-7ad5-2731-e2ac6be9b463.jpg or a27b1e80-9755-7ad5-2731-e2ac6be9b463_240.jpg
+        ///     file_property_type = type of file (AttachedResourceFilePropertyTypes.image)
+        ///     rdf_attached_file = image to load
+        /// <param name="imageTriples">Images to replace. List of ImageTripleReplacement</param>
+        /// ImageTripleReplacement:
+        ///     new_image = file name of the new image, included in imageList
+        ///     old_image = (optional) file name of the image to replace. Required when the resource has more than one image and predicate does not identify it
+        ///     predicate = (optional) predicate of the image property with pipe splitting for the diferent levels. Used to identify the image to replace when old_image is not indicated
+        /// <param name="mainImage">(optional) main image string. Example: [IMGPrincipal][240,]a27b1e80-9755-7ad5-2731-e2ac6be9b463.jpg</param>
+        public bool UpdateResourceImagesFromID(Guid resourceId, List<SemanticAttachedResource> imageList, List<ImageTripleReplacement> imageTriples, string mainImage)
+        {
+            bool loaded = false;
+            UpdateImagesFromIDParams model = null;
+            try
+            {
+                string url = $"{ApiUrl}/resource/update-resource-images-from-id";
+                model = new UpdateImagesFromIDParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, image_triples = imageTriples, main_image = mainImage };
+                WebRequestPostWithJsonObject(url, model);
+                loaded = true;
+                Log.Debug("Ended images update");
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Error updating resource {resourceId} images. \r\n Json: {JsonConvert.SerializeObject(model)}", ex.Message);
+                throw;
+            }
+
+            return loaded;
+        }
+
+
+
+        /// <summary>
         /// Link the resources in the list to another resource.
         /// </summary>
         /// <param name="resourceId">Resource that has been linked</param>
