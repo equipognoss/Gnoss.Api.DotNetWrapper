@@ -4281,13 +4281,13 @@ namespace Gnoss.ApiWrapper
         ///     old_image = (optional) file name of the image to replace. Required when the resource has more than one image and predicate does not identify it
         ///     predicate = (optional) predicate of the image property with pipe splitting for the diferent levels. Used to identify the image to replace when old_image is not indicated
         /// <param name="mainImage">(optional) main image string. Example: [IMGPrincipal][240,]a27b1e80-9755-7ad5-2731-e2ac6be9b463.jpg</param>
-        public bool UpdateImagesFromID(Guid resourceId, List<SemanticAttachedResource> imageList, List<ImageTripleReplacement> imageTriples, string mainImage)
+        public bool UpdateResourceImagesFromID(Guid resourceId, List<SemanticAttachedResource> imageList, List<ImageTripleReplacement> imageTriples, string mainImage)
         {
             bool loaded = false;
             UpdateImagesFromIDParams model = null;
             try
             {
-                string url = $"{ApiUrl}/resource/update-images-from-id";
+                string url = $"{ApiUrl}/resource/update-resource-images-from-id";
                 model = new UpdateImagesFromIDParams() { resource_id = resourceId, community_short_name = CommunityShortName, resource_attached_files = imageList, image_triples = imageTriples, main_image = mainImage };
                 WebRequestPostWithJsonObject(url, model);
                 loaded = true;
