@@ -450,7 +450,12 @@ namespace Gnoss.ApiWrapper
                     model.ontology_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
                     model.search_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_search_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.nq"));
                     model.sql_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_acid_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.txt"));
-                    model.images_manifest_bytes = File.ReadAllBytes(Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_images_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.json"));
+					//El manifiesto de imágenes solo existe si algún recurso del paquete contiene imágenes
+					string imagesManifestPath = Path.Combine(FilesDirectory, $"{OntologyNameWithoutExtension}_images_{MassiveLoadIdentifier}_{counter[OntologyNameWithoutExtension].FileCount}.json");
+                    if (File.Exists(imagesManifestPath))
+                    {
+                        model.images_manifest_bytes = File.ReadAllBytes(imagesManifestPath);
+                    }
                 }
 
                 model.ontology_rute = uriOntology;
